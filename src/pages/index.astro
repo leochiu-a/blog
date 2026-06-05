@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { PortfolioApp } from '../components/PortfolioApp';
+import type { Post } from '../types/content';
+
+const allPosts = await getCollection('blog');
+const sorted = [...allPosts].sort((a, b) =>
+  b.data.datetime.localeCompare(a.data.datetime)
+);
+
+function toPost(entry: (typeof allPosts)[number]): Post {
+  const slug = entry.id.replace(/\.mdx$/, '');
+  const date = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(entry.data.datetime));
+  return {
+    title: entry.data.title,
+    href: `/blog/${slug}/`,
+    readTime: entry.data.readTime,
+    date,
+    datetime: entry.data.datetime,
+    featured: entry.data.featured,
+  };
+}
+
+const professionalPosts = sorted
+  .filter((p) => p.data.category === 'professional')
+  .map(toPost);
+const personalPosts = sorted
+  .filter((p) => p.data.category === 'personal')
+  .map(toPost);
+---
+
+<BaseLayout dark={true}>
+  <PortfolioApp
+    professionalPosts={professionalPosts}
+    personalPosts={personalPosts}
+    client:load
+  />
+</BaseLayout>

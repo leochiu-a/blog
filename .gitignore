@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# astro
+/.astro/
+/dist/
+
 # production
 /build
 
@@ -39,3 +43,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# content-collections generated output
+/.content-collections/
+
+# local planning & research docs
+/docs/
+/.planning/

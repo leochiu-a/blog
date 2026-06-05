@@ -1,0 +1,63 @@
+---
+title: "Sparse Rewards: Enlightenment and Reinforcement Learning"
+datetime: "2026-03-28T00:00:00.000Z"
+readTime: "4 min read"
+font: newsreader
+category: personal
+---
+
+_A small primer on Reinforcement Learning_
+
+In AI, there is a phase of training models called Reinforcement Learning. By this point, the model has already learned about the world — it knows what a book is, what Amazon is, what cash is. Now it’s learning how to accomplish tasks, like buy a book from Amazon.
+
+We train the model to do this by placing it in a simulated “environment” and giving it rewards when it does something right. Every time it attempts a task, it receives an _update_ — a small change that hopefully nudges it toward better behavior. For example, it might get an update nudging it positively if it starts by clicking on the search bar.
+
+The hardest problems are those with **sparse rewards** — where the model only receives feedback at rare, unpredictable moments. Without frequent signals, it struggles to know which of its actions actually mattered.
+
+
+<div dangerouslySetInnerHTML={{ __html: `<figure className="reward-timeline my-10 mx-auto max-w-md not-prose"> <div className="space-y-5">  <div className="flex items-center gap-4"> <span className="w-16 shrink-0 text-right font-cormorant text-xs uppercase tracking-wider text-[#8a8275] dark:text-[#7d7568] sm:w-20">Dense</span> <div className="relative h-10 flex-1 overflow-hidden rounded-lg border border-[#e8e4da]/60 bg-[#f8f4ec]/80 dark:border-[#3d3b35]/60 dark:bg-[#2a2924]/80"> <div className="absolute left-3 right-3 top-1/2 h-px -translate-y-1/2 bg-[#d4cfc2]/80 dark:bg-[#4a4840]/80"></div> <div className="dense-pulse absolute top-1/2 rounded-full" style="left: 4%; width: 3px; height: 3px; animation-delay: 0s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 11.689986389693651%; width: 4px; height: 4px; animation-delay: 0.12s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 15.652320637406946%; width: 5px; height: 5px; animation-delay: 0.24s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 24.581945360868016%; width: 3px; height: 3px; animation-delay: 0.36s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 30.620049156864656%; width: 4px; height: 4px; animation-delay: 0.48s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 35.54396459511021%; width: 5px; height: 5px; animation-delay: 0.6s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 44.84411493273759%; width: 3px; height: 3px; animation-delay: 0.72s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 49.42689287422399%; width: 4px; height: 4px; animation-delay: 0.84s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 55.919580138320725%; width: 5px; height: 5px; animation-delay: 0.96s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 64.58458622961032%; width: 3px; height: 3px; animation-delay: 1.08s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 68.44495510802295%; width: 4px; height: 4px; animation-delay: 1.2s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 76.53543429102002%; width: 5px; height: 5px; animation-delay: 1.3199999999999998s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 83.79370856026745%; width: 3px; height: 3px; animation-delay: 1.44s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="dense-pulse absolute top-1/2 rounded-full" style="left: 87.93082888257571%; width: 4px; height: 4px; animation-delay: 1.56s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div> </div> </div>  <div className="flex items-center gap-4"> <span className="w-16 shrink-0 text-right font-cormorant text-xs uppercase tracking-wider text-[#8a8275] dark:text-[#7d7568] sm:w-20">Sparse</span> <div className="relative h-10 flex-1 overflow-hidden rounded-lg border border-[#e8e4da]/60 bg-[#f8f4ec]/80 dark:border-[#3d3b35]/60 dark:bg-[#2a2924]/80"> <div className="absolute left-3 right-3 top-1/2 h-px -translate-y-1/2 bg-[#d4cfc2]/80 dark:bg-[#4a4840]/80"></div> <div className="sparse-pulse absolute top-1/2 rounded-full" style="left: 28%; width: 6px; height: 6px; animation-delay: 0s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div><div className="sparse-pulse absolute top-1/2 rounded-full" style="left: 76%; width: 7px; height: 7px; animation-delay: 1.8s; background: hsl(var(--gold)); transform: translate(-50%, -50%);"></div> </div> </div> </div> </figure>` }} />
+
+
+For example, imagine that you actually wanted the model to “buy something that tastes good”. While the model could try and accomplish the task, it would not get much feedback until the user tasted what it bought.
+
+Still, the model has no choice but to keep acting, trusting that somewhere in what it did, something mattered.
+
+\---
+
+I think there are a lot of parallels to our journey through life. We stumble through the world, driven by vague signals that change often. Happiness comes and goes. We are never quite sure what we did to deserve it, or to lose it.
+
+But there is a rarer reward. One that arrives so rarely most people aren’t sure it’s real. I think the closest word we have for it in English is enlightenment.
+
+It is a joy that is not caused by anything. It is euphoric but not in an addictive way. It is peaceful, but not in a way that describes the absence of chaos. It makes you feel that nothing really matters, but that is also why everything matters so much.
+
+The average person may feel these moments in glimpses and flashes. When you see the moon at night with someone you love.
+
+But there are people who live in this state constantly. They have somehow solved the puzzle of life.
+
+And in solving it, the shallowness of the world is revealed to them. They can see through it all.
+
+The world is a training environment. Wealth and poverty are simply states and signals within it, neither advantages nor disadvantages. The point of it all is to find this signal of enlightenment.
+
+**So how do you find this reward? This feeling of enlightenment?**
+
+I would see this described as goodness. But it is not the same act as _doing good_. You could give your entire wealth in charity, and yet if the goal of it is to feel happy, it would not then be _goodness_.
+
+**Reward Hacking** — In AI, this is a failure mode where the model finds a shortcut — it games the metric without solving the real problem. It looks like success from the outside, but something essential is missing.
+
+Thus, it is hard to pin down goodness. We can only speak of some of the characteristics of goodness.
+
+Goodness is not _calculating_. Goodness does not seek to have the most impact or deliver the most utility. It may do that as a side effect, but it is not the point. It may be self-sacrificing, it may hurt you, it may not leave you with anything.
+
+
+<FancyQuote>
+Truly, the only reward for goodness, is goodness itself.
+</FancyQuote>
+
+
+\---
+
+I want to be clear, I am not enlightened. So far from it. I experience this feeling so rarely and infrequently.
+
+I experience it most when I am writing (both code and words), and so I write. I often think of what a poverty it is that I must go to these lengths to feel what some can feel just by breathing.
+
+Still, we must be grateful for our sparse rewards whenever they arrive and heed whatever updates they bring us.
