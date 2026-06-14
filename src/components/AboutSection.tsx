@@ -10,25 +10,17 @@ export function AboutSection({ mode }: { mode: Mode }) {
         {mode === "professional" ? (
           <>
             <p>
-              Engineer &amp; serial entrepreneur. Currently working on Claude Code at Anthropic.
+              資深前端工程師，專注於構建高效、可擴展的網頁應用程式。擁有豐富的經驗，熟悉各種前端技術和框架，致力於創造優質的使用者體驗。
             </p>
             <p>
-              In past lives I&apos;ve founded{" "}
-              <a className={linkClass} href="https://www.playmultiverse.com">
-                a YC backed gaming company that raised $17MM
-              </a>
-              ,{" "}
-              <a
-                className={linkClass}
-                href="https://techcrunch.com/2013/03/28/hubspot-acquires-chime-prepwork/"
-              >
-                sold a SAAS startup
-              </a>
-              ,{" "}
-              <a className={linkClass} href="https://www.pubpub.org/">
-                made a non-profit
-              </a>
-              , and did gradschool at the MIT Media Lab.
+              <span className={linkClass}>
+                目前任職於 KKday Growth Team，主導網站 SEO / AEO（AI
+                搜尋優化）策略落地
+              </span>
+              <span>
+                ，透過提升網頁核心指標（Core Web
+                Vitals）與語義化架構，驅動網站流量與搜尋能見度成長。擅長將複雜業務轉化為高效技術方案，並在團隊中推動效能優化與架構升級。
+              </span>
             </p>
           </>
         ) : (
