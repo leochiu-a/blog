@@ -24,7 +24,9 @@ export function PoemCard({ title, author, translator, source, children }: PoemCa
         {(author || translator || source) && (
           <footer className="mt-12 space-y-1 text-center">
             {author && (
-              <div className="font-cormorant text-sm text-[#6b6358] dark:text-[#a89e8a]">{author}</div>
+              <div className="font-cormorant text-sm text-[#6b6358] dark:text-[#a89e8a]">
+                {author}
+              </div>
             )}
             {translator && (
               <div className="font-sans text-xs tracking-wide text-[#8a8275] dark:text-[#7d7568]">
@@ -32,7 +34,9 @@ export function PoemCard({ title, author, translator, source, children }: PoemCa
               </div>
             )}
             {source && (
-              <div className="font-sans text-xs italic text-[#9d958a] dark:text-[#6d675d]">{source}</div>
+              <div className="font-sans text-xs italic text-[#9d958a] dark:text-[#6d675d]">
+                {source}
+              </div>
             )}
           </footer>
         )}

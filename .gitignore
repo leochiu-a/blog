@@ -50,3 +50,7 @@ next-env.d.ts
 # local planning & research docs
 /docs/
 /.planning/
+
+# local tooling & one-time migration scripts
+/.claude/
+/scripts/

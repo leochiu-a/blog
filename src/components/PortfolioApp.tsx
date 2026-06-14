@@ -40,7 +40,10 @@ export function PortfolioApp({ professionalPosts, personalPosts }: PortfolioAppP
   return (
     <main className="flex min-h-screen w-screen max-w-[75rem] flex-col items-center px-6 pb-10 pt-7 font-garamond">
       <header className="mb-12 flex w-full flex-wrap pb-3 text-sm sm:flex-nowrap">
-        <nav className="relative mx-auto flex w-full items-center justify-between" aria-label="global">
+        <nav
+          className="relative mx-auto flex w-full items-center justify-between"
+          aria-label="global"
+        >
           <div className="z-10 flex flex-1 items-center justify-start pb-8">
             <a
               href="/"

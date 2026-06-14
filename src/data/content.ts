@@ -34,24 +34,21 @@ export const projects: Project[] = [
   },
   {
     title: "Sherpa",
-    description:
-      "An email agent that prioritizes your emails based on your contacts and goals.",
+    description: "An email agent that prioritizes your emails based on your contacts and goals.",
     href: "/blog/sherpa",
     image: "/images/sherpa.jpeg",
     tags: ["Prototype"],
   },
   {
     title: "AI World Building",
-    description:
-      "An experiment in AI-aided world building for roleplaying games.",
+    description: "An experiment in AI-aided world building for roleplaying games.",
     href: "/blog/worldbuilding",
     image: "/images/worldbuilding.png",
     tags: ["Prototype"],
   },
   {
     title: "Edgeout.gg",
-    description:
-      "A bootstrapped gaming analytics platform I made. Sold to blitz.gg",
+    description: "A bootstrapped gaming analytics platform I made. Sold to blitz.gg",
     href: "https://blitz.gg",
     image: "/images/edgeout.png",
     tags: ["Acquisition"],
@@ -64,8 +61,7 @@ export const projects: Project[] = [
   },
   {
     title: "Chime",
-    description:
-      "A startup that I co-founded in undergrad and was acquired by Hubspot.",
+    description: "A startup that I co-founded in undergrad and was acquired by Hubspot.",
     href: "https://techcrunch.com/2013/03/28/hubspot-acquires-chime-prepwork/",
     image: "/images/chime.png",
     tags: ["Acquisition"],

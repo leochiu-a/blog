@@ -20,7 +20,14 @@ export function TrackPattern(props: SVGProps<SVGSVGElement>) {
   return (
     <svg preserveAspectRatio="none" viewBox="0 0 200 40" {...props}>
       <defs>
-        <pattern id="diamond-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+        <pattern
+          id="diamond-pattern"
+          x="0"
+          y="0"
+          width="20"
+          height="20"
+          patternUnits="userSpaceOnUse"
+        >
           <path d="M10,0 L20,10 L10,20 L0,10 Z" fill="currentColor" opacity="0.05" />
         </pattern>
       </defs>
@@ -34,21 +41,97 @@ export function WhirlRings(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 200 200" {...props}>
       <g className="whirl-slow">
-        <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" strokeWidth="1" className="text-gold opacity-40" />
-        <path d="M 100 5 A 95 95 0 0 1 195 100" fill="none" stroke="currentColor" strokeWidth="2" className="text-gold opacity-70" />
-        <path d="M 195 100 A 95 95 0 0 1 100 195" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gold opacity-50" />
+        <circle
+          cx="100"
+          cy="100"
+          r="95"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+          className="text-gold opacity-40"
+        />
+        <path
+          d="M 100 5 A 95 95 0 0 1 195 100"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-gold opacity-70"
+        />
+        <path
+          d="M 195 100 A 95 95 0 0 1 100 195"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-gold opacity-50"
+        />
       </g>
       <g className="whirl-medium">
-        <circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gold opacity-30" />
-        <path d="M 100 12 A 88 88 0 0 1 188 100" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-bronze opacity-60" />
-        <path d="M 12 100 A 88 88 0 0 1 100 12" fill="none" stroke="currentColor" strokeWidth="1" className="text-bronze opacity-40" />
+        <circle
+          cx="100"
+          cy="100"
+          r="88"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          className="text-gold opacity-30"
+        />
+        <path
+          d="M 100 12 A 88 88 0 0 1 188 100"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-bronze opacity-60"
+        />
+        <path
+          d="M 12 100 A 88 88 0 0 1 100 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+          className="text-bronze opacity-40"
+        />
       </g>
       <g className="whirl-fast">
-        <circle cx="100" cy="100" r="82" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gold opacity-20" />
-        <path d="M 100 18 A 82 82 0 0 1 150 30" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-gold opacity-60" />
-        <path d="M 182 100 A 82 82 0 0 1 170 150" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-gold opacity-60" />
-        <path d="M 100 182 A 82 82 0 0 1 50 170" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-gold opacity-60" />
-        <path d="M 18 100 A 82 82 0 0 1 30 50" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-gold opacity-60" />
+        <circle
+          cx="100"
+          cy="100"
+          r="82"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          className="text-gold opacity-20"
+        />
+        <path
+          d="M 100 18 A 82 82 0 0 1 150 30"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="text-gold opacity-60"
+        />
+        <path
+          d="M 182 100 A 82 82 0 0 1 170 150"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="text-gold opacity-60"
+        />
+        <path
+          d="M 100 182 A 82 82 0 0 1 50 170"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="text-gold opacity-60"
+        />
+        <path
+          d="M 18 100 A 82 82 0 0 1 30 50"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="text-gold opacity-60"
+        />
       </g>
     </svg>
   );
@@ -68,7 +151,12 @@ export function DividerOrnament(props: SVGProps<SVGSVGElement>) {
 export function CardCorner(props: SVGProps<SVGSVGElement>) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" {...props}>
-      <path d="M2 2 L8 2 L2 8 Z M2 2 L4 4 L2 6 Z" fill="currentColor" stroke="currentColor" strokeWidth="0.5" />
+      <path
+        d="M2 2 L8 2 L2 8 Z M2 2 L4 4 L2 6 Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.5"
+      />
       <circle cx="6" cy="6" r="1" fill="currentColor" />
     </svg>
   );
