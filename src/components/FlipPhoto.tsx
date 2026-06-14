@@ -1,4 +1,4 @@
-import type { SVGProps } from "react";
+import Image from "next/image";
 import { WhirlRings } from "@/components/icons";
 
 interface FlipPhotoProps {
@@ -15,10 +15,10 @@ export default function FlipPhoto({
   backSrc = "/images/thariq-personal.png",
 }: FlipPhotoProps) {
   return (
-    <div
+    <button
+      type="button"
       className={`flip-container h-48 w-48${flipped ? " flipped" : ""}`}
-      role="button"
-      tabIndex={0}
+      aria-label="Toggle profile photo"
       onClick={onFlip}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -34,10 +34,11 @@ export default function FlipPhoto({
               <WhirlRings className="absolute h-full w-full" />
             </div>
             <div className="absolute inset-[14px] overflow-hidden rounded-full">
-              <img
+              <Image
                 src={frontSrc}
-                alt="professional profile photo"
-                className="h-full w-full object-cover"
+                alt="Professional profile"
+                fill
+                className="object-cover"
               />
             </div>
           </div>
@@ -48,15 +49,16 @@ export default function FlipPhoto({
               <WhirlRings className="absolute h-full w-full" />
             </div>
             <div className="absolute inset-[14px] overflow-hidden rounded-full">
-              <img
+              <Image
                 src={backSrc}
-                alt="personal profile photo"
-                className="h-full w-full object-cover"
+                alt="Personal profile"
+                fill
+                className="object-cover"
               />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

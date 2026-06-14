@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Mode, Post } from "@/types/content";
 import { ThemeSync } from "@/components/ThemeSync";
 import { ModeToggle } from "@/components/ModeToggle";
@@ -24,13 +25,13 @@ export function PortfolioApp({ mode, professionalPosts, personalPosts }: Portfol
           aria-label="global"
         >
           <div className="z-10 flex flex-1 items-center justify-start pb-8">
-            <a
+            <Link
               href="/"
               className="flex-none font-garamond text-[1.25rem] font-medium transition-colors hover:text-gold"
               aria-label="Nav Menu Item"
             >
               Home
-            </a>
+            </Link>
           </div>
           <div className="z-0 flex w-full justify-center">
             <ModeToggle mode={mode} />

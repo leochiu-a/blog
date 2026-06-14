@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unassigned-import
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { fontVariables } from "@/lib/fonts";

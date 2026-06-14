@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Project } from "@/types/content";
 import { CardCorner } from "@/components/icons";
 
@@ -28,7 +29,9 @@ export function ProjectCard({ project }: { project: Project }) {
         {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="flex flex-col gap-y-3 no-underline"
       >
-        <img src={project.image} alt="" className="h-48 w-full rounded-t-md object-cover" />
+        <div className="relative h-48 w-full">
+          <Image src={project.image} alt="" fill className="rounded-t-md object-cover" />
+        </div>
         <div className="flex flex-col gap-y-0.5 px-5 py-4">
           <h3 className="font-cormorant text-xl font-semibold text-foreground">{project.title}</h3>
           <p className="text-sm leading-relaxed text-muted-foreground">{project.description}</p>
@@ -51,7 +54,7 @@ export function ProjectCard({ project }: { project: Project }) {
             href={project.hn.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-[200px] flex-row font-mono no-underline hover:no-underline"
+            className="flex w-50 flex-row font-mono no-underline hover:no-underline"
           >
             <div className="inline-block border border-[#ff6600] bg-[#ff6600] px-2 py-1 text-xxs text-white">
               HN

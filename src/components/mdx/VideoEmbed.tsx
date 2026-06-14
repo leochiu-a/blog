@@ -7,7 +7,14 @@ interface VideoEmbedProps {
 export function VideoEmbed({ src, width = 640, height = 360 }: VideoEmbedProps) {
   return (
     <div className="mt-4">
-      <iframe src={src} width={width} height={height} allowFullScreen />
+      <iframe
+        src={src}
+        width={width}
+        height={height}
+        title="Embedded video"
+        sandbox="allow-scripts allow-presentation"
+        allowFullScreen
+      />
     </div>
   );
 }
