@@ -52,7 +52,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     : "";
 
   return (
-    <main className="flex min-h-screen w-screen max-w-300 flex-col items-center px-6 pb-10 pt-7 font-garamond text-[0.92rem] leading-relaxed sm:px-10 lg:px-10">
+    <main className="flex min-h-screen w-screen max-w-2xl flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10 lg:px-10">
       <BlogHeader />
 
       <div>
@@ -79,7 +79,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
 
             <div
-              className={`prose prose-zinc mt-6 ${
+              className={`prose prose-lg prose-zinc mt-6 ${
                 post.font === "newsreader" ? "font-newsreader" : "font-garamond"
               }`}
             >
