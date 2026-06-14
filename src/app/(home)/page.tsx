@@ -1,8 +1,15 @@
 import { allPosts } from "content-collections";
 import { PortfolioApp } from "@/components/PortfolioApp";
-import type { Post } from "@/types/content";
+import type { Mode, Post } from "@/types/content";
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const { mode: modeParam } = await searchParams;
+  const mode: Mode = modeParam === "personal" ? "personal" : "professional";
+
   const sorted = [...allPosts].sort((a, b) => b.datetime.localeCompare(a.datetime));
 
   const toPost = (entry: (typeof allPosts)[number]): Post => ({
@@ -17,5 +24,11 @@ export default function Home() {
   const professionalPosts = sorted.filter((p) => p.category === "professional").map(toPost);
   const personalPosts = sorted.filter((p) => p.category === "personal").map(toPost);
 
-  return <PortfolioApp professionalPosts={professionalPosts} personalPosts={personalPosts} />;
+  return (
+    <PortfolioApp
+      mode={mode}
+      professionalPosts={professionalPosts}
+      personalPosts={personalPosts}
+    />
+  );
 }

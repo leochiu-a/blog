@@ -1,7 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import type { Mode, Post } from "@/types/content";
+import { ThemeSync } from "@/components/ThemeSync";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Hero } from "@/components/Hero";
 import { AboutSection } from "@/components/AboutSection";
@@ -11,34 +9,15 @@ import { Divider } from "@/components/Divider";
 import { Footer } from "@/components/Footer";
 
 interface PortfolioAppProps {
+  mode: Mode;
   professionalPosts: Post[];
   personalPosts: Post[];
 }
 
-export function PortfolioApp({ professionalPosts, personalPosts }: PortfolioAppProps) {
-  const [mode, setMode] = useState<Mode>("professional");
-
-  // Sync initial mode from ?mode= without causing hydration mismatch.
-  useEffect(() => {
-    const m = new URLSearchParams(window.location.search).get("mode");
-    if (m === "personal" || m === "professional") setMode(m);
-  }, []);
-
-  // professional = dark theme, personal = light theme (matches blog).
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", mode === "professional");
-  }, [mode]);
-
-  const changeMode = (m: Mode) => {
-    setMode(m);
-    const params = new URLSearchParams(window.location.search);
-    params.set("mode", m);
-    window.history.replaceState(null, "", `?${params.toString()}`);
-  };
-  const toggleMode = () => changeMode(mode === "professional" ? "personal" : "professional");
-
+export function PortfolioApp({ mode, professionalPosts, personalPosts }: PortfolioAppProps) {
   return (
     <main className="flex min-h-screen w-screen max-w-[75rem] flex-col items-center px-6 pb-10 pt-7 font-garamond">
+      <ThemeSync mode={mode} />
       <header className="mb-12 flex w-full flex-wrap pb-3 text-sm sm:flex-nowrap">
         <nav
           className="relative mx-auto flex w-full items-center justify-between"
@@ -54,14 +33,14 @@ export function PortfolioApp({ professionalPosts, personalPosts }: PortfolioAppP
             </a>
           </div>
           <div className="z-0 flex w-full justify-center">
-            <ModeToggle mode={mode} onChange={changeMode} />
+            <ModeToggle mode={mode} />
           </div>
           <div className="z-10 flex flex-1 flex-row items-center justify-end gap-x-6 pb-8 sm:gap-x-8" />
         </nav>
       </header>
 
       <div className="flex w-full flex-col gap-y-10">
-        <Hero mode={mode} onFlip={toggleMode} />
+        <Hero mode={mode} />
         <AboutSection mode={mode} />
         <Divider />
         <PostsSection posts={mode === "professional" ? professionalPosts : personalPosts} />

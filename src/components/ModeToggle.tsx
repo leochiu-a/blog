@@ -1,14 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { OrnamentIcon, TrackPattern } from "@/components/icons";
 import type { Mode } from "@/types/content";
 
-interface ModeToggleProps {
-  mode: Mode;
-  onChange: (mode: Mode) => void;
-}
+export function ModeToggle({ mode }: { mode: Mode }) {
+  const router = useRouter();
 
-export function ModeToggle({ mode, onChange }: ModeToggleProps) {
+  const handleChange = (m: Mode) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("mode", m);
+    router.replace(`?${params.toString()}`);
+  };
+
   return (
     <div className="mode-toggle-container">
       <OrnamentIcon className="ornament ornament-left" />
@@ -21,7 +25,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onChange(mode === "professional" ? "personal" : "professional");
+            handleChange(mode === "professional" ? "personal" : "professional");
           }
         }}
       >
@@ -32,7 +36,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
             type="button"
             className={`toggle-option toggle-professional${mode === "professional" ? " active" : ""}`}
             data-mode="professional"
-            onClick={() => onChange("professional")}
+            onClick={() => handleChange("professional")}
           >
             <span className="option-icon">⚙</span>
             <span className="option-label">Professional</span>
@@ -41,7 +45,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
             type="button"
             className={`toggle-option toggle-personal${mode === "personal" ? " active" : ""}`}
             data-mode="personal"
-            onClick={() => onChange("personal")}
+            onClick={() => handleChange("personal")}
           >
             <span className="option-icon">✦</span>
             <span className="option-label">Personal</span>
