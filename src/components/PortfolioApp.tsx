@@ -17,7 +17,7 @@ interface PortfolioAppProps {
 
 export function PortfolioApp({ mode, professionalPosts, personalPosts }: PortfolioAppProps) {
   return (
-    <main className="flex min-h-screen w-screen max-w-[75rem] flex-col items-center px-6 pb-10 pt-7 font-garamond">
+    <main className="flex min-h-screen w-full max-w-300 flex-col items-center px-6 pb-10 pt-7 font-garamond">
       <ThemeSync mode={mode} />
       <header className="mb-12 flex w-full flex-wrap pb-3 text-sm sm:flex-nowrap">
         <nav

@@ -52,14 +52,14 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     : "";
 
   return (
-    <main className="flex min-h-screen w-screen max-w-2xl flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10 lg:px-10">
-      <BlogHeader />
+    <main className="flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10">
+      <div className="w-full max-w-2xl xl:max-w-300 xl:grid xl:grid-cols-[1fr_minmax(0,42rem)_1fr]">
+        <div className="hidden xl:block" />
 
-      <div>
-        <TableOfContents items={post.toc} />
+        <div className="min-w-0">
+          <BlogHeader />
 
-        <div className="mt-2 gap-x-10 md:items-end lg:flex lg:items-start">
-          <article className="grow wrap-break-word">
+          <article className="wrap-break-word">
             <div id="blog-hero">
               <h1 className="mt-2 font-cormorant text-4xl font-semibold leading-tight sm:mb-1 md:text-5xl">
                 {post.title}
@@ -85,14 +85,17 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             >
               <MDXContent code={post.mdx} components={components} />
             </div>
+
+            <ScrollToTop />
+            <Divider className="mt-20" />
+            <Footer />
           </article>
         </div>
 
-        <ScrollToTop />
+        <div className="hidden xl:block pl-10 pt-20">
+          <TableOfContents />
+        </div>
       </div>
-
-      <Divider className="mt-20" />
-      <Footer />
     </main>
   );
 }
