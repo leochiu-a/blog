@@ -10,7 +10,7 @@ export function StuffSection() {
         </h2>
       </div>
       <div className="flex flex-col gap-y-3 md:w-2/3">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {projects.map((p) => (
             <ProjectCard key={p.title} project={p} />
           ))}

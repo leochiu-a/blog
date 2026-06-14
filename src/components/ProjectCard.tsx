@@ -8,7 +8,7 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <div className="w-full relative flex flex-col gap-y-3 rounded-lg border-2 border-bronze/20 bg-card warm-shadow transition-all duration-300 hover:border-gold/40 hover:warm-shadow-lg hover:-translate-y-1">
       {/* Corner ornaments */}
-      <div className="pointer-events-none">
+      <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-2 top-2">
           <CardCorner className="text-bronze opacity-40" />
         </div>

@@ -14,61 +14,36 @@ export const about = {
 
 export const projects: Project[] = [
   {
-    title: "One More Multiverse",
+    title: "slidev-workspace",
     description:
-      "A YC backed gaming company that I ran for 5 years. We scaled to over a million users, went viral on tiktok.",
-    href: "https://www.playmultiverse.com",
-    image: "/images/multiverse.jpg",
+      "Slidev Workspace is a specialized command-line tool designed to manage and showcase multiple Slidev presentations.",
+    href: "https://github.com/leochiu-a/slidev-workspace",
+    image: "https://opengraph.githubassets.com/1/leochiu-a/slidev-workspace",
   },
   {
-    title: "LatentLit",
-    description: "A tool for creating and sharing LLM-powered AI agents.",
-    href: "https://latentlit.goodfire.ai",
-    image: "/images/latentlit.gif",
+    title: "git-pr-ai",
+    description:
+      "A CLI tool that empowers developers to create GitHub Pull Requests faster and more efficiently with the help of AI.",
+    href: "https://github.com/leochiu-a/git-pr-ai",
+    image: "https://opengraph.githubassets.com/1/leochiu-a/git-pr-ai",
   },
   {
-    title: "Quick Edit",
-    description: "AI Copyediting with great UX.",
-    href: "https://quickedits.thariq.io",
-    image: "/images/quickedit.gif",
+    title: "elden-ring-github",
+    description:
+      "An Elden Ring–inspired Chrome extension that makes your GitHub workflow legendary.",
+    href: "https://github.com/leochiu-a/elden-ring-github",
+    image: "https://opengraph.githubassets.com/1/leochiu-a/elden-ring-github",
   },
   {
-    title: "Sherpa",
-    description: "An email agent that prioritizes your emails based on your contacts and goals.",
-    href: "/blog/sherpa",
-    image: "/images/sherpa.jpeg",
-    tags: ["Prototype"],
+    title: "universal-agents",
+    description: "The Lightest Shared Standard for AI Agents.",
+    href: "https://github.com/leochiu-a/universal-agents",
+    image: "https://opengraph.githubassets.com/1/leochiu-a/universal-agents",
   },
   {
-    title: "AI World Building",
-    description: "An experiment in AI-aided world building for roleplaying games.",
-    href: "/blog/worldbuilding",
-    image: "/images/worldbuilding.png",
-    tags: ["Prototype"],
-  },
-  {
-    title: "Edgeout.gg",
-    description: "A bootstrapped gaming analytics platform I made. Sold to blitz.gg",
-    href: "https://blitz.gg",
-    image: "/images/edgeout.png",
-    tags: ["Acquisition"],
-  },
-  {
-    title: "Pubpub.org",
-    description: "A non-profit academic publishing platform that I co-founded.",
-    href: "https://pubpub.org",
-    image: "/images/pubpub.jpeg",
-  },
-  {
-    title: "Chime",
-    description: "A startup that I co-founded in undergrad and was acquired by Hubspot.",
-    href: "https://techcrunch.com/2013/03/28/hubspot-acquires-chime-prepwork/",
-    image: "/images/chime.png",
-    tags: ["Acquisition"],
-    hn: {
-      href: "https://news.ycombinator.com/item?id=5176630",
-      points: 161,
-      comments: 116,
-    },
+    title: "simple-resume",
+    description: "A online tool to create a resume.",
+    href: "https://github.com/leochiu-a/simple-resume",
+    image: "https://opengraph.githubassets.com/1/leochiu-a/simple-resume",
   },
 ];
