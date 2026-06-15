@@ -1,27 +1,13 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { allPosts } from "content-collections";
-import { MDXContent } from "@content-collections/mdx/react";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { Divider } from "@/components/Divider";
 import { Footer } from "@/components/Footer";
-import { PoemCard } from "@/components/mdx/PoemCard";
-import { BookQuote } from "@/components/mdx/BookQuote";
-import { FancyQuote } from "@/components/mdx/FancyQuote";
-import { VideoEmbed } from "@/components/mdx/VideoEmbed";
-import { Callout } from "@/components/mdx/Callout";
-import { OrnamentSeparator } from "@/components/mdx/OrnamentSeparator";
 
-const components = {
-  PoemCard,
-  BookQuote,
-  FancyQuote,
-  VideoEmbed,
-  Callout,
-  hr: OrnamentSeparator,
-};
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return allPosts.map((post) => ({ slug: post.slug }));
@@ -42,6 +28,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = allPosts.find((p) => p.slug === slug);
   if (!post) notFound();
+
+  const Post = post.mdx;
 
   const date = post.datetime
     ? new Date(post.datetime).toLocaleDateString("en-US", {
@@ -83,7 +71,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 post.font === "newsreader" ? "font-newsreader" : "font-garamond"
               }`}
             >
-              <MDXContent code={post.mdx} components={components} />
+              <Post />
             </div>
 
             <ScrollToTop />
