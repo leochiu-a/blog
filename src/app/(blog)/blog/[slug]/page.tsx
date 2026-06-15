@@ -7,8 +7,6 @@ import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { Divider } from "@/components/Divider";
 import { Footer } from "@/components/Footer";
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return allPosts.map((post) => ({ slug: post.slug }));
 }
