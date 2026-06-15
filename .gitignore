@@ -54,3 +54,13 @@ next-env.d.ts
 # local tooling & one-time migration scripts
 /.claude/
 /scripts/
+
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+
+!.env.example
