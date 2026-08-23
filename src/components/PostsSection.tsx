@@ -9,7 +9,7 @@ function PostItem({ post }: { post: Post }) {
           {post.featured && <span className="text-blog-accent">✦</span>}
           <a
             href={post.href}
-            className="font-sans text-lg font-bold transition-colors hover:text-blog-accent"
+            className="font-cormorant text-lg font-semibold transition-colors hover:text-blog-accent"
           >
             {post.title}
           </a>
