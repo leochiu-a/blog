@@ -47,15 +47,15 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           <article className="wrap-break-word">
             <div id="blog-hero">
-              <h1 className="mt-2 font-cormorant text-4xl font-semibold leading-tight sm:mb-1 md:text-5xl">
+              <h1 className="mt-2 font-sans text-4xl font-extrabold leading-tight tracking-tight sm:mb-1 md:text-5xl">
                 {post.title}
               </h1>
               <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <p className="text-xs text-muted-foreground">
+                <p className="font-sans text-sm text-muted-foreground">
                   Leo Chiu
                   {date && (
                     <>
-                      {" - "}
+                      {" · "}
                       <time dateTime={post.datetime}>{date}</time>
                     </>
                   )}
@@ -64,17 +64,13 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               </div>
             </div>
 
-            <div
-              className={`prose prose-lg prose-zinc mt-6 ${
-                post.font === "newsreader" ? "font-newsreader" : "font-garamond"
-              }`}
-            >
+            <div className="prose prose-lg prose-zinc mt-6">
               <Post />
             </div>
 
             <ScrollToTop />
-            <Divider className="mt-20" />
-            <Footer />
+            <Divider className="mt-20" variant="minimal" />
+            <Footer variant="minimal" />
           </article>
         </div>
 

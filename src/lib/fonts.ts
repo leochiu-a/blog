@@ -1,7 +1,14 @@
-import { EB_Garamond, Cormorant_Garamond, Newsreader, Alegreya } from "next/font/google";
+import {
+  EB_Garamond,
+  Cormorant_Garamond,
+  Newsreader,
+  Alegreya,
+  Inter,
+  Spectral,
+} from "next/font/google";
 
-// EB Garamond, Newsreader, and Alegreya are variable fonts (weight optional).
-// Cormorant Garamond is not, so explicit weights are required.
+// EB Garamond, Newsreader, Alegreya, and Inter are variable fonts (weight
+// optional). Cormorant Garamond is not, so explicit weights are required.
 export const garamond = EB_Garamond({
   subsets: ["latin"],
   style: ["normal", "italic"],
@@ -31,4 +38,23 @@ export const alegreya = Alegreya({
   display: "swap",
 });
 
-export const fontVariables = `${garamond.variable} ${cormorant.variable} ${newsreader.variable} ${alegreya.variable}`;
+// UI/heading sans for the blog reading view (Substack-style: sans headings and
+// chrome over a serif body).
+export const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+// Article body serif for the blog reading view — same typeface Substack ships
+// (Spectral), paired with the Inter headings/chrome above.
+export const spectral = Spectral({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-spectral",
+  display: "swap",
+});
+
+export const fontVariables =
+  `${garamond.variable} ${cormorant.variable} ${newsreader.variable} ${alegreya.variable} ${inter.variable} ${spectral.variable}`;

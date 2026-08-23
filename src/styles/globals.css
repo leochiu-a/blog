@@ -10,32 +10,38 @@
   /* Font family CSS variables (--font-garamond, --font-cormorant,
      --font-newsreader, --font-alegreya) are injected by next/font on <html>. */
 
-  --background: 43 38% 97%;
-  --foreground: 215 28% 17%;
-  --muted: 43 20% 90%;
-  --muted-foreground: 215 14% 40%;
+  --background: 0 0% 98%;
+  --foreground: 210 3% 18%;
+  --muted: 0 0% 95%;
+  --muted-foreground: 0 0% 40%;
   --card: 0 0% 100%;
-  --border: 43 20% 85%;
-  /* accents — shared across themes */
-  --gold: 43 65% 48%;
-  --bronze: 30 40% 38%;
-  --burnt-sienna: 15 50% 40%;
+  --border: 0 0% 90%;
+  /* accents — shared across themes. Warm gold/amber family: --gold is the
+     bright accent, --bronze/--burnt-sienna are darker/deeper steps of the
+     same warm hue used for borders, shadows, and depth. */
+  --gold: 40 75% 50%;
+  --bronze: 32 45% 38%;
+  --burnt-sienna: 20 55% 42%;
   --sage: 140 15% 45%;
-  --ring: 43 65% 48%;
-  --accent: 43 65% 48%;
-  --primary: 215 28% 17%;
+  --ring: 40 75% 50%;
+  --accent: 40 75% 50%;
+  --primary: 210 3% 18%;
   --primary-foreground: 0 0% 100%;
+  /* Alias for the blog reading view — same color as --gold, kept as its own
+     token so blog-specific CSS reads clearly. */
+  --blog-accent: 40 75% 50%;
+  --blog-ink: 210 2% 22%;
 }
 
 .dark {
-  --background: 215 35% 12%;
-  --foreground: 42 45% 95%;
-  --muted: 215 20% 25%;
-  --muted-foreground: 42 20% 65%;
-  --card: 215 30% 15%;
-  --border: 215 20% 25%;
-  --primary: 42 45% 95%;
-  --primary-foreground: 215 35% 12%;
+  --background: 0 0% 11%;
+  --foreground: 0 0% 95%;
+  --muted: 0 0% 20%;
+  --muted-foreground: 0 0% 65%;
+  --card: 0 0% 15%;
+  --border: 0 0% 22%;
+  --primary: 0 0% 95%;
+  --primary-foreground: 0 0% 11%;
 }
 
 @theme inline {
@@ -53,10 +59,13 @@
   --color-sage: hsl(var(--sage));
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-blog-accent: hsl(var(--blog-accent));
+  --color-blog-ink: hsl(var(--blog-ink));
   --font-garamond: var(--font-garamond), serif;
   --font-cormorant: var(--font-cormorant), serif;
   --font-newsreader: var(--font-newsreader), serif;
   --font-alegreya: var(--font-alegreya), serif;
+  --font-spectral: var(--font-spectral), serif;
 
   --text-xxs: 0.625rem;
 }
@@ -70,39 +79,43 @@ body {
   font-family: var(--font-garamond), serif;
 }
 
-/* ===== Blog prose (Tailwind Typography) tuning to match thariq.io ===== */
+/* ===== Blog prose (Tailwind Typography), Substack-style =====
+   Sans-serif (Inter) headings/chrome over a Spectral serif body — the same
+   pairing and measurements as a real Substack post (19px/1.6 body, 728px
+   column, flat teal accent with no underline). */
 .prose {
-  --tw-prose-body: rgb(63, 63, 70);
-  --tw-prose-headings: rgb(31, 41, 55);
-  --tw-prose-links: hsl(var(--gold));
-  --tw-prose-bold: rgb(31, 41, 55);
+  --tw-prose-body: hsl(var(--blog-ink));
+  --tw-prose-headings: hsl(var(--blog-ink));
+  --tw-prose-links: hsl(var(--blog-accent));
+  --tw-prose-bold: hsl(var(--blog-ink));
   --tw-prose-counters: rgb(113, 113, 122);
   --tw-prose-bullets: rgb(161, 161, 170);
-  --tw-prose-quotes: rgb(31, 41, 55);
-  --tw-prose-quote-borders: hsl(var(--gold));
+  --tw-prose-quotes: hsl(var(--blog-ink));
+  --tw-prose-quote-borders: hsl(var(--border));
   --tw-prose-captions: rgb(113, 113, 122);
+  font-family: var(--font-spectral), serif;
+  font-size: 1.1875rem; /* 19px */
+  line-height: 1.6;
+  max-width: 45.5rem; /* 728px, Substack's column width */
 }
 .prose :where(h1, h2, h3, h4) {
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 800;
   scroll-margin-top: 6rem;
 }
-/* Pin the measure to the original's per-font widths (65ch is font-metric
-   dependent and drifts with web-font loading). */
-.prose.font-garamond {
-  max-width: 39rem;
-}
-.prose.font-newsreader {
-  max-width: 44rem;
+.prose :where(a) {
+  text-decoration: none;
+  font-weight: 500;
 }
 .prose :where(a):hover {
-  color: hsl(var(--gold));
+  text-decoration: underline;
 }
 .prose :where(pre) {
   background-color: rgb(36, 41, 46);
   color: rgb(225, 228, 232);
 }
 
-/* ===== Poem card (embedded in some blog posts, e.g. clay-and-light) ===== */
+/* ===== Poem card (embedded in blog posts that quote or feature a poem) ===== */
 .poem-page {
   font-family: var(--font-newsreader), serif;
 }

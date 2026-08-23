@@ -11,7 +11,7 @@ export function BlogHeader() {
         <div className="z-10 flex flex-1 items-center justify-start pb-8">
           <Link
             href="/"
-            className="flex-none font-garamond text-[1.25rem] font-medium transition-colors hover:text-gold"
+            className="flex-none font-sans text-[1.25rem] font-semibold transition-colors hover:text-blog-accent"
             aria-label="Nav Menu Item"
           >
             Home

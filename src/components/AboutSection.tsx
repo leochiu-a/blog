@@ -24,7 +24,7 @@ export function AboutSection({ mode }: { mode: Mode }) {
             </p>
           </>
         ) : (
-          <p>Trying to pay attention.</p>
+          <p>下班之後，想的都是些無關緊要的小事。</p>
         )}
       </div>
     </SectionRow>

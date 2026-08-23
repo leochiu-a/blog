@@ -9,7 +9,7 @@ export const profile = {
 
 export const about = {
   professional: ["Senior Frontend Engineer. Currently working at KKday."],
-  personal: ["Trying to pay attention."],
+  personal: ["下班之後，想的都是些無關緊要的小事。"],
 };
 
 export const projects: Project[] = [
