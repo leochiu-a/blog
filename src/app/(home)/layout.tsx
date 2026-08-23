@@ -10,6 +10,11 @@ export const metadata: Metadata = {
     icon: "/seo/icon.svg",
     apple: "/seo/apple-touch-icon.png",
   },
+  alternates: {
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
+  },
 };
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {

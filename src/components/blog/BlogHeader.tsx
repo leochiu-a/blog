@@ -17,7 +17,18 @@ export function BlogHeader() {
             Home
           </Link>
         </div>
-        <div className="z-10 flex flex-1 flex-row items-center justify-end gap-x-6 pb-8 sm:gap-x-8" />
+        <div className="z-10 flex flex-1 flex-row items-center justify-end gap-x-6 pb-8 sm:gap-x-8">
+          {/* Plain anchor: /feed.xml is a Route Handler that returns XML, not
+              a navigable page, so next/link's client-side transition doesn't apply. */}
+          {/* eslint-disable-next-line next/no-html-link-for-pages */}
+          <a
+            href="/feed.xml"
+            className="font-sans text-sm text-muted-foreground transition-colors hover:text-blog-accent"
+            aria-label="RSS feed"
+          >
+            RSS
+          </a>
+        </div>
       </nav>
     </header>
   );
