@@ -7,6 +7,7 @@ readTime: "6 min"
 font: "newsreader"
 category: "professional"
 ogImage: "/blog-images/ai-cognitive-offloading-hero.jpg"
+tags: ["AI", "認知卸載", "認知投降", "工程師職涯", "Engineering Management"]
 ---
 
 <Figure

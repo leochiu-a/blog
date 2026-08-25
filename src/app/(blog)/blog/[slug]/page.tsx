@@ -7,6 +7,7 @@ import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
+import { detectPostLanguage } from "@/lib/language";
 
 export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
@@ -28,6 +29,10 @@ export async function generateMetadata({
   return {
     title,
     description,
+    keywords: post.tags,
+    alternates: {
+      canonical: `${SITE_URL}${post.href}`,
+    },
     openGraph: {
       type: "article",
       title,
@@ -69,7 +74,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     image: `${SITE_URL}${post.ogImage ?? "/seo/social-card.png"}`,
     datePublished: post.datetime,
     dateModified: post.datetime,
-    inLanguage: "zh-Hant",
+    inLanguage: detectPostLanguage(post.title),
+    ...(post.tags && { keywords: post.tags.join(", ") }),
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": postUrl,

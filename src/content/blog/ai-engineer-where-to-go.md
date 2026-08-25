@@ -7,6 +7,7 @@ readTime: "9 min"
 font: "newsreader"
 category: "professional"
 ogImage: "/blog-images/ai-engineer-where-to-go-hero.jpg"
+tags: ["AI", "工程師職涯", "軟體工程", "AI 極限"]
 ---
 
 <Figure

@@ -6,6 +6,7 @@ readTime: "15 min"
 font: "newsreader"
 category: "professional"
 ogImage: "/blog-images/ai-limits-from-papers-hero.jpg"
+tags: ["AI", "AI 極限", "軟體工程研究", "Code Review", "LLM"]
 ---
 
 <Figure

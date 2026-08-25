@@ -12,6 +12,7 @@ const posts = defineCollection({
     subtitle: z.string().optional(),
     description: z.string().optional(),
     ogImage: z.string().optional(),
+    tags: z.array(z.string()).optional(),
     datetime: z.string(),
     readTime: z.string(),
     font: z.enum(["garamond", "newsreader"]),
