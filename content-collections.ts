@@ -10,6 +10,7 @@ const posts = defineCollection({
   schema: z.object({
     title: z.string(),
     subtitle: z.string().optional(),
+    description: z.string().optional(),
     datetime: z.string(),
     readTime: z.string(),
     font: z.enum(["garamond", "newsreader"]),

@@ -1,6 +1,7 @@
 ---
 title: "AI 時代的工程師，該往哪裡走？"
 subtitle: "延伸上篇：從四篇論文洞察 AI 的極限，這次我們談「人」"
+description: "當 AI 已經證明有極限，工程師該練什麼、該往哪個方向走？延續上一篇的論文洞察，這篇談的是「人」該如何自處。"
 datetime: "2026-04-26"
 readTime: "9 min"
 font: "newsreader"

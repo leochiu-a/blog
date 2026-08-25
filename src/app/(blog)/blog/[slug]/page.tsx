@@ -20,7 +20,7 @@ export async function generateMetadata({
   if (!post) return {};
   return {
     title: `${post.title} • Leo Chiu`,
-    description: post.subtitle,
+    description: post.description ?? post.subtitle,
   };
 }
 
