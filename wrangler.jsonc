@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "blog",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "services": [
+    {
+      // Self-reference service binding; the service name must match the worker name.
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "blog",
+    },
+  ],
+  "images": {
+    // Powers next/image optimisation on Workers.
+    "binding": "IMAGES",
+  },
+  "observability": {
+    "enabled": true,
+  },
+}

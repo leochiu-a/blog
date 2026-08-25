@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { withContentCollections } from "@content-collections/next";
 import createMDX from "@next/mdx";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
   // Match the previous (Astro) URL scheme: /blog/<slug>/ with a trailing slash.
@@ -30,3 +31,6 @@ const withMDX = createMDX({
 });
 
 export default withContentCollections(withMDX(nextConfig));
+
+// Expose the Workers bindings (ASSETS, IMAGES, ...) to `next dev`.
+initOpenNextCloudflareForDev();
