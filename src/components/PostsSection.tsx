@@ -13,6 +13,11 @@ function PostItem({ post }: { post: Post }) {
           >
             {post.title}
           </a>
+          {post.draft && (
+            <span className="rounded-sm border border-blog-accent/40 px-1.5 py-0.5 font-sans text-[10px] uppercase tracking-wide text-blog-accent">
+              draft
+            </span>
+          )}
           <span className="font-sans text-xs text-muted-foreground">· {post.readTime}</span>
         </div>
       </div>

@@ -7,6 +7,7 @@ export interface Post {
   date: string; // display string, e.g. "11 Feb 2025"
   datetime: string; // ISO
   featured?: boolean; // gold ✦ marker
+  draft?: boolean; // unpublished — only ever reaches the listing in `next dev`
 }
 
 export type ProjectTag = "Prototype" | "Acquisition";

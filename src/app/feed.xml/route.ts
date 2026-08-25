@@ -1,4 +1,4 @@
-import { allPosts } from "content-collections";
+import { posts } from "@/lib/posts";
 import { SITE_URL } from "@/lib/site";
 
 /** Escape the handful of characters that break well-formed XML. */
@@ -12,8 +12,6 @@ function escapeXml(value: string): string {
 }
 
 export async function GET() {
-  const posts = [...allPosts].sort((a, b) => b.datetime.localeCompare(a.datetime));
-
   const items = posts
     .map((post) => {
       const url = `${SITE_URL}${post.href}`;
@@ -24,7 +22,7 @@ export async function GET() {
       <link>${url}</link>
       <guid>${url}</guid>
       <pubDate>${pubDate}</pubDate>
-      <description>${escapeXml(post.title)}</description>
+      <description>${escapeXml(post.subtitle ?? post.title)}</description>
     </item>`;
     })
     .join("");

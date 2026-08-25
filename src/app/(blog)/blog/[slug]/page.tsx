@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { allPosts } from "content-collections";
+import { posts } from "@/lib/posts";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
@@ -8,7 +8,7 @@ import { Divider } from "@/components/Divider";
 import { Footer } from "@/components/Footer";
 
 export function generateStaticParams() {
-  return allPosts.map((post) => ({ slug: post.slug }));
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -17,14 +17,17 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = allPosts.find((p) => p.slug === slug);
+  const post = posts.find((p) => p.slug === slug);
   if (!post) return {};
-  return { title: `${post.title} • Leo Chiu` };
+  return {
+    title: `${post.title} • Leo Chiu`,
+    description: post.subtitle,
+  };
 }
 
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = allPosts.find((p) => p.slug === slug);
+  const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
   const Post = post.mdx;
@@ -50,6 +53,11 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               <h1 className="mt-2 font-sans text-4xl font-extrabold leading-tight tracking-tight sm:mb-1 md:text-5xl">
                 {post.title}
               </h1>
+              {post.subtitle && (
+                <p className="mt-3 font-sans text-lg leading-snug text-muted-foreground sm:text-xl">
+                  {post.subtitle}
+                </p>
+              )}
               <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="font-sans text-sm text-muted-foreground">
                   Leo Chiu
