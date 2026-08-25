@@ -59,9 +59,6 @@ importers:
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
-      tocbot:
-        specifier: ^4.36.8
-        version: 4.36.8
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -3331,9 +3328,6 @@ packages:
   tinypool@2.1.0:
     resolution: {integrity: sha512-Pugqs6M0m7Lv1I7FtxN4aoyToKg1C4tu+/381vH35y8oENM/Ai7f7C4StcoK4/+BSw9ebcS8jRiVrORFKCALLw==}
     engines: {node: ^20.0.0 || >=22.0.0}
-
-  tocbot@4.36.8:
-    resolution: {integrity: sha512-TpN+Z2YP4DTboeZ3GkUjzkjmG5NhJhXTVuH9EWQ/F4HgONVje9GZ8eNZE4kk88umV5o7hm3faS+eF/7qYwsP2w==}
 
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
@@ -7034,8 +7028,6 @@ snapshots:
       picomatch: 4.0.7
 
   tinypool@2.1.0: {}
-
-  tocbot@4.36.8: {}
 
   toidentifier@1.0.1: {}
 

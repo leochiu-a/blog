@@ -27,10 +27,10 @@
   --accent: 40 75% 50%;
   --primary: 210 3% 18%;
   --primary-foreground: 0 0% 100%;
-  /* Alias for the blog reading view — same color as --gold, kept as its own
-     token so blog-specific CSS reads clearly. */
-  --blog-accent: 40 75% 50%;
-  --blog-ink: 210 2% 22%;
+  /* Blog reading view only — Substack's brand orange (#FF6719) on links and
+     its near-black (#1a1a1a) body ink. Deliberately not the portfolio gold. */
+  --blog-accent: 20 100% 55%;
+  --blog-ink: 0 0% 10%;
 }
 
 .dark {
@@ -81,8 +81,9 @@ body {
 
 /* ===== Blog prose (Tailwind Typography), Substack-style =====
    Sans-serif (Inter) headings/chrome over a Spectral serif body — the same
-   pairing and measurements as a real Substack post (19px/1.6 body, 728px
-   column, flat teal accent with no underline). */
+   pairing and measurements as a real Substack post: 19px/1.6 body, 728px
+   column, orange links with no underline until hover, upright (never
+   italicised) quotes, and light-on-light code. */
 .prose {
   --tw-prose-body: hsl(var(--blog-ink));
   --tw-prose-headings: hsl(var(--blog-ink));
@@ -98,26 +99,83 @@ body {
   line-height: 1.6;
   max-width: 45.5rem; /* 728px, Substack's column width */
 }
-.prose :where(h1, h2, h3, h4) {
+/* Tailwind Typography scopes every rule so it stops at a `not-prose` subtree.
+   Hand-written rules repeat that guard, or they reach inside PoemCard /
+   FancyQuote / BookQuote and undo the point of marking them `not-prose`. */
+.prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   font-family: var(--font-sans), sans-serif;
   font-weight: 800;
   scroll-margin-top: 6rem;
 }
-.prose :where(a) {
+/* Section-heading rhythm: roomy above, tight below, so a heading reads as
+   attached to the text it introduces. */
+.prose :where(h2):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  font-size: 1.375em;
+  line-height: 1.3;
+  margin-top: 2.1em;
+  margin-bottom: 0.6em;
+}
+.prose :where(h3):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  font-size: 1.15em;
+  line-height: 1.35;
+  margin-top: 1.8em;
+  margin-bottom: 0.5em;
+}
+.prose :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  margin-block: 1.35em;
+}
+.prose :where(li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  margin-block: 0.4em;
+}
+.prose :where(a):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   text-decoration: none;
   font-weight: 500;
 }
-.prose :where(a):hover {
+.prose :where(a):not(:where([class~="not-prose"], [class~="not-prose"] *)):hover {
   text-decoration: underline;
 }
-.prose :where(pre) {
-  background-color: rgb(36, 41, 46);
-  color: rgb(225, 228, 232);
+/* An ordinary quote is a hairline rule and an indent — no italics, no oversized
+   punctuation. The pull quote (`>>`, FancyQuote) carries the visual weight. */
+.prose :where(blockquote):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  font-style: normal;
+  font-weight: 400;
+  border-left-width: 3px;
+  padding-left: 1.25em;
 }
-/* Tailwind Typography wraps inline code in literal backticks — drop them. */
-.prose :where(code)::before,
-.prose :where(code)::after {
+.prose
+  :where(blockquote p):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  ):first-of-type::before,
+.prose
+  :where(blockquote p):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  ):last-of-type::after {
   content: none;
+}
+/* Code sits in a light chip/panel rather than a dark slab. Tailwind Typography
+   wraps inline code in literal backticks — drop them. */
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  background-color: hsl(0 0% 95%);
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+  font-size: 0.875em;
+  font-weight: 400;
+}
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {
+  content: none;
+}
+.prose :where(pre):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  background-color: hsl(0 0% 97%);
+  color: hsl(var(--blog-ink));
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  font-size: 0.8125em;
+}
+.prose :where(pre code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  background-color: transparent;
+  padding: 0;
+  font-size: inherit;
 }
 
 /* ===== Poem card (embedded in blog posts that quote or feature a poem) ===== */

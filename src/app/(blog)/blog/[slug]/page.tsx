@@ -2,9 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { posts } from "@/lib/posts";
 import { BlogHeader } from "@/components/blog/BlogHeader";
-import { TableOfContents } from "@/components/blog/TableOfContents";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
-import { Divider } from "@/components/Divider";
 import { Footer } from "@/components/Footer";
 
 export function generateStaticParams() {
@@ -42,49 +40,41 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10">
-      <div className="w-full max-w-2xl xl:max-w-300 xl:grid xl:grid-cols-[1fr_minmax(0,42rem)_1fr]">
-        <div className="hidden xl:block" />
+      {/* 728px — Substack's column width, matching `.prose`'s own max-width. */}
+      <div className="w-full min-w-0 max-w-[45.5rem]">
+        <BlogHeader />
 
-        <div className="min-w-0">
-          <BlogHeader />
-
-          <article className="wrap-break-word">
-            <div id="blog-hero">
-              <h1 className="mt-2 font-sans text-4xl font-extrabold leading-tight tracking-tight sm:mb-1 md:text-5xl">
-                {post.title}
-              </h1>
-              {post.subtitle && (
-                <p className="mt-3 font-sans text-lg leading-snug text-muted-foreground sm:text-xl">
-                  {post.subtitle}
-                </p>
-              )}
-              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <p className="font-sans text-sm text-muted-foreground">
-                  Leo Chiu
-                  {date && (
-                    <>
-                      {" · "}
-                      <time dateTime={post.datetime}>{date}</time>
-                    </>
-                  )}
-                  {post.readTime && ` · ${post.readTime}`}
-                </p>
-              </div>
+        <article className="wrap-break-word">
+          <div id="blog-hero">
+            <h1 className="mt-2 font-sans text-4xl font-extrabold leading-tight tracking-tight sm:mb-1 md:text-5xl">
+              {post.title}
+            </h1>
+            {post.subtitle && (
+              <p className="mt-3 font-sans text-lg leading-snug text-muted-foreground sm:text-xl">
+                {post.subtitle}
+              </p>
+            )}
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <p className="font-sans text-sm text-muted-foreground">
+                Leo Chiu
+                {date && (
+                  <>
+                    {" · "}
+                    <time dateTime={post.datetime}>{date}</time>
+                  </>
+                )}
+                {post.readTime && ` · ${post.readTime}`}
+              </p>
             </div>
+          </div>
 
-            <div className="prose prose-lg prose-zinc mt-6">
-              <Post />
-            </div>
+          <div className="prose prose-lg prose-zinc mt-8 border-t border-border pt-8">
+            <Post />
+          </div>
 
-            <ScrollToTop />
-            <Divider className="mt-20" variant="minimal" />
-            <Footer variant="minimal" />
-          </article>
-        </div>
-
-        <div className="hidden xl:block pl-10 pt-20">
-          <TableOfContents />
-        </div>
+          <ScrollToTop />
+          <Footer variant="minimal" />
+        </article>
       </div>
     </main>
   );
