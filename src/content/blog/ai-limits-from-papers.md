@@ -5,7 +5,6 @@ datetime: "2026-04-12"
 readTime: "15 min"
 font: "newsreader"
 category: "professional"
-featured: true
 ---
 
 ## 前言
