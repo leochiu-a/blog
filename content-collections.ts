@@ -5,15 +5,17 @@ import { z } from "zod";
 const posts = defineCollection({
   name: "posts",
   directory: "src/content/blog",
-  include: "**/*.mdx",
+  include: "**/*.md",
   parser: "frontmatter-only",
   schema: z.object({
     title: z.string(),
+    subtitle: z.string().optional(),
     datetime: z.string(),
     readTime: z.string(),
     font: z.enum(["garamond", "newsreader"]),
     category: z.enum(["professional", "personal"]),
     featured: z.boolean().optional(),
+    draft: z.boolean().optional(),
   }),
   transform: async ({ _meta, ...document }) => {
     const slug = _meta.path;

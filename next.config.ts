@@ -18,7 +18,12 @@ const nextConfig: NextConfig = {
 };
 
 const withMDX = createMDX({
+  // Treat .md the same as .mdx so posts can be authored in any markdown editor.
+  extension: /\.mdx?$/,
   options: {
+    // `.md` would otherwise be parsed as plain markdown, which silently drops
+    // JSX — compile every post as MDX so components work regardless of extension.
+    format: "mdx",
     remarkPlugins: ["remark-frontmatter", "remark-gfm"],
     rehypePlugins: ["rehype-slug"],
   },
