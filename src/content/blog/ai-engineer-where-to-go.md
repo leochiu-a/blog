@@ -6,7 +6,15 @@ datetime: "2026-04-26"
 readTime: "9 min"
 font: "newsreader"
 category: "professional"
+ogImage: "/blog-images/ai-engineer-where-to-go-hero.jpg"
 ---
+
+<Figure
+  src="/blog-images/ai-engineer-where-to-go-hero.jpg"
+  alt="雪地上的兩台單車，往遠方的冰河前進"
+  width={1200}
+  height={800}
+/>
 
 ## 前言
 

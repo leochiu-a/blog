@@ -5,7 +5,15 @@ datetime: "2026-04-12"
 readTime: "15 min"
 font: "newsreader"
 category: "professional"
+ogImage: "/blog-images/ai-limits-from-papers-hero.jpg"
 ---
+
+<Figure
+  src="/blog-images/ai-limits-from-papers-hero.jpg"
+  alt="沙丘與遠方山脈，象徵 AI 能力的邊界"
+  width={1200}
+  height={800}
+/>
 
 ## 前言
 

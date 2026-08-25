@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
 import { posts } from "@/lib/posts";
+import { SITE_URL } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { Footer } from "@/components/Footer";
@@ -18,9 +19,28 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = posts.find((p) => p.slug === slug);
   if (!post) return {};
+
+  const title = `${post.title} • Leo Chiu`;
+  const description = post.description ?? post.subtitle;
+  const image = post.ogImage ?? "/seo/social-card.png";
+
   return {
-    title: `${post.title} • Leo Chiu`,
-    description: post.description ?? post.subtitle,
+    title,
+    description,
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url: `${SITE_URL}${post.href}`,
+      publishedTime: post.datetime,
+      images: [image],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
   };
 }
 

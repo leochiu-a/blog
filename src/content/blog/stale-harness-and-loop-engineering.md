@@ -2,6 +2,7 @@
 title: "AI 工程 | 你的 AI Agent 正在用過期的 Harness 嗎？"
 subtitle: "當模型推理能力大幅提升，你過去寫的防禦性 Harness 可能只是在浪費 Token"
 description: "當模型的推理能力大幅進步，你三個月前寫的防禦性 Harness 可能已經在浪費 Token。這篇談如何從 Harness Engineering 走向 Loop Engineering。"
+ogImage: "/blog-images/harness-hero.png"
 datetime: "2026-08-25"
 readTime: "9 min"
 font: "newsreader"
