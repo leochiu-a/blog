@@ -14,8 +14,7 @@ export function AboutSection({ mode }: { mode: Mode }) {
             </p>
             <p>
               <span className={linkClass}>
-                目前任職於 KKday Growth Team，主導網站 SEO / AEO（AI
-                搜尋優化）策略落地
+                目前任職於 KKday Growth Team，主導網站 SEO / AEO（AI 搜尋優化）策略落地
               </span>
               <span>
                 ，透過提升網頁核心指標（Core Web

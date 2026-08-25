@@ -56,5 +56,4 @@ export const spectral = Spectral({
   display: "swap",
 });
 
-export const fontVariables =
-  `${garamond.variable} ${cormorant.variable} ${newsreader.variable} ${alegreya.variable} ${inter.variable} ${spectral.variable}`;
+export const fontVariables = `${garamond.variable} ${cormorant.variable} ${newsreader.variable} ${alegreya.variable} ${inter.variable} ${spectral.variable}`;
