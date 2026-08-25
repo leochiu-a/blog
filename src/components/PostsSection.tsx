@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Post } from "@/types/content";
 import { SectionRow } from "@/components/SectionRow";
 
@@ -7,12 +8,12 @@ function PostItem({ post }: { post: Post }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           {post.featured && <span className="text-blog-accent">✦</span>}
-          <a
+          <Link
             href={post.href}
             className="font-cormorant text-lg font-semibold transition-colors hover:text-blog-accent"
           >
             {post.title}
-          </a>
+          </Link>
           {post.draft && (
             <span className="rounded-sm border border-blog-accent/40 px-1.5 py-0.5 font-sans text-[10px] uppercase tracking-wide text-blog-accent">
               draft
