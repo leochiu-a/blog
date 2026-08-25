@@ -9,6 +9,16 @@ export function Footer({ variant = "brand" }: { variant?: "brand" | "minimal" })
           <div className="flex gap-x-4 text-sm">
             <p className={`text-sm text-muted-foreground ${textClass}`}>© 2026 Leo Chiu</p>
           </div>
+          {/* Plain anchor: /feed.xml is a Route Handler that returns XML, not
+              a navigable page, so next/link's client-side transition doesn't apply. */}
+          {/* eslint-disable-next-line next/no-html-link-for-pages */}
+          <a
+            href="/feed.xml"
+            className={`text-sm text-muted-foreground transition-colors hover:text-gold ${textClass}`}
+            aria-label="RSS feed"
+          >
+            RSS
+          </a>
         </div>
       </div>
     </footer>

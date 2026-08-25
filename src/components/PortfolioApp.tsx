@@ -36,18 +36,7 @@ export function PortfolioApp({ mode, professionalPosts, personalPosts }: Portfol
           <div className="z-0 flex w-full justify-center">
             <ModeToggle mode={mode} />
           </div>
-          <div className="z-10 flex flex-1 flex-row items-center justify-end gap-x-6 pb-8 sm:gap-x-8">
-            {/* Plain anchor: /feed.xml is a Route Handler that returns XML, not
-                a navigable page, so next/link's client-side transition doesn't apply. */}
-            {/* eslint-disable-next-line next/no-html-link-for-pages */}
-            <a
-              href="/feed.xml"
-              className="font-garamond text-sm text-muted-foreground transition-colors hover:text-gold"
-              aria-label="RSS feed"
-            >
-              RSS
-            </a>
-          </div>
+          <div className="z-10 flex flex-1" aria-hidden="true" />
         </nav>
       </header>
 
