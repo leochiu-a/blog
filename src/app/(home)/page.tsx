@@ -1,5 +1,8 @@
 import { posts } from "@/lib/posts";
 import { PortfolioApp } from "@/components/PortfolioApp";
+import { JsonLd } from "@/components/JsonLd";
+import { profile, about } from "@/data/content";
+import { SITE_URL } from "@/lib/site";
 import type { Mode, Post } from "@/types/content";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
@@ -19,7 +22,41 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const professionalPosts = posts.filter((p) => p.category === "professional").map(toPost);
   const personalPosts = posts.filter((p) => p.category === "personal").map(toPost);
 
+  const personJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: profile.name,
+    url: SITE_URL,
+    image: `${SITE_URL}${profile.professionalPhoto}`,
+    jobTitle: "Senior Frontend Engineer",
+    worksFor: {
+      "@type": "Organization",
+      name: "KKday",
+    },
+    description: about.professional.join(" "),
+    sameAs: ["https://github.com/leochiu-a"],
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: profile.name,
+    url: SITE_URL,
+    author: {
+      "@type": "Person",
+      name: profile.name,
+    },
+  };
+
   return (
-    <PortfolioApp mode={mode} professionalPosts={professionalPosts} personalPosts={personalPosts} />
+    <>
+      <JsonLd data={personJsonLd} />
+      <JsonLd data={websiteJsonLd} />
+      <PortfolioApp
+        mode={mode}
+        professionalPosts={professionalPosts}
+        personalPosts={personalPosts}
+      />
+    </>
   );
 }
