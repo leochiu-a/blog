@@ -11,7 +11,7 @@ export function BlogHeader() {
         <div className="z-10 flex flex-1 items-center justify-start pb-8">
           <Link
             href="/"
-            className="flex-none font-sans text-[1.25rem] font-semibold transition-colors hover:text-blog-accent"
+            className="flex-none font-garamond text-[1.25rem] font-medium transition-colors hover:text-gold"
             aria-label="Nav Menu Item"
           >
             Home
@@ -23,7 +23,7 @@ export function BlogHeader() {
           {/* eslint-disable-next-line next/no-html-link-for-pages */}
           <a
             href="/feed.xml"
-            className="font-sans text-sm text-muted-foreground transition-colors hover:text-blog-accent"
+            className="font-garamond text-sm text-muted-foreground transition-colors hover:text-gold"
             aria-label="RSS feed"
           >
             RSS
