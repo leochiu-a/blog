@@ -18,7 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default function BlogLayout({ children }: { children: React.ReactNode }) {
-  // Blog pages use the light theme (no `dark` class on <html>).
+  // No theme class here: an article's theme depends on which post is being read
+  // (see the `[slug]` page), which a root layout can't know. It lands on <main>
+  // instead, and `html:has(.dark)` in globals.css keeps <html> in step.
   return (
     <html lang="en" className={fontVariables} data-scroll-behavior="smooth">
       <body className="flex justify-center bg-background scroll-smooth font-garamond antialiased">

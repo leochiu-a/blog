@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { cn } from "@/lib/utils";
 import { posts } from "@/lib/posts";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
@@ -38,8 +39,16 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       })
     : "";
 
+  // A post's reading theme follows its category, so a professional post reads
+  // dark whichever way the reader arrived — homepage listing, RSS, or a direct
+  // link — and can never disagree with the listing it came from.
   return (
-    <main className="flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10">
+    <main
+      className={cn(
+        "flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10",
+        post.category === "professional" && "dark",
+      )}
+    >
       {/* 728px — Substack's column width, matching `.prose`'s own max-width. */}
       <div className="w-full min-w-0 max-w-[45.5rem]">
         <BlogHeader />

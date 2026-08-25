@@ -33,7 +33,12 @@
   --blog-ink: 0 0% 10%;
 }
 
-.dark {
+/* `.dark` is on <html> for the homepage, but on <main> for an article (a post's
+   theme follows its category, which is per-route data the root layout can't
+   see). `html:has(.dark)` lets the document element adopt the same tokens, so
+   the page background and overscroll area match instead of flashing light. */
+.dark,
+html:has(.dark) {
   --background: 0 0% 11%;
   --foreground: 0 0% 95%;
   --muted: 0 0% 20%;
@@ -42,6 +47,9 @@
   --border: 0 0% 22%;
   --primary: 0 0% 95%;
   --primary-foreground: 0 0% 11%;
+  /* Body ink lightens for the dark reading view; the orange accent carries over
+     unchanged — it clears 4.5:1 on this background (5.8:1). */
+  --blog-ink: 0 0% 90%;
 }
 
 @theme inline {
@@ -89,11 +97,21 @@ body {
   --tw-prose-headings: hsl(var(--blog-ink));
   --tw-prose-links: hsl(var(--blog-accent));
   --tw-prose-bold: hsl(var(--blog-ink));
-  --tw-prose-counters: rgb(113, 113, 122);
-  --tw-prose-bullets: rgb(161, 161, 170);
+  --tw-prose-counters: hsl(var(--muted-foreground));
+  --tw-prose-bullets: hsl(var(--muted-foreground));
   --tw-prose-quotes: hsl(var(--blog-ink));
   --tw-prose-quote-borders: hsl(var(--border));
-  --tw-prose-captions: rgb(113, 113, 122);
+  --tw-prose-captions: hsl(var(--muted-foreground));
+  /* Every remaining Tailwind Typography default is a fixed zinc value, which
+     reads as dark-on-dark once a post renders in the dark theme. Point them all
+     at tokens so both themes follow from the same source. */
+  --tw-prose-lead: hsl(var(--muted-foreground));
+  --tw-prose-code: hsl(var(--blog-ink));
+  --tw-prose-pre-code: hsl(var(--blog-ink));
+  --tw-prose-pre-bg: hsl(var(--muted) / 0.5);
+  --tw-prose-hr: hsl(var(--border));
+  --tw-prose-th-borders: hsl(var(--border));
+  --tw-prose-td-borders: hsl(var(--border));
   font-family: var(--font-spectral), serif;
   font-size: 1.1875rem; /* 19px */
   line-height: 1.6;
@@ -155,7 +173,7 @@ body {
 /* Code sits in a light chip/panel rather than a dark slab. Tailwind Typography
    wraps inline code in literal backticks — drop them. */
 .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  background-color: hsl(0 0% 95%);
+  background-color: hsl(var(--muted));
   border-radius: 4px;
   padding: 0.15em 0.35em;
   font-size: 0.875em;
@@ -166,7 +184,7 @@ body {
   content: none;
 }
 .prose :where(pre):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  background-color: hsl(0 0% 97%);
+  background-color: hsl(var(--muted) / 0.5);
   color: hsl(var(--blog-ink));
   border: 1px solid hsl(var(--border));
   border-radius: 6px;

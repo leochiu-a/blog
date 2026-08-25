@@ -6,7 +6,7 @@ interface BookQuoteProps {
 
 export function BookQuote({ speaker, source, children }: BookQuoteProps) {
   return (
-    <figure className="group relative my-8 rounded-2xl bg-primary-foreground p-6 transition-all duration-300 not-prose">
+    <figure className="group relative my-8 rounded-2xl bg-card p-6 transition-all duration-300 not-prose">
       <div className="absolute left-0 top-6 bottom-6 w-1 rounded-full bg-blog-accent/70" />
       <div className="relative z-10 pl-4">
         <div className="mb-5 font-spectral text-lg italic leading-relaxed text-foreground/90">
