@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Post } from "@/types/content";
 import { SectionRow } from "@/components/SectionRow";
+import { DividerOrnament } from "@/components/icons";
 
 function PostItem({ post }: { post: Post }) {
   return (
@@ -29,14 +30,28 @@ function PostItem({ post }: { post: Post }) {
   );
 }
 
+function EmptyPosts() {
+  return (
+    <div className="flex flex-col items-center gap-y-3 rounded-lg border border-dashed border-bronze/30 py-10 text-center">
+      <DividerOrnament className="text-gold opacity-60" />
+      <p className="font-cormorant text-lg text-muted-foreground">敬請期待</p>
+      <p className="font-sans text-xs text-muted-foreground/70">新文章準備中，晚點再回來看看。</p>
+    </div>
+  );
+}
+
 export function PostsSection({ posts }: { posts: Post[] }) {
   return (
     <SectionRow label="Posts">
-      <ul className="flex flex-col gap-y-4">
-        {posts.map((post) => (
-          <PostItem key={post.href + post.title} post={post} />
-        ))}
-      </ul>
+      {posts.length > 0 ? (
+        <ul className="flex flex-col gap-y-4">
+          {posts.map((post) => (
+            <PostItem key={post.href + post.title} post={post} />
+          ))}
+        </ul>
+      ) : (
+        <EmptyPosts />
+      )}
     </SectionRow>
   );
 }

@@ -40,7 +40,10 @@ export function PortfolioApp({ mode, professionalPosts, personalPosts }: Portfol
         </nav>
       </header>
 
-      <div className="flex w-full flex-col gap-y-10">
+      {/* flex-1 lets this block absorb any leftover viewport height so the
+          footer below it stays pinned to the bottom even on sparse pages
+          (e.g. personal mode with no posts yet) instead of floating mid-page. */}
+      <div className="flex w-full flex-1 flex-col gap-y-10">
         <Hero mode={mode} />
         <AboutSection mode={mode} />
         <Divider />
