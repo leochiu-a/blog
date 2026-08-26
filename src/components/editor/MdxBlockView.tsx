@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import type { MdxAttribute } from "@/lib/editor/types";
-import { isSelfClosing, specFor } from "./mdx-blocks";
+import { editableAttributes, isSelfClosing, specFor } from "./mdx-blocks";
 import { Badge } from "@/components/ui/badge";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -23,15 +23,20 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
   const value = (attribute: string) =>
     attributes.find((item) => item.name === attribute)?.value ?? "";
 
-  const setAttribute = (index: number, next: string) => {
+  // Fields the spec declares but the file left out are appended, so a
+  // component written without an optional attribute still offers it.
+  const fields = editableAttributes(name, attributes);
+
+  const setAttribute = (field: MdxAttribute, next: string) => {
+    const updated =
+      field.expression !== null ? { ...field, expression: next } : { ...field, value: next };
+    const index = attributes.indexOf(field);
+
     updateAttributes({
-      attributes: attributes.map((attribute, position) =>
-        position !== index
-          ? attribute
-          : attribute.expression !== null
-            ? { ...attribute, expression: next }
-            : { ...attribute, value: next },
-      ),
+      attributes:
+        index === -1
+          ? [...attributes, updated]
+          : attributes.map((attribute, position) => (position === index ? updated : attribute)),
     });
   };
 
@@ -85,7 +90,7 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
 
       {editing && (
         <FieldGroup className="not-prose mt-3 gap-3 rounded-md bg-muted/40 p-3 font-sans">
-          {attributes.map((attribute, index) => (
+          {fields.map((attribute, index) => (
             <Field key={attribute.name ?? index} orientation="horizontal">
               <FieldLabel htmlFor={`mdx-attr-${index}`} className="w-24 shrink-0">
                 {attribute.name}
@@ -93,7 +98,7 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
               <Input
                 id={`mdx-attr-${index}`}
                 value={attribute.value ?? attribute.expression ?? ""}
-                onChange={(event) => setAttribute(index, event.target.value)}
+                onChange={(event) => setAttribute(attribute, event.target.value)}
               />
             </Field>
           ))}

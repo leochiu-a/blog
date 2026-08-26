@@ -62,3 +62,17 @@ export function isSelfClosing(name: string | null): boolean {
 export function specFor(name: string | null): MdxBlockSpec | undefined {
   return MDX_BLOCKS.find((block) => block.name === name);
 }
+
+/**
+ * The fields the attribute form should show: everything the file already has,
+ * in the file's own order, followed by the spec's remaining fields.
+ *
+ * Without the second half a `<Callout>` written without `type=` offers nowhere
+ * to add it, even though the spec declares the shape.
+ */
+export function editableAttributes(name: string | null, current: MdxAttribute[]): MdxAttribute[] {
+  const declared = specFor(name)?.attributes ?? [];
+  const present = new Set(current.map((attribute) => attribute.name));
+
+  return [...current, ...declared.filter((attribute) => !present.has(attribute.name))];
+}
