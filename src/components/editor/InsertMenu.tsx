@@ -16,6 +16,12 @@ type Props = {
  * The `+` that sits in the left margin of an empty paragraph, exactly where
  * Medium puts it. `/` on an empty line opens the same menu.
  */
+/** The `+` only belongs on a line with nothing on it yet. */
+function onEmptyParagraph(editor: Editor): boolean {
+  const { $from, empty } = editor.state.selection;
+  return empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0;
+}
+
 export function InsertMenu({ editor, onUploadImage }: Props) {
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState<number | null>(null);
@@ -23,25 +29,20 @@ export function InsertMenu({ editor, onUploadImage }: Props) {
 
   useEffect(() => {
     const update = () => {
-      const { $from, empty } = editor.state.selection;
-      const isEmptyParagraph =
-        empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0;
-
-      if (!isEmptyParagraph) {
+      if (!onEmptyParagraph(editor)) {
         setTop(null);
         setOpen(false);
         return;
       }
 
       const box = anchor.current?.getBoundingClientRect();
-      const caret = editor.view.coordsAtPos($from.pos);
+      const caret = editor.view.coordsAtPos(editor.state.selection.$from.pos);
       setTop(box ? caret.top - box.top : null);
     };
 
     const openOnSlash = (event: KeyboardEvent) => {
       if (event.key !== "/") return;
-      const { $from, empty } = editor.state.selection;
-      if (empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0) {
+      if (onEmptyParagraph(editor)) {
         event.preventDefault();
         setOpen(true);
       }

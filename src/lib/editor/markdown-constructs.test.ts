@@ -1,18 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { parsePost, serializePost } from "./document";
-import type { PmNode, PostDocument } from "./types";
+import { forgetSource } from "./testing";
 
 const FRONTMATTER = `---\ntitle: "t"\ndatetime: "2026-01-01"\n---\n\n`;
 const post = (body: string) => `${FRONTMATTER}${body}\n`;
-
-/** Force the canonical serializer, as if every block had just been edited. */
-function forgetSource(document: PostDocument): PostDocument {
-  const content = (document.doc.content ?? []).map((block) => {
-    const { source: _source, ...attrs } = block.attrs ?? {};
-    return { ...block, attrs: Object.keys(attrs).length > 0 ? attrs : undefined } as PmNode;
-  });
-  return { ...document, doc: { ...document.doc, content } };
-}
 
 const BODIES = {
   "pull quote": `>> Agent = Model + Harness`,
@@ -52,5 +43,29 @@ describe("a table the writer didn't align", () => {
     expect(serializePost(forgetSource(parsePost(ragged)))).toBe(
       post(`| a |  b  |\n| - | :-: |\n| 1 |  2  |`),
     );
+  });
+});
+
+/**
+ * The block-by-block test in document.test.ts compares real posts with escapes
+ * normalised away on both sides, so nothing there asserts what the serializer
+ * escapes. These do, on the two cases the posts actually contain.
+ */
+describe("punctuation the serializer escapes once a block is edited", () => {
+  it.each([
+    // `@` is escaped because MDX would otherwise read it as the start of an
+    // expression; `\@` renders as a plain @.
+    ["BLEU 或 Pass@k 這類指標", "BLEU 或 Pass\\@k 這類指標"],
+    // CommonMark won't read `**` as emphasis when it opens against a full-width
+    // bracket, so this is literal text — and literal asterisks get escaped.
+    ["最值得留的是**「冷門規則」**。", "最值得留的是\\*\\*「冷門規則」\\*\\*。"],
+  ])("writes %o as %o", (written, expected) => {
+    expect(serializePost(forgetSource(parsePost(post(written))))).toBe(post(expected));
+  });
+
+  it("leaves emphasis alone when CommonMark does read it as emphasis", () => {
+    const emphasised = post("最值得留的是「**冷門規則**」。");
+
+    expect(serializePost(forgetSource(parsePost(emphasised)))).toBe(emphasised);
   });
 });

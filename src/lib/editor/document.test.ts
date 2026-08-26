@@ -2,23 +2,12 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parsePost, serializePost, stringifyBlock } from "./document";
-import type { PmNode, PostDocument } from "./types";
+import { forgetSource } from "./testing";
+import type { PmNode } from "./types";
 
 const POSTS_DIR = join(process.cwd(), "src/content/blog");
 const postFiles = readdirSync(POSTS_DIR).filter((name) => name.endsWith(".md"));
 const read = (name: string) => readFileSync(join(POSTS_DIR, name), "utf8");
-
-/**
- * Drop the original-source attrs, so serialization has to go through the
- * mdast bridge rather than replaying the bytes it was handed.
- */
-function forgetSource(document: PostDocument): PostDocument {
-  const content = (document.doc.content ?? []).map((block) => {
-    const { source: _source, ...attrs } = block.attrs ?? {};
-    return { ...block, attrs: Object.keys(attrs).length > 0 ? attrs : undefined } as PmNode;
-  });
-  return { ...document, doc: { ...document.doc, content } };
-}
 
 describe("post round-trip", () => {
   it("finds the posts to test against", () => {
@@ -70,9 +59,11 @@ describe("post round-trip", () => {
       compared += 1;
     }
 
-    // Every block that wasn't skipped was actually compared, so the loop can't
-    // pass by quietly doing nothing. A brand new post has none, and that's fine.
-    expect(compared).toBe(blocks.filter((block) => !isHandWrappedJsx(block)).length);
+    // Counted from the file text rather than from the same predicate the loop
+    // uses, so this can't agree with a loop that skipped everything.
+    const handWrapped = (source.match(/^<[A-Z][A-Za-z]*\n/gm) ?? []).length;
+
+    expect(compared).toBe(blocks.length - handWrapped);
   });
 
   it("drops the empty paragraphs the editor keeps around for clicking into", () => {

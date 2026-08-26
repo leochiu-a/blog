@@ -56,5 +56,5 @@ export function useAutosave(save: (document: PostDocument) => Promise<void>) {
     };
   }, [flush]);
 
-  return { status, schedule, flush };
+  return { status, schedule };
 }
