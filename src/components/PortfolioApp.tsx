@@ -20,11 +20,14 @@ export function PortfolioApp({ mode, professionalPosts, personalPosts }: Portfol
     <main className="flex min-h-screen w-full max-w-300 flex-col items-center px-6 pb-10 pt-7 font-garamond">
       <ThemeSync mode={mode} />
       <header className="mb-12 flex w-full flex-wrap pb-3 text-sm sm:flex-nowrap">
+        {/* Below sm there isn't room for "Home" beside the toggle (the toggle
+            alone is 320px) — and this *is* the home page, so the link is
+            redundant there. Hide it and give the toggle the whole row. */}
         <nav
           className="relative mx-auto flex w-full items-center justify-between"
           aria-label="global"
         >
-          <div className="z-10 flex flex-1 items-center justify-start pb-8">
+          <div className="z-10 hidden flex-1 items-center justify-start pb-8 sm:flex">
             <Link
               href="/"
               className="flex-none font-garamond text-[1.25rem] font-medium transition-colors hover:text-gold"
@@ -36,7 +39,7 @@ export function PortfolioApp({ mode, professionalPosts, personalPosts }: Portfol
           <div className="z-0 flex w-full justify-center">
             <ModeToggle mode={mode} />
           </div>
-          <div className="z-10 flex flex-1" aria-hidden="true" />
+          <div className="z-10 hidden flex-1 sm:flex" aria-hidden="true" />
         </nav>
       </header>
 

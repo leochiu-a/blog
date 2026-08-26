@@ -29,7 +29,9 @@ export function ProjectCard({ project }: { project: Project }) {
         {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="flex flex-col gap-y-3 no-underline"
       >
-        <div className="relative h-48 w-full">
+        {/* Matches the 2:1 of a GitHub OG image — a fixed height crops the repo
+            name off the sides once the card goes full width on a phone. */}
+        <div className="relative aspect-2/1 w-full">
           <Image src={project.image} alt="" fill className="rounded-t-md object-cover" />
         </div>
         <div className="flex flex-col gap-y-0.5 px-5 py-4">
