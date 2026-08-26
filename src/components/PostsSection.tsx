@@ -56,7 +56,8 @@ function EmptyPosts() {
  * The `/editor` route is absent from a production build entirely (see
  * src/lib/editor/dev-routes.ts), so this guard is what keeps the listing from
  * offering a link that would 404 on the live site. `process.env.NODE_ENV` is
- * inlined at build time, which leaves nothing of this component in the bundle.
+ * inlined at build time, which leaves nothing of this component in the bundle
+ * — see `DevEditLink` for why the check isn't shared through a wrapper.
  */
 function EditorLink() {
   if (process.env.NODE_ENV !== "development") return null;

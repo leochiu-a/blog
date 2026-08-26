@@ -121,9 +121,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   {post.subtitle}
                 </p>
               )}
-              {/* Byline on the left, actions on the right — the row Medium and
-                  Substack both put between the title and the article body. */}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="font-sans text-sm text-muted-foreground">
                   Leo Chiu
                   {date && (
