@@ -52,9 +52,9 @@ export const projects: Project[] = [
     image: "https://opengraph.githubassets.com/1/leochiu-a/universal-agents",
   },
   {
-    title: "simple-resume",
+    title: "open-resume",
     description: "A online tool to create a resume.",
-    href: "https://github.com/leochiu-a/simple-resume",
-    image: "https://opengraph.githubassets.com/1/leochiu-a/simple-resume",
+    href: "https://github.com/leochiu-a/open-resume",
+    image: "https://opengraph.githubassets.com/1/leochiu-a/open-resume",
   },
 ];
