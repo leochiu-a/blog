@@ -1,7 +1,7 @@
 import { posts } from "@/lib/posts";
 import { PortfolioApp } from "@/components/PortfolioApp";
 import { JsonLd } from "@/components/JsonLd";
-import { profile, about } from "@/data/content";
+import { profile, about, socialLinks } from "@/data/content";
 import { SITE_URL } from "@/lib/site";
 import type { Mode, Post } from "@/types/content";
 
@@ -34,7 +34,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       name: "KKday",
     },
     description: about.professional.join(" "),
-    sameAs: ["https://github.com/leochiu-a"],
+    sameAs: socialLinks.map((link) => link.href),
   };
 
   const websiteJsonLd = {

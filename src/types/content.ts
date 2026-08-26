@@ -20,3 +20,8 @@ export interface Project {
   tags?: ProjectTag[];
   hn?: { href: string; points: number; comments: number };
 }
+
+export interface SocialLink {
+  label: string;
+  href: string;
+}

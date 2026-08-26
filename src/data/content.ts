@@ -1,4 +1,4 @@
-import type { Project } from "@/types/content";
+import type { Project, SocialLink } from "@/types/content";
 
 export const profile = {
   name: "Leo Chiu",
@@ -11,6 +11,17 @@ export const about = {
   professional: ["Senior Software Engineer. Currently working at KKday."],
   personal: ["下班之後，想的都是些無關緊要的小事。"],
 };
+
+// Ordered by how actively I post there — the footer renders this list as-is,
+// and every href doubles as a schema.org `sameAs` entry on the home page.
+export const socialLinks: SocialLink[] = [
+  { label: "GitHub", href: "https://github.com/leochiu-a" },
+  { label: "Threads", href: "https://www.threads.com/@leo.web.dev" },
+  { label: "Instagram", href: "https://www.instagram.com/leo.web.dev/" },
+  { label: "Medium", href: "https://airwaves.medium.com/" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/leochiu-frontend-engineer/" },
+  { label: "CodePen", href: "https://codepen.io/leochiu-a" },
+];
 
 export const projects: Project[] = [
   {
