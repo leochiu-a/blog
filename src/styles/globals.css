@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* shadcn/ui's custom variants, keyframes and animation utilities. Tailwind v4
+   only emits what is actually used, so what the site doesn't touch costs it
+   nothing. */
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 @plugin "@tailwindcss/typography";
 
 @variant dark (&:where(.dark, .dark *));
@@ -24,9 +29,23 @@
   --burnt-sienna: 20 55% 42%;
   --sage: 140 15% 45%;
   --ring: 40 75% 50%;
-  --accent: 40 75% 50%;
   --primary: 210 3% 18%;
   --primary-foreground: 0 0% 100%;
+  /* shadcn/ui's semantic surfaces, written in this file's HSL-channel
+     convention so its components read from the same palette as the site.
+     `--accent` is shadcn's subtle hover surface, not the gold brand accent —
+     that one is `--gold`, which is what the site actually uses. */
+  --accent: 0 0% 95%;
+  --accent-foreground: 210 3% 18%;
+  --card-foreground: 210 3% 18%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 3% 18%;
+  --secondary: 0 0% 95%;
+  --secondary-foreground: 210 3% 18%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 0 0% 90%;
+  --radius: 0.5rem;
   /* Blog reading view only — Substack's brand orange (#FF6719) on links and
      its near-black (#1a1a1a) body ink. Deliberately not the portfolio gold. */
   --blog-accent: 20 100% 55%;
@@ -47,6 +66,15 @@ html:has(.dark) {
   --border: 0 0% 22%;
   --primary: 0 0% 95%;
   --primary-foreground: 0 0% 11%;
+  --accent: 0 0% 20%;
+  --accent-foreground: 0 0% 95%;
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 15%;
+  --popover-foreground: 0 0% 95%;
+  --secondary: 0 0% 20%;
+  --secondary-foreground: 0 0% 95%;
+  --destructive: 0 72% 55%;
+  --input: 0 0% 22%;
   /* Body ink lightens for the dark reading view; the orange accent carries over
      unchanged — it clears 4.5:1 on this background (5.8:1). */
   --blog-ink: 0 0% 90%;
@@ -69,6 +97,19 @@ html:has(.dark) {
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-blog-accent: hsl(var(--blog-accent));
   --color-blog-ink: hsl(var(--blog-ink));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-input: hsl(var(--input));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --font-garamond: var(--font-garamond), serif;
   --font-cormorant: var(--font-cormorant), serif;
   --font-newsreader: var(--font-newsreader), serif;
@@ -76,6 +117,16 @@ html:has(.dark) {
   --font-spectral: var(--font-spectral), serif;
 
   --text-xxs: 0.625rem;
+}
+
+/* Tailwind v4 defaults an unqualified `border` to `currentColor`, which draws a
+   border in the text colour. shadcn/ui's components are written expecting the
+   border token instead, so restate that here — the same rule `shadcn init`
+   writes. Site code always names its border colour, so nothing there moves. */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
 }
 
 html {

@@ -18,6 +18,7 @@
     "dist/**",
     "node_modules/**",
     "scripts/**",
-    "next-env.d.ts"
+    "next-env.d.ts",
+    "src/components/ui/**"
   ]
 }
