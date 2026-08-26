@@ -5,6 +5,7 @@ import { posts } from "@/lib/posts";
 import { SITE_URL } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
+import { RecentPosts } from "@/components/blog/RecentPosts";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
@@ -136,6 +137,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
               <Post />
             </div>
+
+            <RecentPosts slug={post.slug} category={post.category} />
 
             <ScrollToTop />
             <Footer variant="minimal" />
