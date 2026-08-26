@@ -1,0 +1,56 @@
+/*
+ * Styles that only exist inside the editor.
+ *
+ * The prose classes carry most of the reading view across, but a few
+ * constructs are rendered by `mdx-components.tsx` on the published page and so
+ * have no counterpart here. This file closes those gaps, so what you type
+ * looks like what ships.
+ */
+
+/*
+ * A pull quote is written `>>` — a blockquote whose only child is another
+ * blockquote — and the published page swaps that shape for `<FancyQuote>`.
+ * ProseMirror renders the nesting literally, which comes out as two rules, so
+ * match FancyQuote here instead: centred, 32px at 1.4, no framing.
+ */
+.ProseMirror blockquote:has(> blockquote:only-child) {
+  margin: 3rem 0;
+  border-left: none;
+  padding-left: 0;
+}
+
+.ProseMirror blockquote > blockquote:only-child {
+  margin: 0;
+  border-left: none;
+  padding-left: 0;
+  text-align: center;
+  font-family: var(--font-spectral), serif;
+  font-size: 1.625rem;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+}
+
+@media (min-width: 640px) {
+  .ProseMirror blockquote > blockquote:only-child {
+    font-size: 2rem;
+  }
+}
+
+.ProseMirror blockquote > blockquote:only-child p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/*
+ * `---` becomes `<OrnamentSeparator>` on the published page: a hairline in the
+ * border colour across the full column. The prose default is a border-top in a
+ * different weight and rhythm, so restate it here.
+ */
+.ProseMirror hr {
+  margin: 3rem 0;
+  height: 1px;
+  width: 100%;
+  border: 0;
+  background-color: hsl(var(--border));
+}
