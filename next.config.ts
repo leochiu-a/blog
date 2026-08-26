@@ -2,12 +2,14 @@ import type { NextConfig } from "next";
 import { withContentCollections } from "@content-collections/next";
 import createMDX from "@next/mdx";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+import { pageExtensionsFor } from "./src/lib/editor/dev-routes";
 
 const nextConfig: NextConfig = {
   // Match the previous (Astro) URL scheme: /blog/<slug>/ with a trailing slash.
   trailingSlash: true,
-  // Allow .mdx files to be imported as modules.
-  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  // Allow .mdx files to be imported as modules, and — in `next dev` only —
+  // the `.dev.tsx` / `.dev.ts` routes the post editor is built from.
+  pageExtensions: pageExtensionsFor(process.env.NODE_ENV),
   images: {
     remotePatterns: [
       {

@@ -6,6 +6,18 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/clone-website/SKILL.md",
       "computedHash": "f8bb3724afae412770cd73b377d0e83672d1c00619789c03ac09d8213c9cd24a"
+    },
+    "migrate-radix-to-base": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/migrate-radix-to-base/SKILL.md",
+      "computedHash": "e1f2030ee5059be3dff0812ca0e4b995ee9fa3132176f049ebe6c90346a6755e"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "c1a68ee06a668aced9ab2b5fbdea5f989864123794eb2e056b339a072dbb7f10"
     }
   }
 }

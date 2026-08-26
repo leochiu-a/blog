@@ -9,6 +9,7 @@ import { RecentPosts } from "@/components/blog/RecentPosts";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
+import { DevEditLink } from "@/components/blog/DevEditLink";
 
 export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
@@ -131,6 +132,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   )}
                   {post.readTime && ` · ${post.readTime}`}
                 </p>
+                <DevEditLink slug={post.slug} />
               </div>
             </div>
 
