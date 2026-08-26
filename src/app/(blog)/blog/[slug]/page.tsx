@@ -5,7 +5,6 @@ import { posts } from "@/lib/posts";
 import { SITE_URL } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
-import { ShareToStoryButton } from "@/components/blog/ShareToStoryButton";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
@@ -120,7 +119,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   {post.subtitle}
                 </p>
               )}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="font-sans text-sm text-muted-foreground">
                   Leo Chiu
                   {date && (
@@ -131,12 +130,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   )}
                   {post.readTime && ` · ${post.readTime}`}
                 </p>
-                <ShareToStoryButton
-                  title={post.title}
-                  subtitle={post.subtitle}
-                  date={date}
-                  url={postUrl}
-                />
               </div>
             </div>
 
