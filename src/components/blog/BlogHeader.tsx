@@ -3,12 +3,12 @@ import Link from "next/link";
 /** Blog page header — same shell as the homepage nav but without the mode toggle. */
 export function BlogHeader() {
   return (
-    <header className="mb-12 flex w-full flex-wrap pb-3 text-sm sm:flex-nowrap">
+    <header className="mb-8 flex w-full flex-wrap text-sm sm:flex-nowrap">
       <nav
         className="relative mx-auto flex w-full items-center justify-between"
         aria-label="global"
       >
-        <div className="z-10 flex flex-1 items-center justify-start pb-8">
+        <div className="z-10 flex flex-1 items-center justify-start">
           <Link
             href="/"
             className="flex-none font-garamond text-[1.25rem] font-medium transition-colors hover:text-gold"

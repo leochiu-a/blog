@@ -20,7 +20,7 @@ interface FigureProps {
  */
 export function Figure({ src, alt, width, height, caption }: FigureProps) {
   return (
-    <figure className="my-10 not-prose">
+    <figure className="my-6 not-prose">
       <Image
         src={src}
         alt={alt}

@@ -133,7 +133,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               </div>
             </div>
 
-            <div className="prose prose-lg prose-zinc mt-8 border-t border-border pt-8">
+            <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
               <Post />
             </div>
 
