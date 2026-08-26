@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { parsePost } from "@/lib/editor/document";
+import { readFlag, readText } from "@/lib/editor/frontmatter-fields";
+import { CATEGORIES } from "@/lib/post-frontmatter";
 import { postStore } from "@/lib/editor/store";
 import { NewPostButton } from "@/components/editor/NewPostButton";
 import { Badge } from "@/components/ui/badge";
@@ -15,12 +17,6 @@ type PostSummary = {
   draft: boolean;
 };
 
-/** The same split the homepage makes, in the same order it shows them. */
-const CATEGORIES = [
-  { key: "professional", label: "Professional" },
-  { key: "personal", label: "Personal" },
-];
-
 async function loadPosts(): Promise<PostSummary[]> {
   const slugs = await postStore.listSlugs();
   const posts = await Promise.all(
@@ -28,10 +24,10 @@ async function loadPosts(): Promise<PostSummary[]> {
       const { frontmatter } = parsePost(await postStore.read(slug));
       return {
         slug,
-        title: String(frontmatter.title ?? slug),
-        datetime: String(frontmatter.datetime ?? ""),
-        category: String(frontmatter.category ?? "personal"),
-        draft: frontmatter.draft === true,
+        title: readText(frontmatter, "title") || slug,
+        datetime: readText(frontmatter, "datetime"),
+        category: readText(frontmatter, "category"),
+        draft: readFlag(frontmatter, "draft"),
       };
     }),
   );
@@ -90,14 +86,14 @@ export default async function EditorIndex() {
           </div>
         </div>
 
-        {CATEGORIES.map(({ key, label }) => {
-          const inCategory = posts.filter((post) => post.category === key);
+        {CATEGORIES.map((category) => {
+          const inCategory = posts.filter((post) => post.category === category);
           if (inCategory.length === 0) return null;
 
           return (
-            <section key={key} className="mt-10">
+            <section key={category} className="mt-10">
               <h2 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-                {label} · {inCategory.length}
+                {category} · {inCategory.length}
               </h2>
               <PostList posts={inCategory} />
             </section>

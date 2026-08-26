@@ -1,25 +1,13 @@
 import { createDefaultImport, defineCollection, defineConfig } from "@content-collections/core";
 import type { MDXContent } from "mdx/types";
-import { z } from "zod";
+import { postFrontmatterSchema } from "./src/lib/post-frontmatter";
 
 const posts = defineCollection({
   name: "posts",
   directory: "src/content/blog",
   include: "**/*.md",
   parser: "frontmatter-only",
-  schema: z.object({
-    title: z.string(),
-    subtitle: z.string().optional(),
-    description: z.string().optional(),
-    ogImage: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    datetime: z.string(),
-    readTime: z.string(),
-    font: z.enum(["garamond", "newsreader"]),
-    category: z.enum(["professional", "personal"]),
-    featured: z.boolean().optional(),
-    draft: z.boolean().optional(),
-  }),
+  schema: postFrontmatterSchema,
   transform: async ({ _meta, ...document }) => {
     const slug = _meta.path;
     const date = new Intl.DateTimeFormat("en-GB", {

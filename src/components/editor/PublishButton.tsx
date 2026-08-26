@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  readFlag,
+  withField,
+  without,
+  type FrontmatterValues,
+} from "@/lib/editor/frontmatter-fields";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +21,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 type Props = {
-  frontmatter: Record<string, unknown>;
-  onChange: (next: Record<string, unknown>) => void;
+  frontmatter: FrontmatterValues;
+  onChange: (next: FrontmatterValues) => void;
 };
 
 /**
@@ -25,15 +31,11 @@ type Props = {
  * the writing is done — the same place Medium and Substack put it.
  */
 export function PublishButton({ frontmatter, onChange }: Props) {
-  const isDraft = frontmatter.draft === true;
+  const isDraft = readFlag(frontmatter, "draft");
 
-  const setDraft = (draft: boolean) => {
-    const next = { ...frontmatter };
-    // Removing the key is how a published post is written.
-    if (draft) next.draft = true;
-    else delete next.draft;
-    onChange(next);
-  };
+  // Removing the key is how a published post is written.
+  const setDraft = (draft: boolean) =>
+    onChange(draft ? withField(frontmatter, "draft", true) : without(frontmatter, "draft"));
 
   return (
     <>

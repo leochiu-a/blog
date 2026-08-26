@@ -8,6 +8,7 @@ import { createExtensions } from "@/lib/editor/extensions";
 import type { PmNode, PostDocument } from "@/lib/editor/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { readText, withField } from "@/lib/editor/frontmatter-fields";
 import { cn } from "@/lib/utils";
 import { BubbleToolbar } from "./BubbleToolbar";
 import { HeadingField } from "./HeadingField";
@@ -163,15 +164,15 @@ export function PostEditor({
       <main className="flex w-full flex-col items-center px-6 pb-32 pt-10 font-garamond sm:px-10">
         <div className="w-full min-w-0 max-w-[45.5rem]">
           <HeadingField
-            value={String(frontmatter.title ?? "")}
-            onChange={(title) => updateFrontmatter({ ...frontmatter, title })}
+            value={readText(frontmatter, "title")}
+            onChange={(title) => updateFrontmatter(withField(frontmatter, "title", title))}
             onEnter={() => editor?.commands.focus("start")}
             placeholder="Title"
             className="font-sans text-4xl font-extrabold leading-tight tracking-tight placeholder:text-muted-foreground md:text-5xl"
           />
           <HeadingField
-            value={String(frontmatter.subtitle ?? "")}
-            onChange={(subtitle) => updateFrontmatter({ ...frontmatter, subtitle })}
+            value={readText(frontmatter, "subtitle")}
+            onChange={(subtitle) => updateFrontmatter(withField(frontmatter, "subtitle", subtitle))}
             onEnter={() => editor?.commands.focus("start")}
             placeholder="Subtitle"
             className="mt-3 font-sans text-xl leading-snug text-muted-foreground placeholder:text-muted-foreground"

@@ -19,45 +19,44 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { CATEGORIES, FONTS } from "@/lib/post-frontmatter";
+import {
+  readFlag,
+  readList,
+  readText,
+  withField,
+  without,
+  type FrontmatterValues,
+} from "@/lib/editor/frontmatter-fields";
 import { TagInput } from "./TagInput";
 
-type Frontmatter = Record<string, unknown>;
-
 type Props = {
-  frontmatter: Frontmatter;
-  onChange: (next: Frontmatter) => void;
+  frontmatter: FrontmatterValues;
+  onChange: (next: FrontmatterValues) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   slug: string;
 };
-
-const FONTS = ["garamond", "newsreader"] as const;
-const CATEGORIES = ["professional", "personal"] as const;
-
-const asString = (value: unknown) => (typeof value === "string" ? value : "");
 
 /**
  * Post settings live here rather than in the writing surface, the way Medium
  * and Substack split "the story" from "everything about the story".
  */
 export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug }: Props) {
-  const set = (key: string, value: unknown) => {
-    const next = { ...frontmatter };
-    if (value === "" || value === false) delete next[key];
-    else next[key] = value;
-    onChange(next);
-  };
+  const set = (key: string, value: unknown) => onChange(withField(frontmatter, key, value));
+  const clear = (key: string) => onChange(without(frontmatter, key));
 
-  const tags = Array.isArray(frontmatter.tags) ? (frontmatter.tags as string[]) : [];
+  /** An emptied optional field is a removed key; a required one is only blanked. */
+  const setText = (key: string, value: string) => (value === "" ? clear(key) : set(key, value));
 
   const text = (key: string, label: string, placeholder = "") => (
     <Field>
       <FieldLabel htmlFor={key}>{label}</FieldLabel>
       <Input
         id={key}
-        value={asString(frontmatter[key])}
+        value={readText(frontmatter, key)}
         placeholder={placeholder}
-        onChange={(event) => set(key, event.target.value)}
+        onChange={(event) => setText(key, event.target.value)}
       />
     </Field>
   );
@@ -65,7 +64,7 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
   const choice = (key: string, label: string, options: readonly string[]) => (
     <Field>
       <FieldLabel htmlFor={key}>{label}</FieldLabel>
-      <Select value={asString(frontmatter[key])} onValueChange={(value) => set(key, value)}>
+      <Select value={readText(frontmatter, key)} onValueChange={(value) => set(key, value)}>
         <SelectTrigger id={key}>
           <SelectValue />
         </SelectTrigger>
@@ -96,9 +95,9 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
             <Textarea
               id="description"
               rows={4}
-              value={asString(frontmatter.description)}
+              value={readText(frontmatter, "description")}
               placeholder="SEO 描述"
-              onChange={(event) => set("description", event.target.value)}
+              onChange={(event) => setText("description", event.target.value)}
             />
           </Field>
 
@@ -112,8 +111,8 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
             <FieldLabel htmlFor="tags">tags</FieldLabel>
             <TagInput
               id="tags"
-              tags={tags}
-              onChange={(next) => set("tags", next.length > 0 ? next : "")}
+              tags={readList(frontmatter, "tags")}
+              onChange={(next) => (next.length > 0 ? set("tags", next) : clear("tags"))}
             />
           </Field>
 
@@ -121,8 +120,8 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
             <FieldLabel htmlFor="featured">featured</FieldLabel>
             <Switch
               id="featured"
-              checked={frontmatter.featured === true}
-              onCheckedChange={(checked) => set("featured", checked)}
+              checked={readFlag(frontmatter, "featured")}
+              onCheckedChange={(checked) => (checked ? set("featured", true) : clear("featured"))}
             />
           </Field>
         </FieldGroup>
