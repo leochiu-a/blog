@@ -9,6 +9,7 @@ import { RecentPosts } from "@/components/blog/RecentPosts";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
+import { DevEditLink } from "@/components/blog/DevEditLink";
 
 export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
@@ -120,7 +121,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   {post.subtitle}
                 </p>
               )}
-              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+              {/* Byline on the left, actions on the right — the row Medium and
+                  Substack both put between the title and the article body. */}
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                 <p className="font-sans text-sm text-muted-foreground">
                   Leo Chiu
                   {date && (
@@ -131,6 +134,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   )}
                   {post.readTime && ` · ${post.readTime}`}
                 </p>
+                <DevEditLink slug={post.slug} />
               </div>
             </div>
 

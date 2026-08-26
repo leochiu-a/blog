@@ -50,6 +50,27 @@ function EmptyPosts() {
   );
 }
 
+/**
+ * Way into the post editor, which only exists while `next dev` is running.
+ *
+ * The `/editor` route is absent from a production build entirely (see
+ * src/lib/editor/dev-routes.ts), so this guard is what keeps the listing from
+ * offering a link that would 404 on the live site. `process.env.NODE_ENV` is
+ * inlined at build time, which leaves nothing of this component in the bundle.
+ */
+function EditorLink() {
+  if (process.env.NODE_ENV !== "development") return null;
+
+  return (
+    <Link
+      href="/editor"
+      className="mt-1 self-start font-sans text-xs text-muted-foreground transition-colors hover:text-blog-accent"
+    >
+      Open editor →
+    </Link>
+  );
+}
+
 export function PostsSection({ posts }: { posts: Post[] }) {
   return (
     <SectionRow label="Posts">
@@ -62,6 +83,7 @@ export function PostsSection({ posts }: { posts: Post[] }) {
       ) : (
         <EmptyPosts />
       )}
+      <EditorLink />
     </SectionRow>
   );
 }
