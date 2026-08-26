@@ -28,7 +28,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     name: profile.name,
     url: SITE_URL,
     image: `${SITE_URL}${profile.professionalPhoto}`,
-    jobTitle: "Senior Frontend Engineer",
+    jobTitle: "Senior Software Engineer",
     worksFor: {
       "@type": "Organization",
       name: "KKday",

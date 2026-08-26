@@ -4,16 +4,11 @@ import { WhirlRings } from "@/components/icons";
 interface FlipPhotoProps {
   flipped: boolean;
   onFlip?: () => void;
-  frontSrc?: string;
-  backSrc?: string;
+  frontSrc: string;
+  backSrc: string;
 }
 
-export default function FlipPhoto({
-  flipped,
-  onFlip,
-  frontSrc = "/images/thariq-professional.jpg",
-  backSrc = "/images/thariq-personal.png",
-}: FlipPhotoProps) {
+export default function FlipPhoto({ flipped, onFlip, frontSrc, backSrc }: FlipPhotoProps) {
   return (
     <button
       type="button"

@@ -8,7 +8,7 @@ export const profile = {
 };
 
 export const about = {
-  professional: ["Senior Frontend Engineer. Currently working at KKday."],
+  professional: ["Senior Software Engineer. Currently working at KKday."],
   personal: ["下班之後，想的都是些無關緊要的小事。"],
 };
 
