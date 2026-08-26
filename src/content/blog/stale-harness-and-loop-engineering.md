@@ -107,7 +107,7 @@ Boris Cherny（Anthropic Claude Code 團隊負責人）主張：
 
 也就是把「叫模型做一次事」升級成「設計一個系統，讓它自己反覆觀察、行動、驗證、恢復，不需要人一輪一輪盯著打字」。
 
-Loop Engineering **一句話來說，就是**：「別只叫 AI 寫 Code，而是給它一套『寫壞了能自己跑測試、看報錯、改到對為止』的自動化修復循環。」
+Loop Engineering 一句話來說，就是：「別只叫 AI 寫 Code，而是給它一套『寫壞了能自己跑測試、看報錯、改到對為止』的自動化修復循環。」
 
 ### Loop Engineering vs. Harness Engineering
 
