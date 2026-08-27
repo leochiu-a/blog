@@ -255,6 +255,70 @@ body {
   font-size: inherit;
 }
 
+/* ===== Syntax highlighting (rehype-pretty-code + shiki) =====
+   The plugin wraps every fenced block in a `<figure>`, which Tailwind
+   Typography would otherwise space like an image. The panel itself is the
+   `pre` inside, styled above, so the figure only needs to carry the margin. */
+.prose
+  :where(figure[data-rehype-pretty-code-figure]):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  ) {
+  margin-block: 1.5em;
+}
+.prose
+  :where(figure[data-rehype-pretty-code-figure] pre):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  ) {
+  margin: 0;
+}
+/* Two themes are compiled into every token: shiki writes the colours as
+   `--shiki-light` / `--shiki-dark` custom properties rather than a fixed
+   `color`, so the same HTML serves both themes and nothing flashes the wrong
+   palette on load. Only the token colours come from shiki — the panel's
+   background and border stay with the `pre` rule above (`keepBackground: false`
+   in next.config.ts), so a code block still reads as part of this page rather
+   than as a pasted-in editor screenshot. */
+[data-rehype-pretty-code-figure] span {
+  color: var(--shiki-light);
+}
+.dark [data-rehype-pretty-code-figure] span {
+  color: var(--shiki-dark);
+}
+
+/* Line numbers, opted into per block by writing `showLineNumbers` in the fence
+   info string (`showLineNumbers{5}` to start the count somewhere other than 1).
+   Off by default: most snippets in a post are a few lines quoted inline, where
+   a gutter of numbers is noise — they earn their place once a passage is long
+   enough to point at a line by number.
+
+   The plugin marks the block with `data-line-numbers` and each line with
+   `data-line`, but draws no numbers itself, so they're a CSS counter here. The
+   gutter widens with the line count (`data-line-numbers-max-digits`) so the
+   code stays left-aligned across blocks of different lengths. */
+[data-rehype-pretty-code-figure] code[data-line-numbers] {
+  counter-reset: line;
+}
+[data-rehype-pretty-code-figure] code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1ch;
+  margin-right: 1.5ch;
+  text-align: right;
+  /* Not a token, so it opts out of the shiki colours set above. */
+  color: hsl(var(--muted-foreground));
+}
+[data-rehype-pretty-code-figure]
+  code[data-line-numbers][data-line-numbers-max-digits="2"]
+  > [data-line]::before {
+  width: 2ch;
+}
+[data-rehype-pretty-code-figure]
+  code[data-line-numbers][data-line-numbers-max-digits="3"]
+  > [data-line]::before {
+  width: 3ch;
+}
+
 /* ===== Poem card (embedded in blog posts that quote or feature a poem) ===== */
 .poem-page {
   font-family: var(--font-newsreader), serif;

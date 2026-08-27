@@ -73,7 +73,7 @@ AI 現在最強的是「如何做 How」，但對於「要做什麼 What」，AI
 
 最近我碰上一個很深刻的實例。當時我正在修改某個微服務（Microservice）的 API，打算擴充資料庫中一個 JSONB 格式的 `summary` 欄位：
 
-```
+```ts
 DataModule {
   summary: jsonb
 }

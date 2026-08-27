@@ -28,7 +28,28 @@ const withMDX = createMDX({
     // JSX — compile every post as MDX so components work regardless of extension.
     format: "mdx",
     remarkPlugins: ["remark-frontmatter", "remark-gfm"],
-    rehypePlugins: ["rehype-slug"],
+    rehypePlugins: [
+      "rehype-slug",
+      // Syntax highlighting, resolved at build time — shiki loads the grammars
+      // while the MDX compiles, so a post ships as plain coloured HTML with no
+      // highlighter in the bundle.
+      //
+      // Two themes at once: shiki writes `--shiki-light` / `--shiki-dark` onto
+      // each token instead of a fixed colour, and globals.css picks the one
+      // matching the active theme. `keepBackground: false` drops shiki's own
+      // panel background so the `pre` styling in globals.css still owns the
+      // block's frame — only the token colours come from here.
+      //
+      // Plugins are named as strings, and their options have to stay
+      // serializable, because Turbopack can't pass JavaScript into Rust.
+      [
+        "rehype-pretty-code",
+        {
+          theme: { light: "github-light", dark: "github-dark" },
+          keepBackground: false,
+        },
+      ],
+    ],
   },
 });
 
