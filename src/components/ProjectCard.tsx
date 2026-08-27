@@ -1,12 +1,27 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
 import type { Project } from "@/types/content";
-import { CardCorner } from "@/components/icons";
+import { CardCorner, GitHubMark } from "@/components/icons";
+import { ProjectMedia } from "@/components/ProjectMedia";
+
+const badgeClass =
+  "inline-flex items-center gap-x-1.5 rounded-full border px-2.5 py-1 font-mono text-xxs no-underline transition-colors hover:no-underline";
 
 export function ProjectCard({ project }: { project: Project }) {
-  const isExternal = project.href.startsWith("http");
+  // A usable build beats a readable one as the headline destination; the repo
+  // is still one click away in the badge row below.
+  const href = project.live ?? project.github;
+  // Owned here rather than in ProjectMedia so the whole card is the hover
+  // target — reaching the demo should not mean finding the image.
+  const [active, setActive] = useState(false);
 
   return (
-    <div className="w-full relative flex flex-col gap-y-3 rounded-lg border-2 border-bronze/20 bg-card warm-shadow transition-all duration-300 hover:border-gold/40 hover:warm-shadow-lg hover:-translate-y-1">
+    <div
+      className="w-full relative flex flex-col gap-y-3 rounded-lg border-2 border-bronze/20 bg-card warm-shadow transition-all duration-300 hover:border-gold/40 hover:warm-shadow-lg hover:-translate-y-1"
+      onMouseEnter={() => setActive(true)}
+      onMouseLeave={() => setActive(false)}
+    >
       {/* Corner ornaments */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-2 top-2">
@@ -25,16 +40,18 @@ export function ProjectCard({ project }: { project: Project }) {
 
       {/* Main link */}
       <a
-        href={project.href}
-        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
         className="flex flex-col gap-y-3 no-underline"
       >
-        {/* Matches the 2:1 of a GitHub OG image — a fixed height crops the repo
-            name off the sides once the card goes full width on a phone. */}
-        <div className="relative aspect-2/1 w-full">
-          <Image src={project.image} alt="" fill className="rounded-t-md object-cover" />
-        </div>
-        <div className="flex flex-col gap-y-0.5 px-5 py-4">
+        <ProjectMedia
+          image={project.image}
+          video={project.video}
+          title={project.title}
+          active={active}
+        />
+        <div className="flex flex-col gap-y-0.5 px-5 pt-4">
           <h3 className="font-cormorant text-xl font-semibold text-foreground">{project.title}</h3>
           <p className="text-sm leading-relaxed text-muted-foreground">{project.description}</p>
           {project.tags && project.tags.length > 0 && (
@@ -49,9 +66,38 @@ export function ProjectCard({ project }: { project: Project }) {
         </div>
       </a>
 
-      {/* HN badge — separate sibling <a> to avoid nested anchors */}
-      {project.hn && (
-        <div className="px-5 pb-4">
+      {/* Credentials — sibling anchors, since these can't nest inside the one above.
+          Every project shows whatever it can claim, so no card reads as missing a badge. */}
+      <div className="flex flex-col gap-y-2 px-5 pb-4">
+        <div className="flex flex-row flex-wrap items-center gap-2">
+          {project.github && (
+            <a
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${badgeClass} border-bronze/40 text-bronze hover:border-bronze hover:bg-bronze/10`}
+            >
+              <GitHubMark />
+              Open source
+            </a>
+          )}
+          {project.live && (
+            <a
+              href={project.live}
+              target="_blank"
+              rel="noopener noreferrer"
+              // Gold reads at ~2:1 on the light card, so the label steps down to
+              // burnt sienna there; the pulsing dot carries the gold in both themes.
+              className={`${badgeClass} border-gold/50 text-burnt-sienna hover:border-gold hover:bg-gold/10 dark:text-gold`}
+            >
+              <span className="size-1.5 rounded-full bg-gold motion-reduce:animate-none animate-pulse" />
+              Live
+            </a>
+          )}
+        </div>
+
+        {/* HN badge — keeps its own orange, since that's the whole point of it */}
+        {project.hn && (
           <a
             href={project.hn.href}
             target="_blank"
@@ -67,8 +113,8 @@ export function ProjectCard({ project }: { project: Project }) {
               <span>{project.hn.comments} comments</span>
             </div>
           </a>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -12,14 +12,24 @@ export interface Post {
 
 export type ProjectTag = "Prototype" | "Acquisition";
 
-export interface Project {
+interface ProjectBase {
   title: string;
   description: string;
-  href: string;
-  image: string; // public path
+  /** Poster frame, and the whole of the media when there is no `video`. */
+  image: string;
+  /** Muted loop played on hover. Only worth it when the motion *is* the product. */
+  video?: string;
   tags?: ProjectTag[];
   hn?: { href: string; points: number; comments: number };
 }
+
+/**
+ * A project proves itself either by being readable (`github`) or by being
+ * usable (`live`) — the card badges whichever it has, so requiring at least
+ * one keeps a card from shipping with nothing to click.
+ */
+export type Project = ProjectBase &
+  ({ github: string; live?: string } | { github?: string; live: string });
 
 export interface SocialLink {
   label: string;
