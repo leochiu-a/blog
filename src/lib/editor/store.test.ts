@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -49,6 +49,23 @@ describe("reading and writing posts", () => {
   it("refuses to write to a slug that has no post yet", async () => {
     await expect(store.write("never-existed", "pwned")).rejects.toThrow(/not found/i);
     await expect(store.listSlugs()).resolves.toEqual(["hello"]);
+  });
+});
+
+describe("deleting posts", () => {
+  it("removes the file from disk", async () => {
+    await store.remove("hello");
+
+    expect(existsSync(join(root, "src/content/blog/hello.md"))).toBe(false);
+    await expect(store.listSlugs()).resolves.toEqual([]);
+  });
+
+  it("reports a missing post rather than passing silently", async () => {
+    await expect(store.remove("nope")).rejects.toThrow(/not found/i);
+  });
+
+  it.each(TRAVERSAL)("refuses to delete %o", async (slug) => {
+    await expect(store.remove(slug)).rejects.toThrow(/slug/i);
   });
 });
 

@@ -63,6 +63,13 @@ export function savePost(slug: string, request: Request, store: Store): Promise<
   });
 }
 
+export function deletePost(slug: string, store: Store): Promise<Response> {
+  return respond(async () => {
+    await store.remove(slug);
+    return Response.json({ slug });
+  });
+}
+
 export function createPost(store: Store): Promise<Response> {
   return respond(async () => {
     const slug = await store.createDraft();

@@ -1,5 +1,5 @@
 import { constants } from "node:fs";
-import { access, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { stringify as stringifyYaml } from "yaml";
 
@@ -83,6 +83,12 @@ export function createPostStore(root: string) {
     await writeFile(path, contents, "utf8");
   }
 
+  async function remove(slug: string): Promise<void> {
+    const path = postPath(slug);
+    if (!(await exists(path))) throw new EditorError(`Post not found: ${slug}`, 404);
+    await rm(path);
+  }
+
   async function listSlugs(): Promise<string[]> {
     const names = await readdir(join(root, POSTS_DIR));
     return names
@@ -144,7 +150,7 @@ export function createPostStore(root: string) {
     return `${IMAGES_PUBLIC_PATH}/${candidate}`;
   }
 
-  return { read, write, listSlugs, createDraft, saveImage };
+  return { read, write, remove, listSlugs, createDraft, saveImage };
 }
 
 export const postStore = createPostStore(process.cwd());

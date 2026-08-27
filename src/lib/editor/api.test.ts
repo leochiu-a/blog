@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createPostStore } from "./store";
-import { createPost, getPost, savePost, uploadImage } from "./api";
+import { createPost, deletePost, getPost, savePost, uploadImage } from "./api";
 import { parsePost } from "./document";
 
 const SOURCE = `---\ntitle: "Hello"\ndatetime: "2026-01-01"\n---\n\nBody.\n`;
@@ -127,5 +127,23 @@ describe("uploading an image", () => {
       store,
     );
     expect(response.status).toBe(400);
+  });
+});
+
+describe("deleting a post", () => {
+  it("removes the file and reports the slug", async () => {
+    const response = await deletePost("hello", store);
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ slug: "hello" });
+    await expect(store.listSlugs()).resolves.toEqual([]);
+  });
+
+  it("404s an unknown slug", async () => {
+    expect((await deletePost("nope", store)).status).toBe(404);
+  });
+
+  it("400s a slug that tries to escape the posts directory", async () => {
+    expect((await deletePost("../secret", store)).status).toBe(400);
   });
 });
