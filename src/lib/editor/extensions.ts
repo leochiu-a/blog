@@ -4,6 +4,7 @@ import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
 import { TextSelection, type Command } from "@tiptap/pm/state";
+import { wrapIn } from "@tiptap/pm/commands";
 import { common, createLowlight } from "lowlight";
 import { LineNumbers } from "./line-numbers";
 
@@ -215,6 +216,53 @@ export const enterOutOfPullQuote: Command = (state, dispatch) => {
   return true;
 };
 
+/**
+ * Option+Cmd+5 — the same shortcut Medium uses, walking a block through the two
+ * kinds of quote this blog has and back out: paragraph → quote → pull quote
+ * (`>>`, a blockquote whose only child is a blockquote) → paragraph. One key
+ * for what would otherwise be three controls, and pressing it once too often
+ * costs nothing because the next press undoes it.
+ */
+export const cycleQuote: Command = (state, dispatch) => {
+  const blockquote = state.schema.nodes.blockquote!;
+  const { $from, from } = state.selection;
+
+  const depths: number[] = [];
+  for (let depth = $from.depth; depth > 0; depth -= 1) {
+    if ($from.node(depth).type === blockquote) depths.push(depth);
+  }
+  const [inner, outer] = depths;
+
+  if (inner === undefined) return wrapIn(blockquote)(state, dispatch);
+
+  if (outer === undefined) {
+    if (dispatch) {
+      const quote = $from.node(inner);
+      const tr = state.tr.replaceWith(
+        $from.before(inner),
+        $from.after(inner),
+        blockquote.create(null, quote),
+      );
+      // The text now sits one level deeper, so the cursor moves along with it.
+      tr.setSelection(TextSelection.near(tr.doc.resolve(from + 1)));
+      dispatch(tr.scrollIntoView());
+    }
+    return true;
+  }
+
+  if (dispatch) {
+    const tr = state.tr.replaceWith(
+      $from.before(outer),
+      $from.after(outer),
+      $from.node(inner).content,
+    );
+    // Two levels shed, so the cursor comes back the same two positions.
+    tr.setSelection(TextSelection.near(tr.doc.resolve(from - 2)));
+    dispatch(tr.scrollIntoView());
+  }
+  return true;
+};
+
 const QuoteBoundary = Extension.create({
   name: "quoteBoundary",
   addKeyboardShortcuts() {
@@ -223,6 +271,8 @@ const QuoteBoundary = Extension.create({
         this.editor.commands.command(({ state, dispatch }) => backspaceOutOfQuote(state, dispatch)),
       Enter: () =>
         this.editor.commands.command(({ state, dispatch }) => enterOutOfPullQuote(state, dispatch)),
+      "Mod-Alt-5": () =>
+        this.editor.commands.command(({ state, dispatch }) => cycleQuote(state, dispatch)),
     };
   },
 });
