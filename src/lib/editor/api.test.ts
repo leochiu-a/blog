@@ -86,20 +86,20 @@ describe("saving a post", () => {
 });
 
 describe("creating a post", () => {
-  it("creates the file and returns its slug", async () => {
-    const response = await createPost(json({ slug: "brand-new", title: "Brand New" }), store);
+  it("creates a dated draft and returns its slug", async () => {
+    const response = await createPost(store);
 
     expect(response.status).toBe(201);
-    await expect(response.json()).resolves.toEqual({ slug: "brand-new" });
-    expect(await store.listSlugs()).toContain("brand-new");
+    const { slug } = (await response.json()) as { slug: string };
+    expect(slug).toMatch(/^untitled-\d{4}-\d{2}-\d{2}$/);
+    expect(await store.listSlugs()).toContain(slug);
   });
 
-  it("409s a slug that already exists", async () => {
-    expect((await createPost(json({ slug: "hello", title: "x" }), store)).status).toBe(409);
-  });
+  it("gives a second draft on the same day its own slug", async () => {
+    const first = (await (await createPost(store)).json()) as { slug: string };
+    const second = (await (await createPost(store)).json()) as { slug: string };
 
-  it("400s a missing title", async () => {
-    expect((await createPost(json({ slug: "no-title" }), store)).status).toBe(400);
+    expect(second.slug).toBe(`${first.slug}-2`);
   });
 });
 

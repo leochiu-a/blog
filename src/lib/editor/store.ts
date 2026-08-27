@@ -91,18 +91,27 @@ export function createPostStore(root: string) {
       .sort();
   }
 
-  async function create(slug: string, frontmatter: { title: string }): Promise<string> {
-    const path = postPath(slug);
-    if (await exists(path)) throw new EditorError(`Post already exists: ${slug}`, 409);
+  /**
+   * New posts are created empty and unnamed: the title is typed in place at the
+   * top of the editor, so asking for one up front only got in the way. That
+   * makes the slug ours to pick — dated, with a suffix when a day gets a
+   * second draft — and it is what the post lives at, since nothing renames it.
+   */
+  async function createDraft(): Promise<string> {
+    const today = new Date().toISOString().slice(0, 10);
+    let slug = `untitled-${today}`;
+    for (let suffix = 2; await exists(postPath(slug)); suffix += 1) {
+      slug = `untitled-${today}-${suffix}`;
+    }
 
     // Every field content-collections requires, so the new post compiles the
     // moment it lands on disk. `draft` keeps it out of production until ready.
     const values = {
-      title: frontmatter.title,
-      datetime: new Date().toISOString().slice(0, 10),
+      title: "",
+      datetime: today,
       readTime: "1 min",
       font: "newsreader",
-      category: "personal",
+      category: "professional",
       draft: true,
     };
 
@@ -113,9 +122,8 @@ export function createPostStore(root: string) {
       flowCollectionPadding: false,
     }).replace(/\n$/, "");
 
-    const contents = `---\n${yaml}\n---\n\n`;
-    await writeFile(path, contents, "utf8");
-    return contents;
+    await writeFile(postPath(slug), `---\n${yaml}\n---\n\n`, "utf8");
+    return slug;
   }
 
   async function saveImage(name: string, bytes: Uint8Array): Promise<string> {
@@ -136,7 +144,7 @@ export function createPostStore(root: string) {
     return `${IMAGES_PUBLIC_PATH}/${candidate}`;
   }
 
-  return { read, write, listSlugs, create, saveImage };
+  return { read, write, listSlugs, createDraft, saveImage };
 }
 
 export const postStore = createPostStore(process.cwd());

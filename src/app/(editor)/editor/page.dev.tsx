@@ -72,8 +72,6 @@ export default async function EditorIndex() {
         <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/" />}>
           ← Home
         </Button>
-        <span className="flex-1" />
-        <NewPostButton />
       </header>
 
       <main className="mx-auto w-full max-w-[45.5rem] px-6 pb-16 pt-10">
@@ -84,6 +82,9 @@ export default async function EditorIndex() {
               Dev-only editor · {posts.length} posts
             </p>
           </div>
+          {/* The action sits with the list it adds to, not in the shared bar —
+              the bar is navigation between editor surfaces. */}
+          <NewPostButton />
         </div>
 
         {CATEGORIES.map((category) => {

@@ -53,22 +53,23 @@ describe("reading and writing posts", () => {
 });
 
 describe("creating posts", () => {
-  it("writes a new file with valid frontmatter", async () => {
-    await store.create("my-new-post", { title: "My New Post" });
+  it("writes a dated, untitled file with valid frontmatter", async () => {
+    const slug = await store.createDraft();
 
-    const created = readFileSync(join(root, "src/content/blog/my-new-post.md"), "utf8");
+    expect(slug).toMatch(/^untitled-\d{4}-\d{2}-\d{2}$/);
+    const created = readFileSync(join(root, `src/content/blog/${slug}.md`), "utf8");
     expect(created).toMatch(/^---\n/);
-    expect(created).toContain(`title: "My New Post"`);
+    expect(created).toContain(`title: ""`);
     expect(created).toContain(`draft: true`);
-    expect(await store.listSlugs()).toContain("my-new-post");
+    expect(await store.listSlugs()).toContain(slug);
   });
 
-  it("refuses a slug that already exists", async () => {
-    await expect(store.create("hello", { title: "Clash" })).rejects.toThrow(/exists/i);
-  });
+  it("suffixes the slug rather than overwriting an existing draft", async () => {
+    const first = await store.createDraft();
+    const second = await store.createDraft();
 
-  it.each(TRAVERSAL)("refuses to create %o", async (slug) => {
-    await expect(store.create(slug, { title: "x" })).rejects.toThrow(/slug/i);
+    expect(second).toBe(`${first}-2`);
+    expect(await store.listSlugs()).toEqual(expect.arrayContaining([first, second]));
   });
 });
 

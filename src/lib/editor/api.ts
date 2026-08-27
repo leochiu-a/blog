@@ -63,16 +63,9 @@ export function savePost(slug: string, request: Request, store: Store): Promise<
   });
 }
 
-export function createPost(request: Request, store: Store): Promise<Response> {
+export function createPost(store: Store): Promise<Response> {
   return respond(async () => {
-    const body = await readJson(request);
-    const slug = typeof body.slug === "string" ? body.slug : badRequest("Expected a slug");
-    const title =
-      typeof body.title === "string" && body.title.trim() !== ""
-        ? body.title
-        : badRequest("Expected a title");
-
-    await store.create(slug, { title });
+    const slug = await store.createDraft();
     return Response.json({ slug }, { status: 201 });
   });
 }
