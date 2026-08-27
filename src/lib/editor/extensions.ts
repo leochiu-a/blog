@@ -2,6 +2,7 @@ import { Extension, Node, type NodeViewRenderer } from "@tiptap/core";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
+import { TextSelection, type Command } from "@tiptap/pm/state";
 
 /**
  * The editor's ProseMirror schema, shaped to match the mdast bridge one for
@@ -131,6 +132,82 @@ const MarkdownAttributes = Extension.create({
   ],
 });
 
+/**
+ * Backspace in an empty paragraph that sits right after a blockquote.
+ *
+ * ProseMirror's default pulls the paragraph into the quote as one more child.
+ * For a pull quote — `>>`, a blockquote whose only child is a blockquote —
+ * that extra child breaks the `:only-child` shape the editor styles it by, so
+ * it snaps back to two nested rules mid-typing. Delete the empty paragraph and
+ * put the cursor at the end of the quote instead, which is what backspace
+ * means everywhere else.
+ */
+export const backspaceOutOfQuote: Command = (state, dispatch) => {
+  const { empty, $from } = state.selection;
+  if (!empty || $from.depth === 0) return false;
+
+  const paragraph = $from.parent;
+  if (paragraph.type.name !== "paragraph" || paragraph.content.size > 0) return false;
+
+  const index = $from.index($from.depth - 1);
+  if (index === 0) return false;
+  if ($from.node($from.depth - 1).child(index - 1).type.name !== "blockquote") return false;
+
+  if (dispatch) {
+    const start = $from.before();
+    const tr = state.tr.delete(start, start + paragraph.nodeSize);
+    // `start - 1` is just inside the blockquote's close; searching backwards
+    // from there lands at the end of its last text, however deeply nested.
+    tr.setSelection(TextSelection.near(tr.doc.resolve(start - 1), -1));
+    dispatch(tr.scrollIntoView());
+  }
+  return true;
+};
+
+/**
+ * Enter at the end of a pull quote.
+ *
+ * A pull quote is one sentence — `<FancyQuote>` on the published page — so
+ * carrying on inside it is never what Enter means there. Start a fresh
+ * paragraph after the quote instead. A plain blockquote keeps the default,
+ * since a quote of several paragraphs is a real thing to write.
+ */
+export const enterOutOfPullQuote: Command = (state, dispatch) => {
+  const { empty, $from } = state.selection;
+  if (!empty || $from.depth < 3) return false;
+
+  const paragraph = $from.parent;
+  if (paragraph.type.name !== "paragraph") return false;
+  if ($from.parentOffset !== paragraph.content.size) return false;
+
+  const inner = $from.node($from.depth - 1);
+  const outer = $from.node($from.depth - 2);
+  const isPullQuote =
+    inner.type.name === "blockquote" && outer.type.name === "blockquote" && outer.childCount === 1;
+  if (!isPullQuote) return false;
+  if ($from.index($from.depth - 1) !== inner.childCount - 1) return false;
+
+  if (dispatch) {
+    const after = $from.after($from.depth - 2);
+    const tr = state.tr.insert(after, state.schema.nodes.paragraph!.createAndFill()!);
+    tr.setSelection(TextSelection.near(tr.doc.resolve(after)));
+    dispatch(tr.scrollIntoView());
+  }
+  return true;
+};
+
+const QuoteBoundary = Extension.create({
+  name: "quoteBoundary",
+  addKeyboardShortcuts() {
+    return {
+      Backspace: () =>
+        this.editor.commands.command(({ state, dispatch }) => backspaceOutOfQuote(state, dispatch)),
+      Enter: () =>
+        this.editor.commands.command(({ state, dispatch }) => enterOutOfPullQuote(state, dispatch)),
+    };
+  },
+});
+
 type NodeViewRenderers = {
   mdxBlock?: () => NodeViewRenderer;
   unknownBlock?: () => NodeViewRenderer;
@@ -158,6 +235,7 @@ export function createExtensions(nodeViews: NodeViewRenderers = {}) {
       ? UnknownBlock.extend({ addNodeView: nodeViews.unknownBlock })
       : UnknownBlock,
     UnknownInline,
+    QuoteBoundary,
     SourceAttribute,
     MarkdownAttributes,
   ];
