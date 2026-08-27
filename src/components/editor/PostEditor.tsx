@@ -12,6 +12,7 @@ import { readText, withField } from "@/lib/editor/frontmatter-fields";
 import { cn } from "@/lib/utils";
 import { BubbleToolbar } from "./BubbleToolbar";
 import { HeadingField } from "./HeadingField";
+import { CodeBlockView } from "./CodeBlockView";
 import { InsertMenu } from "./InsertMenu";
 import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
@@ -52,6 +53,7 @@ export function PostEditor({
       ...createExtensions({
         mdxBlock: () => ReactNodeViewRenderer(MdxBlockView),
         unknownBlock: () => ReactNodeViewRenderer(UnknownBlockView),
+        codeBlock: () => ReactNodeViewRenderer(CodeBlockView),
       }),
       Placeholder.configure({ placeholder: "開始寫…" }),
     ],

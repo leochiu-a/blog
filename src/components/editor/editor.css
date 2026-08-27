@@ -54,3 +54,110 @@
   border: 0;
   background-color: hsl(var(--border));
 }
+
+/*
+ * Syntax highlighting while typing.
+ *
+ * The published page is coloured by shiki (build time, GitHub light/dark); the
+ * editor is coloured by lowlight, which emits highlight.js class names instead
+ * of inline colours. These rules are the bridge: the same GitHub hues, keyed
+ * off `hljs-*` so both views agree on what a keyword looks like.
+ *
+ * The panel itself — background, border, radius — comes from the `pre` rule in
+ * globals.css, which the editor already inherits through `.prose`. Only the
+ * token colours live here.
+ */
+.ProseMirror pre {
+  --hl-comment: #6a737d;
+  --hl-keyword: #d73a49;
+  --hl-value: #005cc5;
+  --hl-string: #032f62;
+  --hl-title: #6f42c1;
+  --hl-param: #e36209;
+  --hl-tag: #22863a;
+}
+.dark .ProseMirror pre {
+  --hl-comment: #6a737d;
+  --hl-keyword: #f97583;
+  --hl-value: #79b8ff;
+  --hl-string: #9ecbff;
+  --hl-title: #b392f0;
+  --hl-param: #ffab70;
+  --hl-tag: #85e89d;
+}
+
+.ProseMirror pre .hljs-comment,
+.ProseMirror pre .hljs-quote {
+  color: var(--hl-comment);
+}
+.ProseMirror pre .hljs-keyword,
+.ProseMirror pre .hljs-subst {
+  color: var(--hl-keyword);
+}
+/* Numbers, booleans, built-ins and type names all read as "a value" in the
+   GitHub themes — one blue rather than a colour each. */
+.ProseMirror pre .hljs-number,
+.ProseMirror pre .hljs-literal,
+.ProseMirror pre .hljs-type,
+.ProseMirror pre .hljs-built_in,
+.ProseMirror pre .hljs-symbol,
+.ProseMirror pre .hljs-variable,
+.ProseMirror pre .hljs-variable.language_,
+.ProseMirror pre .hljs-selector-attr,
+.ProseMirror pre .hljs-selector-pseudo {
+  color: var(--hl-value);
+}
+.ProseMirror pre .hljs-string,
+.ProseMirror pre .hljs-regexp,
+.ProseMirror pre .hljs-meta .hljs-string,
+.ProseMirror pre .hljs-addition {
+  color: var(--hl-string);
+}
+.ProseMirror pre .hljs-title,
+.ProseMirror pre .hljs-title.class_,
+.ProseMirror pre .hljs-title.function_,
+.ProseMirror pre .hljs-section,
+.ProseMirror pre .hljs-attr,
+.ProseMirror pre .hljs-selector-class,
+.ProseMirror pre .hljs-doctag {
+  color: var(--hl-title);
+}
+.ProseMirror pre .hljs-params,
+.ProseMirror pre .hljs-attribute,
+.ProseMirror pre .hljs-template-variable {
+  color: var(--hl-param);
+}
+/* A tag name — `<div>` in HTML, a bare type selector in CSS. */
+.ProseMirror pre .hljs-name,
+.ProseMirror pre .hljs-selector-tag,
+.ProseMirror pre .hljs-selector-id {
+  color: var(--hl-tag);
+}
+.ProseMirror pre .hljs-deletion {
+  color: var(--hl-keyword);
+}
+.ProseMirror pre .hljs-emphasis {
+  font-style: italic;
+}
+.ProseMirror pre .hljs-strong {
+  font-weight: 600;
+}
+
+/*
+ * The line-number gutter, drawn by the widget decorations in
+ * `lib/editor/line-numbers.ts` when a block has `showLineNumbers`.
+ *
+ * The published page gets the same column from a CSS counter (globals.css);
+ * these are the same measurements, so toggling the option in the editor shows
+ * what the post will look like.
+ */
+.ProseMirror pre .code-line-number {
+  display: inline-block;
+  margin-right: 1.5ch;
+  text-align: right;
+  color: hsl(var(--muted-foreground));
+  /* The gutter is not code: dragging over the block must not pick it up, and a
+     copied snippet must not come out with numbers in it. */
+  user-select: none;
+  -webkit-user-select: none;
+}

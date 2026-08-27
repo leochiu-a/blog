@@ -1,8 +1,27 @@
 import { Extension, Node, type NodeViewRenderer } from "@tiptap/core";
 import { StarterKit } from "@tiptap/starter-kit";
+import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
 import { TextSelection, type Command } from "@tiptap/pm/state";
+import { common, createLowlight } from "lowlight";
+import { LineNumbers } from "./line-numbers";
+
+/**
+ * Highlighting while typing.
+ *
+ * The published page is coloured by shiki at build time; the editor can't use
+ * that — shiki resolves grammars asynchronously, and a ProseMirror decoration
+ * has to be produced synchronously on every keystroke. lowlight (highlight.js)
+ * is synchronous, so the editor gets its own highlighter, and `editor.css`
+ * maps its `hljs-*` classes onto the same GitHub hues shiki emits so the two
+ * agree on colour.
+ *
+ * `common` is highlight.js' ~37-language set rather than `all`; the editor
+ * only exists under `next dev` (see dev-routes.ts), so its weight never
+ * reaches the deployed app.
+ */
+const lowlight = createLowlight(common);
 
 /**
  * The editor's ProseMirror schema, shaped to match the mdast bridge one for
@@ -211,6 +230,7 @@ const QuoteBoundary = Extension.create({
 type NodeViewRenderers = {
   mdxBlock?: () => NodeViewRenderer;
   unknownBlock?: () => NodeViewRenderer;
+  codeBlock?: () => NodeViewRenderer;
 };
 
 /**
@@ -219,7 +239,15 @@ type NodeViewRenderers = {
  */
 export function createExtensions(nodeViews: NodeViewRenderers = {}) {
   return [
-    StarterKit.configure({ link: false, codeBlock: { languageClassPrefix: "language-" } }),
+    // CodeBlockLowlight replaces StarterKit's plain code block. It keeps the
+    // same node name and `language` attribute, so the mdast bridge and the
+    // `meta` global attribute carry over untouched.
+    StarterKit.configure({ link: false, codeBlock: false }),
+    nodeViews.codeBlock
+      ? CodeBlockLowlight.configure({ lowlight, languageClassPrefix: "language-" }).extend({
+          addNodeView: nodeViews.codeBlock,
+        })
+      : CodeBlockLowlight.configure({ lowlight, languageClassPrefix: "language-" }),
     Link.configure({ openOnClick: false }).extend({
       addAttributes() {
         return { ...this.parent?.(), title: { default: null } };
@@ -236,6 +264,7 @@ export function createExtensions(nodeViews: NodeViewRenderers = {}) {
       : UnknownBlock,
     UnknownInline,
     QuoteBoundary,
+    LineNumbers,
     SourceAttribute,
     MarkdownAttributes,
   ];
