@@ -12,6 +12,7 @@ import { readText, withField } from "@/lib/editor/frontmatter-fields";
 import { cn } from "@/lib/utils";
 import { BubbleToolbar } from "./BubbleToolbar";
 import { HeadingField } from "./HeadingField";
+import { LinkPopover } from "./LinkPopover";
 import { CodeBlockView } from "./CodeBlockView";
 import { InsertMenu } from "./InsertMenu";
 import { MdxBlockView } from "./MdxBlockView";
@@ -183,6 +184,7 @@ export function PostEditor({
           <div className="relative mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
             {editor && <InsertMenu editor={editor} onUploadImage={uploadImage} />}
             {editor && <BubbleToolbar editor={editor} />}
+            {editor && <LinkPopover editor={editor} />}
             <EditorContent
               editor={editor}
               className="prose prose-lg prose-zinc max-w-none [&_.is-empty]:before:pointer-events-none [&_.is-empty]:before:float-left [&_.is-empty]:before:h-0 [&_.is-empty]:before:text-muted-foreground [&_.is-empty]:before:content-[attr(data-placeholder)]"
