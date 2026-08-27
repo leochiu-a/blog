@@ -51,7 +51,8 @@ export const projects: Project[] = [
     description:
       "An Elden Ring–inspired Chrome extension that makes your GitHub workflow legendary.",
     github: "https://github.com/leochiu-a/elden-ring-github",
-    image: "https://opengraph.githubassets.com/1/leochiu-a/elden-ring-github",
+    image: "/images/projects/elden-ring-github-cover.webp",
+    video: "/images/projects/elden-ring-github.mp4",
   },
   {
     title: "universal-agents",
