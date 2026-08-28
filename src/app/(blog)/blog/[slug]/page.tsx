@@ -167,9 +167,15 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               <Post />
             </div>
 
-            <AuthorBio />
-
-            <RecentPosts slug={post.slug} category={post.category} />
+            {/* The bio and the read-more list are both post-script matter, so
+                the rhythm lives here rather than in each section: one gap after
+                the article, a tighter one between the two. Owning both spacings
+                in one place is what keeps the bio's band symmetric — 24px above
+                its content and 24px below, instead of 24 above and 48 below. */}
+            <div className="mt-12 flex flex-col gap-y-6">
+              <AuthorBio />
+              <RecentPosts slug={post.slug} category={post.category} />
+            </div>
 
             <ScrollToTop />
             <Footer variant="minimal" />

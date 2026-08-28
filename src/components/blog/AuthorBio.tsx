@@ -16,7 +16,7 @@ export function AuthorBio() {
   const profiles = socialLinks.filter((link) => PROFILES.includes(link.label));
 
   return (
-    <section className="mt-12 flex items-start gap-x-4 border-t border-border pt-6">
+    <section className="flex items-start gap-x-4 border-t border-border pt-6">
       <Image
         src={author.photo}
         alt={`${author.name} 的照片`}

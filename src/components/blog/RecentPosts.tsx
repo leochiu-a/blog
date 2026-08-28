@@ -16,7 +16,7 @@ export function RecentPosts({ slug, category }: { slug: string; category: string
   if (recent.length === 0) return null;
 
   return (
-    <section className="mt-12 border-t border-border pt-6">
+    <section className="border-t border-border pt-6">
       <h2 className="font-sans text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         Read more
       </h2>
