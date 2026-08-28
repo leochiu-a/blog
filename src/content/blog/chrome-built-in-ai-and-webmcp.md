@@ -66,13 +66,13 @@ Yahoo 上線的九個功能裡，成效最好的是個人化推薦與預測式�
 
 Chrome 的 [Built-in AI 文件](https://developer.chrome.com/docs/ai/built-in) 有提到底層是同一顆 Gemini Nano，往上提供各式各樣的 API，可以在不同情境使用：
 
-| API | 做什麼、適合什麼 |
-| --- | --- |
-| **Prompt API** | 通用推論，可塞 system prompt、要求結構化輸出、吃圖片與音訊，留給沒有對應任務型 API 的場景 |
-| **Summarizer API** | 產生不同長度、不同格式的摘要，適合評論摘要與長文 TL;DR |
-| **Translator / Language Detector API** | 瀏覽器內即時翻譯與語言判定，適合跨語言的評論與商品描述 |
-| **Writer / Rewriter API** | 產生新內容、調整長度與語氣，適合社群文案與客服回覆草稿 |
-| **Proofreader API** | 文法與可讀性修正，適合使用者輸入的即時校正 |
+| API                                    | 做什麼、適合什麼                                               |
+| -------------------------------------- | ------------------------------------------------------ |
+| **Prompt API**                         | 通用推論，可塞 system prompt、要求結構化輸出、吃圖片與音訊，留給沒有對應任務型 API 的場景 |
+| **Summarizer API**                     | 產生不同長度、不同格式的摘要，適合評論摘要與長文 TL;DR                         |
+| **Translator / Language Detector API** | 瀏覽器內即時翻譯與語言判定，適合跨語言的評論與商品描述                            |
+| **Writer / Rewriter API**              | 產生新內容、調整長度與語氣，適合社群文案與客服回覆草稿                            |
+| **Proofreader API**                    | 文法與可讀性修正，適合使用者輸入的即時校正                                  |
 
 >> 一個很重要的重點是：**能不要就不要用 Prompt API**
 
