@@ -593,14 +593,6 @@ body {
     transform: rotate(360deg);
   }
 }
-@keyframes rotate-gentle {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
 @keyframes whirl {
   0% {
     transform: rotate(0deg);
@@ -608,40 +600,6 @@ body {
   100% {
     transform: rotate(360deg);
   }
-}
-@keyframes dense-fade {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-@keyframes sparse-glow {
-  0%,
-  100% {
-    opacity: 0.5;
-    box-shadow: 0 0 4px hsl(var(--gold) / 0.2);
-  }
-  50% {
-    opacity: 1;
-    box-shadow:
-      0 0 12px hsl(var(--gold) / 0.5),
-      0 0 24px hsl(var(--gold) / 0.2);
-  }
-}
-
-.dense-pulse {
-  animation: 2.5s ease-in-out infinite dense-fade;
-  opacity: 0.5;
-}
-.sparse-pulse {
-  animation: 3.5s ease-in-out infinite sparse-glow;
-  opacity: 0.7;
-}
-.animate-rotate-gentle {
-  animation: 60s linear infinite rotate-gentle;
 }
 
 /* ===== Post preview, anchored to the title being hovered =====
