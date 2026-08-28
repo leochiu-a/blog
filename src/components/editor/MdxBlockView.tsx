@@ -6,7 +6,7 @@ import type { MdxAttribute } from "@/lib/editor/types";
 import { editableAttributes, isSelfClosing, specFor } from "./mdx-blocks";
 import { Badge } from "@/components/ui/badge";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -136,8 +136,13 @@ function AttributeInput({
   const [draft, setDraft] = useState<string | null>(null);
 
   return (
-    <Input
+    <Textarea
       id={id}
+      // A caption is a sentence, and `alt` is a description: one line showed a
+      // sliver of either. `field-sizing-content` grows the box with the text, so
+      // a short attribute like a Callout's `type` still sits on one line.
+      rows={1}
+      className="min-h-8 resize-none py-1"
       value={draft ?? value}
       onChange={(event) => {
         setDraft(event.target.value);
