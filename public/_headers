@@ -8,3 +8,30 @@
 # per file on every repeat visit: thirteen fonts, plus the JS and CSS.
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Post images, the author photo and the project videos. Unlike the assets
+# above these filenames carry no content hash, so `immutable` would be a lie —
+# a day is short enough that a replaced file corrects itself on its own, and
+# long enough to spare a reader the revalidation round trip.
+#
+# What this actually reaches is the requests that hit these paths directly: the
+# `<video>` sources in ProjectMedia, and the og:image / JSON-LD URLs crawlers
+# fetch. Every image rendered on a page goes through next/image instead, and
+# this rule does NOT reach it — @opennextjs/cloudflare replaces Next's image
+# optimizer with its own handler, which sets a `Cache-Control` on the optimized
+# response only when the url is a `/_next/static/media` static import or when
+# the upstream header contains the literal string `immutable`. It never reads
+# `minimumCacheTTL`, so Next's documented "minimumCacheTTL or upstream,
+# whichever is larger" rule does not apply here. Raising max-age below does
+# nothing for /_next/image; adding `immutable` would stamp ten years on it,
+# which a filename that can be overwritten has not earned. Caching an
+# optimized image properly means a static import, whose name is a hash.
+#
+# Nothing can shorten this window once a browser has the response: Cloudflare's
+# purge does not reach browser caches, and zone purges do not reach Workers
+# assets at all. To retire a file before the day is out, rename it.
+/blog-images/*
+  Cache-Control: public, max-age=86400
+
+/images/*
+  Cache-Control: public, max-age=86400
