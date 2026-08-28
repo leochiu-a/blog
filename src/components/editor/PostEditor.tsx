@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Placeholder } from "@tiptap/extension-placeholder";
+import { TextSelection } from "@tiptap/pm/state";
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
 import { createExtensions } from "@/lib/editor/extensions";
 import type { PmNode, PostDocument } from "@/lib/editor/types";
@@ -27,6 +28,11 @@ const STATUS_LABEL = {
   saved: "Saved",
   error: "Save failed",
 } as const;
+
+/** The images a paste or a drop carries, if any. */
+function imageFiles(data: DataTransfer | null) {
+  return Array.from(data?.files ?? []).filter((file) => file.type.startsWith("image/"));
+}
 
 async function save(slug: string, document: PostDocument) {
   const response = await fetch(`/api/editor/posts/${slug}/`, {
@@ -61,11 +67,38 @@ export function PostEditor({
     [],
   );
 
+  // Paste and drop want the very same upload path as the insert menu, but
+  // editorProps is built once, before uploadImage exists — so they reach it
+  // through a ref an effect below keeps pointed at the live closure.
+  const uploadImages = useRef<(files: File[]) => void>(() => {});
+
   const editor = useEditor({
     extensions,
     content: initialDocument.doc,
     immediatelyRender: false,
-    editorProps: { attributes: { class: "outline-none" } },
+    editorProps: {
+      attributes: { class: "outline-none" },
+      handlePaste: (_view, event) => {
+        const files = imageFiles(event.clipboardData);
+        if (files.length === 0) return false;
+        uploadImages.current(files);
+        return true;
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        // A drag within the document is ProseMirror's own move; only files
+        // arriving from outside are ours to upload.
+        if (moved) return false;
+        const files = imageFiles(event.dataTransfer);
+        if (files.length === 0) return false;
+
+        // Drop where the cursor landed, not where the selection happened to be.
+        const at = view.posAtCoords({ left: event.clientX, top: event.clientY });
+        if (at)
+          view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, at.pos)));
+        uploadImages.current(files);
+        return true;
+      },
+    },
   });
 
   /** One place that assembles what gets written to disk. */
@@ -119,6 +152,16 @@ export function PostEditor({
     },
     [editor],
   );
+
+  useEffect(() => {
+    uploadImages.current = (files) => {
+      // Sequential: each upload inserts at the cursor, so order matters.
+      void files.reduce(
+        (previous, file) => previous.then(() => uploadImage(file)),
+        Promise.resolve(),
+      );
+    };
+  }, [uploadImage]);
 
   useEffect(() => {
     if (!editor) return;
