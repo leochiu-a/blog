@@ -6,9 +6,11 @@ const text = (name: string, value: string): MdxAttribute => ({ name, value, expr
 
 describe("the attribute form's fields", () => {
   it("keeps what the file already has, in the file's order", () => {
-    const current = [text("alt", "a"), text("src", "/a.png")];
+    const current = [text("caption", "c"), text("alt", "a"), text("src", "/a.png")];
 
-    expect(editableAttributes("Figure", current).slice(0, 2)).toEqual(current);
+    // `src` is derived, so it drops out; the two that remain keep the file's
+    // order rather than the spec's.
+    expect(editableAttributes("Figure", current)).toEqual([current[0], current[1]]);
   });
 
   it("offers the spec's fields the file left out", () => {
@@ -28,7 +30,36 @@ describe("the attribute form's fields", () => {
     const fields = editableAttributes("Figure", [text("data-x", "1")]);
 
     expect(fields[0]).toEqual(text("data-x", "1"));
-    expect(fields.map((field) => field.name)).toContain("src");
+    expect(fields.map((field) => field.name)).toContain("caption");
+  });
+
+  it("leaves out the fields a Figure derives from the dropped image", () => {
+    const current = [
+      text("src", "/a.png"),
+      text("alt", "a"),
+      { name: "width", value: null, expression: "800" },
+      { name: "height", value: null, expression: "600" },
+      text("caption", "c"),
+    ];
+
+    expect(editableAttributes("Figure", current).map((field) => field.name)).toEqual([
+      "alt",
+      "caption",
+    ]);
+  });
+
+  it("still offers a derived field that ended up empty", () => {
+    // A Figure inserted from the menu rather than by dropping an image: without
+    // the field there would be nothing to point it at a file with.
+    const fields = editableAttributes("Figure", [text("src", ""), text("alt", "a")]);
+
+    expect(fields.map((field) => field.name)).toEqual(["src", "alt", "caption"]);
+  });
+
+  it("shows a src the spec derives elsewhere but VideoEmbed does not", () => {
+    const fields = editableAttributes("VideoEmbed", [text("src", "/a.mp4")]);
+
+    expect(fields.map((field) => field.name)).toEqual(["src", "title"]);
   });
 
   it("has nothing to offer for a component it has no spec for", () => {
