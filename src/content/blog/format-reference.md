@@ -9,7 +9,7 @@ draft: true
 
 ## 這是 H2，對應 Medium 的 Big title
 
-段落文字。**粗體**、`inline code`、[連結](https://leochiu.com)。
+[段落文字](https://example.com/linked)。**粗體**、`inline code`、[連結](https://leochiu.com)。
 
 ### 這是 H3，對應 Medium 的 Small title
 
@@ -30,12 +30,6 @@ draft: true
 `>>` 是居中大字的 pull quote：
 
 >> Agent = Model + Harness
-
-要標出處時用 `<BookQuote>`：
-
-<BookQuote speaker="Someone" source="Some Book">
-一段有出處的引言。
-</BookQuote>
 
 ---
 

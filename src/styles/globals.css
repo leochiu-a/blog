@@ -168,7 +168,7 @@ body {
 }
 /* Tailwind Typography scopes every rule so it stops at a `not-prose` subtree.
    Hand-written rules repeat that guard, or they reach inside Callout /
-   FancyQuote / BookQuote and undo the point of marking them `not-prose`. */
+   FancyQuote / Callout and undo the point of marking them `not-prose`. */
 .prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   font-family: var(--font-sans), sans-serif;
   font-weight: 800;

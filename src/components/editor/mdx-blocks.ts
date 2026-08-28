@@ -30,12 +30,6 @@ export const MDX_BLOCKS: MdxBlockSpec[] = [
     ],
   },
   {
-    name: "BookQuote",
-    label: "BookQuote（有出處的引言）",
-    selfClosing: false,
-    attributes: [text("speaker"), text("source")],
-  },
-  {
     name: "Callout",
     label: "Callout（提示框）",
     selfClosing: false,

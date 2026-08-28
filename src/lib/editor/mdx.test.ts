@@ -11,7 +11,6 @@ const post = (body: string) => `${FRONTMATTER}${body}\n`;
 const COMPONENTS = [
   `<Figure src="/a.png" alt="a" width={1200} height={800} caption="c" />`,
   `<Figure\n  src="/a.png"\n  alt="a"\n  width={1200}\n  height={800}\n/>`,
-  `<BookQuote speaker="S" source="B">\n  quoted line\n</BookQuote>`,
   `<Callout type="warning">\n  heads up\n</Callout>`,
   `<FancyQuote>\n  big words\n</FancyQuote>`,
   `<VideoEmbed src="https://example.com/v" title="V" />`,
@@ -66,13 +65,13 @@ describe("MDX components", () => {
     const [block] = document.doc.content!;
 
     expect(block!.content).toEqual([
-      { type: "paragraph", content: [{ type: "text", text: "quoted line" }] },
+      { type: "paragraph", content: [{ type: "text", text: "heads up" }] },
     ]);
   });
 });
 
 describe("the insertable component list", () => {
-  it.each(["Figure", "BookQuote", "Callout", "VideoEmbed", "FancyQuote"])(
+  it.each(["Figure", "Callout", "VideoEmbed", "FancyQuote"])(
     "has a typed spec for %s",
     (name) => {
       expect(specFor(name)).toBeDefined();

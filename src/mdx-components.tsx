@@ -1,6 +1,5 @@
 import { Children, isValidElement } from "react";
 import type { MDXComponents } from "mdx/types";
-import { BookQuote } from "@/components/mdx/BookQuote";
 import { FancyQuote } from "@/components/mdx/FancyQuote";
 import { Figure } from "@/components/mdx/Figure";
 import { VideoEmbed } from "@/components/mdx/VideoEmbed";
@@ -36,7 +35,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     hr: OrnamentSeparator,
     blockquote: Blockquote,
-    BookQuote,
     FancyQuote,
     Figure,
     VideoEmbed,
