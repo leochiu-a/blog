@@ -8,7 +8,10 @@ export default defineConfig({
     },
   },
   test: {
+    // Node stays the default: all but a handful of these tests are pure
+    // functions, and a DOM they never touch is only startup cost. Component
+    // tests opt in per file with `// @vitest-environment happy-dom`.
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
   },
 });
