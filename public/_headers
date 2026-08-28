@@ -1,0 +1,10 @@
+# Cache rules for the static assets Workers Assets serves.
+# Cloudflare reads this file from the assets directory; `public/` is copied
+# there verbatim by the OpenNext build.
+
+# Everything under /_next/static/ carries a content hash in its filename — the
+# name changes whenever the bytes do — so it can never go stale. Without this
+# it ships as `max-age=0, must-revalidate`, which costs a revalidation request
+# per file on every repeat visit: thirteen fonts, plus the JS and CSS.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
