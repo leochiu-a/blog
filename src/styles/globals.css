@@ -602,6 +602,48 @@ body {
   }
 }
 
+/* ===== Reduced motion =====
+   Graceful degradation, not a kill switch. `prefers-reduced-motion: reduce`
+   says vestibular-triggering motion causes nausea — it does not say the reader
+   wants a UI with no feedback. So what goes is the motion nobody asked for and
+   nobody can stop (the perpetual rotations) plus the two spatial effects that
+   trigger vestibular symptoms (3D rotation, overshoot). Colour fades, opacity
+   crossfades and the small hover scales stay: they are brief, user-initiated,
+   and they are how the page answers a pointer. */
+@media (prefers-reduced-motion: reduce) {
+  /* Perpetual and unstoppable: two ornaments orbiting the toggle and three
+     rings behind the photo, forever. The rings only ever paused on :hover,
+     which no touch device has — so on a phone these never stopped at all.
+     WCAG 2.2.2 wants motion over 5s to be pausable; here it simply ends. */
+  .ornament,
+  .whirl-slow,
+  .whirl-medium,
+  .whirl-fast {
+    animation: none;
+  }
+
+  /* The toggle is transparent until fadeInDown lands it (`forwards`), so
+     dropping the animation alone would leave it invisible forever. Restate the
+     end state the animation was there to reach. */
+  .mode-toggle-container {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* The photo still turns over — which face is up is the mode, and losing that
+     loses the answer. Only the 3D sweep goes, so the faces swap on the spot. */
+  .flip-inner {
+    transition: none;
+  }
+
+  /* The indicator travelling to the chosen side is the state feedback, so it
+     keeps travelling; what goes is the back-out curve, whose overshoot
+     (-0.55 / 1.55) throws it past the target and back. Short and linear. */
+  .toggle-indicator {
+    transition: 0.15s linear;
+  }
+}
+
 /* ===== Post preview, anchored to the title being hovered =====
    Without anchor positioning the cards stack in the left column, under the
    "Posts" label (see PostPreviewPanel). Where it is supported they leave the
