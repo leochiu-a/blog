@@ -17,6 +17,15 @@ export const metadata: Metadata = {
       "application/rss+xml": "/feed.xml",
     },
   },
+  // Without `max-image-preview:large` Google caps post thumbnails in Search and
+  // AI Overviews at a small preview, so every hero ships as a postage stamp.
+  robots: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+    "max-snippet": -1,
+    "max-video-preview": -1,
+  },
   openGraph: {
     title: "Leo Chiu",
     description: "Senior Software Engineer at KKday.",

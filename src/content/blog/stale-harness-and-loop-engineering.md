@@ -4,6 +4,7 @@ subtitle: "當模型推理能力大幅提升，你過去寫的防禦性 Harness 
 description: "當模型的推理能力大幅進步，你三個月前寫的防禦性 Harness 可能已經在浪費 Token。這篇談如何從 Harness Engineering 走向 Loop Engineering。"
 ogImage: "/blog-images/harness-hero.webp"
 datetime: "2026-08-25"
+updated: "2026-08-28"
 readTime: "9 min"
 font: "newsreader"
 category: "professional"
@@ -101,7 +102,7 @@ GSD 框架還為了避免 context 爆炸，所以都用 sub-agent 來執行，�
 
 ## Loop Engineering
 
-Boris Cherny（Anthropic Claude Code 團隊負責人）主張：
+Boris Cherny（Anthropic Claude Code 團隊負責人）在一場影片訪談中主張（[轉引自 Pawel Huryn 在 X 上的整理](https://x.com/PawelHuryn/status/2069363303952818474)）：
 
 >> I don’t prompt Claude anymore. I have loops running that prompt Claude and figuring out what to do. My job is to write loops.
 
@@ -169,13 +170,19 @@ Harness 的本質，是建立在「假設模型做不到某些事」的前提上
 
 >> **過期 Harness 的共通點**：我們試圖用文字替模型做太多它已經能自己完成的事。
 
->> 這也是為什麼近期像 Matt Pocock 提出的 Skills（例如 `/grill-me`、`/implement`）會大受歡迎——它們不再試圖包辦模型的規劃步驟，而是變得極度輕量化，只提供最核心的意圖指引與互動，把推理空間還給模型。
+>> 這也是為什麼近期像 Matt Pocock 提出的 [Skills](https://github.com/mattpocock/skills) （例如 `/grill-me`、`/implement`）會大受歡迎——它們不再試圖包辦模型的規劃步驟，而是變得極度輕量化，只提供最核心的意圖指引與互動，把推理空間還給模型。
 
 ---
 
 ## 如何優雅地淘汰 Harness？
 
-隨著模型推理能力提升與內建 Loop 機制的普及，如今「乾淨」的 Agent 表現已遠超半年前。許多過去用來防止 Agent 飄掉的「常識」與過度引導（例如 codebase 摘要、詳細的 step-by-step 指引），現在都可以大膽移除。
+隨著模型推理能力提升與 Agent 內建 Loop 機制的普及，如今「乾淨」的 Agent 表現已遠超半年前。許多過去用來防止 Agent 飄掉的「常識」與過度引導（例如 codebase 摘要、詳細的 step-by-step 指引），現在都可以大膽移除。
+
+但要注意，可以大膽移除的**是「事前的文字」，不是「事後的驗證」。**
+
+[就像 SWE-CI 論文量過的數據，絕大多數模型在長期維護上的零衰退率（Zero Regression Rate）依然低於 25%](/blog/ai-limits-from-papers/)——模型非常擅長寫出「當下能跑」的程式，但根本不保證不會改壞舊程式。
+
+這正是 Loop 存在的意義：把省下來的 Token 留給測試跟 CI，絕對比花在寫死 PLAN.md 上划算。
 
 相對地，最值得留在 Harness 中的是「**團隊專屬的冷門規則**」。例如「Changeset 必須附上特定格式的 Jira 單號」這類高度情境化、非通用的團隊規範，模型無法憑常識推論，才真正需要透過 Harness 來約束。
 
@@ -188,6 +195,8 @@ Harness 的本質，是建立在「假設模型做不到某些事」的前提上
 過去為了防止 Agent 偏離軌道，開發者習慣加入大量的預先摘要、繁複的步驟引導（如 `.md` 規範文件）與維護 agent 的記憶。然而，隨著模型推理能力大幅提升與 Loop 的普及，這些防禦性規範不僅過期，還會造成龐大的 Token 開銷與架構負擔。
 
 因此，AI 工程的重心應改為建立自動測試與修復閉環，大膽淘汰常識性的靜態約束，並將 Harness 簡化、僅聚焦於「團隊專屬且無法憑常識推論的冷門規則」，把規劃與推理空間還給 AI。
+
+不過，給予 AI 規劃自由並不等於讓出最終控制權。[涉及影響範圍廣的任務時，授權依然必須保守](/blog/ai-engineer-where-to-go/)。
 
 ---
 

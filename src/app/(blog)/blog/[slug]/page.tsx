@@ -10,6 +10,9 @@ import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
 import { DevEditLink } from "@/components/blog/DevEditLink";
+import { AuthorBio } from "@/components/blog/AuthorBio";
+import { author } from "@/data/content";
+import { PERSON_ID, personJsonLd } from "@/lib/person";
 
 export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
@@ -32,6 +35,7 @@ export async function generateMetadata({
     title,
     description,
     keywords: post.tags,
+    authors: [{ name: author.name, url: SITE_URL }],
     alternates: {
       canonical: `${SITE_URL}${post.href}`,
     },
@@ -40,13 +44,19 @@ export async function generateMetadata({
       title,
       description,
       url: `${SITE_URL}${post.href}`,
+      siteName: `${author.name} • Blog`,
+      locale: detectPostLanguage(post.title) === "zh-Hant" ? "zh_TW" : "en_US",
       publishedTime: post.datetime,
+      modifiedTime: post.updated ?? post.datetime,
+      authors: [SITE_URL],
+      tags: post.tags,
       images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      creator: "@leo_web_dev",
       images: [image],
     },
   };
@@ -59,40 +69,51 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   const Post = post.mdx;
 
-  const date = post.datetime
-    ? new Date(post.datetime).toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
-    : "";
+  const formatDate = (value?: string) =>
+    value
+      ? new Date(value).toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : "";
+
+  const date = formatDate(post.datetime);
+  // Only shown when a revision actually happened — a "last updated" that always
+  // equals the publish date is noise, not a freshness signal.
+  const updated = post.updated && post.updated !== post.datetime ? formatDate(post.updated) : "";
 
   const postUrl = `${SITE_URL}${post.href}`;
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.description ?? post.subtitle,
-    image: `${SITE_URL}${post.ogImage ?? "/seo/social-card.png"}`,
-    datePublished: post.datetime,
-    dateModified: post.datetime,
-    inLanguage: detectPostLanguage(post.title),
-    ...(post.tags && { keywords: post.tags.join(", ") }),
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": postUrl,
-    },
-    url: postUrl,
-    author: {
-      "@type": "Person",
-      name: "Leo Chiu",
-      url: SITE_URL,
-    },
-    publisher: {
-      "@type": "Person",
-      name: "Leo Chiu",
-      url: SITE_URL,
-    },
+    "@graph": [
+      // Referenced by both `author` and `publisher` below, so the two roles
+      // resolve to one entity rather than two look-alike people.
+      personJsonLd,
+      {
+        "@type": "BlogPosting",
+        headline: post.title,
+        description: post.description ?? post.subtitle,
+        image: `${SITE_URL}${post.ogImage ?? "/seo/social-card.png"}`,
+        datePublished: post.datetime,
+        dateModified: post.updated ?? post.datetime,
+        inLanguage: detectPostLanguage(post.title),
+        ...(post.tags && { keywords: post.tags.join(", ") }),
+        ...(post.tags?.[0] && { articleSection: post.tags[0] }),
+        mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+        url: postUrl,
+        author: { "@id": PERSON_ID },
+        publisher: { "@id": PERSON_ID },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+          { "@type": "ListItem", position: 2, name: post.title, item: postUrl },
+        ],
+      },
+    ],
   };
 
   // A post's reading theme follows its category, so a professional post reads
@@ -131,6 +152,12 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                     </>
                   )}
                   {post.readTime && ` · ${post.readTime}`}
+                  {updated && (
+                    <>
+                      {" · 更新於 "}
+                      <time dateTime={post.updated}>{updated}</time>
+                    </>
+                  )}
                 </p>
                 <DevEditLink slug={post.slug} />
               </div>
@@ -139,6 +166,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
               <Post />
             </div>
+
+            <AuthorBio />
 
             <RecentPosts slug={post.slug} category={post.category} />
 

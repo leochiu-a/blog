@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${SITE_URL}/`,
-      lastModified: new Date(posts[0]?.datetime ?? Date.now()),
+      lastModified: new Date(posts[0]?.updated ?? posts[0]?.datetime ?? Date.now()),
       changeFrequency: "weekly",
       priority: 1,
     },
@@ -21,7 +21,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const postRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${SITE_URL}${post.href}`,
-    lastModified: new Date(post.datetime),
+    // A revision has to move `lastModified`, or a re-crawl of an updated post
+    // waits on the next unrelated change to the sitemap.
+    lastModified: new Date(post.updated ?? post.datetime),
     changeFrequency: "monthly",
     priority: 0.8,
   }));

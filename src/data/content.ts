@@ -7,6 +7,21 @@ export const profile = {
   personalPhoto: "/images/leo.webp",
 };
 
+/**
+ * The author entity, in one place.
+ *
+ * Every post renders this as a byline bio and emits it as schema.org `Person`,
+ * so "who wrote this and why should you believe them" is answerable by a reader
+ * and by a crawler from any post, not only from the home page.
+ */
+export const author = {
+  name: "Leo Chiu",
+  jobTitle: "Senior Frontend Engineer",
+  company: "KKday",
+  photo: "/images/leo.webp",
+  bio: "資深前端工程師，任職於 KKday Growth Team，主導網站 SEO / AEO（AI 搜尋優化）策略落地。平常在團隊裡推動 AI agent 的開發流程與效能優化。",
+};
+
 export const about = {
   professional: ["Senior Software Engineer. Currently working at KKday."],
   personal: ["下班之後，想的都是些無關緊要的小事。"],

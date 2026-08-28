@@ -14,6 +14,10 @@ export const postFrontmatterSchema = z.object({
   ogImage: z.string().optional(),
   tags: z.array(z.string()).optional(),
   datetime: z.string(),
+  // Set when a post is revised after publishing. Drives schema.org
+  // `dateModified` and the "Updated" line, so a revision is a freshness signal
+  // instead of an invisible edit.
+  updated: z.string().optional(),
   readTime: z.string(),
   font: z.enum(["garamond", "newsreader"]),
   category: z.enum(["professional", "personal"]),

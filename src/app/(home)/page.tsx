@@ -1,7 +1,8 @@
 import { posts } from "@/lib/posts";
 import { PortfolioApp } from "@/components/PortfolioApp";
 import { JsonLd } from "@/components/JsonLd";
-import { profile, about, socialLinks } from "@/data/content";
+import { profile } from "@/data/content";
+import { PERSON_ID, personJsonLd } from "@/lib/person";
 import { SITE_URL } from "@/lib/site";
 import type { Mode, Post } from "@/types/content";
 
@@ -24,36 +25,27 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const professionalPosts = posts.filter((p) => p.category === "professional").map(toPost);
   const personalPosts = posts.filter((p) => p.category === "personal").map(toPost);
 
-  const personJsonLd = {
+  // Shared with every post (see lib/person.ts) so both pages describe the same
+  // person with the same `@id`, job title and profile list.
+  const siteJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Person",
-    name: profile.name,
-    url: SITE_URL,
-    image: `${SITE_URL}${profile.professionalPhoto}`,
-    jobTitle: "Senior Software Engineer",
-    worksFor: {
-      "@type": "Organization",
-      name: "KKday",
-    },
-    description: about.professional.join(" "),
-    sameAs: socialLinks.map((link) => link.href),
-  };
-
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: profile.name,
-    url: SITE_URL,
-    author: {
-      "@type": "Person",
-      name: profile.name,
-    },
+    "@graph": [
+      personJsonLd,
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        name: profile.name,
+        url: SITE_URL,
+        inLanguage: "zh-Hant",
+        author: { "@id": PERSON_ID },
+        publisher: { "@id": PERSON_ID },
+      },
+    ],
   };
 
   return (
     <>
-      <JsonLd data={personJsonLd} />
-      <JsonLd data={websiteJsonLd} />
+      <JsonLd data={siteJsonLd} />
       <PortfolioApp
         mode={mode}
         professionalPosts={professionalPosts}
