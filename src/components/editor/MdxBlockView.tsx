@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import type { MdxAttribute } from "@/lib/editor/types";
 import { editableAttributes, isSelfClosing, specFor } from "./mdx-blocks";
@@ -17,6 +17,10 @@ import { cn } from "@/lib/utils";
  */
 export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
   const [editing, setEditing] = useState(false);
+  // Every block on the page renders this same form, so the field index alone
+  // repeats across them: with two panels open the labels all point at the first
+  // block's fields.
+  const formId = useId();
   const name = (node.attrs.name as string | null) ?? "";
   const attributes = (node.attrs.attributes as MdxAttribute[]) ?? [];
   const selfClosing = isSelfClosing(name);
@@ -92,11 +96,11 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
         <FieldGroup className="not-prose mt-3 gap-3 rounded-md bg-muted/40 p-3 font-sans">
           {fields.map((attribute, index) => (
             <Field key={attribute.name ?? index} orientation="horizontal">
-              <FieldLabel htmlFor={`mdx-attr-${index}`} className="w-24 shrink-0">
+              <FieldLabel htmlFor={`${formId}-${index}`} className="w-24 shrink-0">
                 {attribute.name}
               </FieldLabel>
               <AttributeInput
-                id={`mdx-attr-${index}`}
+                id={`${formId}-${index}`}
                 value={attribute.value ?? attribute.expression ?? ""}
                 onChange={(next) => setAttribute(attribute, next)}
               />
