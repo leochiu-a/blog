@@ -14,7 +14,7 @@ export function SectionRow({
   return (
     <section className="flex flex-col gap-y-5 md:flex-row md:gap-y-0">
       <div className="md:w-1/5">
-        <h2 className="font-cormorant text-2xl font-semibold text-foreground">{label}</h2>
+        <h2 className="text-2xl font-semibold text-foreground">{label}</h2>
         {aside}
       </div>
       <div className="flex flex-col gap-y-3 md:w-2/3">{children}</div>

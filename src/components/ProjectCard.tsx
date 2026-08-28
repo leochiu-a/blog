@@ -52,7 +52,7 @@ export function ProjectCard({ project }: { project: Project }) {
           active={active}
         />
         <div className="flex flex-col gap-y-0.5 px-5 pt-4">
-          <h3 className="font-cormorant text-xl font-semibold text-foreground">{project.title}</h3>
+          <h3 className="text-xl font-semibold text-foreground">{project.title}</h3>
           <p className="text-sm leading-relaxed text-muted-foreground">{project.description}</p>
           {project.tags && project.tags.length > 0 && (
             <div className="mt-1 flex flex-row gap-x-2">

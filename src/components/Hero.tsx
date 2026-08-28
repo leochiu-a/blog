@@ -23,7 +23,7 @@ export function Hero({ mode }: { mode: Mode }) {
         frontSrc={profile.professionalPhoto}
         backSrc={profile.personalPhoto}
       />
-      <h1 className="font-cormorant text-5xl font-semibold tracking-wide text-foreground">
+      <h1 className="text-5xl font-medium tracking-wide text-foreground">
         {mode === "professional" ? profile.name : profile.shortName}
       </h1>
     </section>

@@ -12,8 +12,8 @@
    :root = LIGHT theme (blog pages, no html class on original).
    .dark = DARK theme (homepage, original adds `dark` to <html>). */
 :root {
-  /* Font family CSS variables (--font-garamond, --font-cormorant,
-     --font-spectral, --font-sans) are injected by next/font on <html>. */
+  /* Font family CSS variables (--font-garamond, --font-spectral,
+     --font-sans) are injected by next/font on <html>. */
 
   --background: 0 0% 98%;
   --foreground: 210 3% 18%;
@@ -111,7 +111,6 @@ html:has(.dark) {
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-garamond: var(--font-garamond), serif;
-  --font-cormorant: var(--font-cormorant), serif;
   --font-spectral: var(--font-spectral), serif;
 
   --text-xxs: 0.625rem;
@@ -467,7 +466,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-garamond), serif;
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.5px;

@@ -26,7 +26,7 @@ function PostItem({ post, onPreview }: { post: Post; onPreview: (href: string | 
           href={post.href}
           onPointerEnter={() => onPreview(post.href)}
           onFocus={() => onPreview(post.href)}
-          className="font-cormorant text-lg font-semibold transition-colors hover:text-blog-accent"
+          className="text-lg font-semibold transition-colors hover:text-blog-accent"
         >
           {post.title}
         </Link>
@@ -53,7 +53,7 @@ function EmptyPosts() {
   return (
     <div className="flex flex-col items-center gap-y-3 rounded-lg border border-dashed border-bronze/30 py-10 text-center">
       <DividerOrnament className="text-gold opacity-60" />
-      <p className="font-cormorant text-lg text-muted-foreground">敬請期待</p>
+      <p className="text-lg text-muted-foreground">敬請期待</p>
       <p className="font-sans text-xs text-muted-foreground/70">新文章準備中，晚點再回來看看。</p>
     </div>
   );
