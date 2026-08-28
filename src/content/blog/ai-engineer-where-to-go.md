@@ -6,12 +6,12 @@ datetime: "2026-04-26"
 readTime: "9 min"
 font: "newsreader"
 category: "professional"
-ogImage: "/blog-images/ai-engineer-where-to-go-hero.jpg"
+ogImage: "/blog-images/ai-engineer-where-to-go-hero.webp"
 tags: ["AI", "工程師職涯", "軟體工程", "AI 極限"]
 ---
 
 <Figure
-  src="/blog-images/ai-engineer-where-to-go-hero.jpg"
+  src="/blog-images/ai-engineer-where-to-go-hero.webp"
   alt="雪地上的兩台單車，往遠方的冰河前進"
   width={1200}
   height={800}

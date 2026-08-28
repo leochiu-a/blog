@@ -6,13 +6,13 @@ datetime: "2026-08-27"
 readTime: "12 min"
 font: "newsreader"
 category: "professional"
-ogImage: "/blog-images/chrome-built-in-ai-and-webmcp-hero.jpg"
+ogImage: "/blog-images/chrome-built-in-ai-and-webmcp-hero.webp"
 tags: ["Built-in AI", "WebMCP", "Gemini Nano", "Prompt API", "AI Agent", "Web Platform"]
 draft: true
 featured: true
 ---
 
-<Figure src="/blog-images/chrome-built-in-ai-and-webmcp-hero.jpg" alt="" width={1600} height={872} />
+<Figure src="/blog-images/chrome-built-in-ai-and-webmcp-hero.webp" alt="" width={1600} height={872} />
 
 ## 前言
 

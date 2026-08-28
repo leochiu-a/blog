@@ -6,12 +6,12 @@ datetime: "2026-07-18"
 readTime: "6 min"
 font: "newsreader"
 category: "professional"
-ogImage: "/blog-images/ai-cognitive-offloading-hero.jpg"
+ogImage: "/blog-images/ai-cognitive-offloading-hero.webp"
 tags: ["AI", "認知卸載", "認知投降", "工程師職涯", "Engineering Management"]
 ---
 
 <Figure
-  src="/blog-images/ai-cognitive-offloading-hero.jpg"
+  src="/blog-images/ai-cognitive-offloading-hero.webp"
   alt="山中湖畔的城堡，倒映在平靜的水面上"
   width={1200}
   height={800}

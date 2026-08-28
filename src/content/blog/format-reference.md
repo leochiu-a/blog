@@ -44,4 +44,4 @@ draft: true
 
 `![]()` 沒有放 caption 的位置，所以要 caption 的圖用 `<Figure>`：
 
-<Figure src="/blog-images/interpretability-0.png" alt="範例圖片" width={1590} height={884} caption="這是圖說" />
+<Figure src="/blog-images/interpretability-0.webp" alt="範例圖片" width={1590} height={884} caption="這是圖說" />

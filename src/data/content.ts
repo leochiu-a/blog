@@ -3,8 +3,8 @@ import type { Project, SocialLink } from "@/types/content";
 export const profile = {
   name: "Leo Chiu",
   shortName: "Leo",
-  professionalPhoto: "/images/leo.jpg",
-  personalPhoto: "/images/leo.jpg",
+  professionalPhoto: "/images/leo.webp",
+  personalPhoto: "/images/leo.webp",
 };
 
 export const about = {

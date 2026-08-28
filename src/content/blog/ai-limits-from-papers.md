@@ -5,12 +5,12 @@ datetime: "2026-04-12"
 readTime: "15 min"
 font: "newsreader"
 category: "professional"
-ogImage: "/blog-images/ai-limits-from-papers-hero.jpg"
+ogImage: "/blog-images/ai-limits-from-papers-hero.webp"
 tags: ["AI", "AI 極限", "軟體工程研究", "Code Review", "LLM"]
 ---
 
 <Figure
-  src="/blog-images/ai-limits-from-papers-hero.jpg"
+  src="/blog-images/ai-limits-from-papers-hero.webp"
   alt="沙丘與遠方山脈，象徵 AI 能力的邊界"
   width={1200}
   height={800}
@@ -66,7 +66,7 @@ tags: ["AI", "AI 極限", "軟體工程研究", "Code Review", "LLM"]
 論文觀察參與者的行為，將其歸納為六種不同的 AI 互動模式。
 
 <Figure
-  src="/blog-images/ai-limits-interaction-modes.png"
+  src="/blog-images/ai-limits-interaction-modes.webp"
   alt="六種不同的 AI 互動模式，對應學習成效分數、工作效率與行為特徵"
   width={1400}
   height={1011}
@@ -108,7 +108,7 @@ tags: ["AI", "AI 極限", "軟體工程研究", "Code Review", "LLM"]
 即使是表現最好的 Claude Opus 系列，零衰退率最高也僅有 76%。這表明目前的 LLM 要勝任完全自動化、長期的真實軟體維護，依然面臨挑戰。
 
 <Figure
-  src="/blog-images/ai-limits-zero-regression-rate.png"
+  src="/blog-images/ai-limits-zero-regression-rate.webp"
   alt="各家模型的 Zero Regression Rate 長條圖，由小到大排序"
   width={2000}
   height={1003}
