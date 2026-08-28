@@ -95,10 +95,10 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
               <FieldLabel htmlFor={`mdx-attr-${index}`} className="w-24 shrink-0">
                 {attribute.name}
               </FieldLabel>
-              <Input
+              <AttributeInput
                 id={`mdx-attr-${index}`}
                 value={attribute.value ?? attribute.expression ?? ""}
-                onChange={(event) => setAttribute(attribute, event.target.value)}
+                onChange={(next) => setAttribute(attribute, next)}
               />
             </Field>
           ))}
@@ -109,5 +109,41 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
         className={cn("prose prose-lg prose-zinc max-w-none", selfClosing && "hidden")}
       />
     </NodeViewWrapper>
+  );
+}
+
+/**
+ * One attribute field.
+ *
+ * While the field has focus its own draft is what it shows, not the attribute.
+ * `updateAttributes` re-renders the node view a beat after the attribute
+ * changes — the same lag CodeBlockView computes `liveMeta()` around — so an
+ * input bound straight to the attribute is handed its own previous value
+ * mid-keystroke. React writes that stale value to the DOM, which drops the
+ * caret at the end of the field, and typing anywhere but the end scrambles the
+ * text. Blur hands authority back to the document, so an edit from anywhere
+ * else still shows up.
+ */
+function AttributeInput({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+
+  return (
+    <Input
+      id={id}
+      value={draft ?? value}
+      onChange={(event) => {
+        setDraft(event.target.value);
+        onChange(event.target.value);
+      }}
+      onBlur={() => setDraft(null)}
+    />
   );
 }
