@@ -1,9 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { Post } from "@/types/content";
+import { PostPreviewPanel, anchorNameFor } from "@/components/PostPreviewPanel";
 import { SectionRow } from "@/components/SectionRow";
 import { DividerOrnament } from "@/components/icons";
 
-function PostItem({ post }: { post: Post }) {
+function PostItem({ post, onPreview }: { post: Post; onPreview: (href: string | null) => void }) {
   return (
     // Side by side, the title is left with ~59% of a phone's width and breaks
     // across three lines, so below sm the metadata drops to its own line and
@@ -13,10 +17,15 @@ function PostItem({ post }: { post: Post }) {
       {/* Inline flow rather than flex: as a flex item the star would hold a
           column of its own and hang the title's wrapped lines off it, instead
           of letting them run back to the full width underneath it. */}
-      <div>
+      {/* The anchor for the preview card is this row, not the link inside it:
+          a ✦ on the front of the title would otherwise push its card ~19px
+          right of every other one. */}
+      <div className="post-title" style={anchorNameFor(post.href)}>
         {post.featured && <span className="mr-1.5 text-blog-accent">✦</span>}
         <Link
           href={post.href}
+          onPointerEnter={() => onPreview(post.href)}
+          onFocus={() => onPreview(post.href)}
           className="font-cormorant text-lg font-semibold transition-colors hover:text-blog-accent"
         >
           {post.title}
@@ -73,14 +82,27 @@ function EditorLink() {
 }
 
 export function PostsSection({ posts }: { posts: Post[] }) {
+  // Which title the pointer (or keyboard focus) is on. Cleared on the list
+  // rather than on each title so that travelling between two rows never blanks
+  // the preview mid-move — the next title claims it before the list is left.
+  const [activeHref, setActiveHref] = useState<string | null>(null);
+  const previewable = posts.filter((post) => post.description);
+
   return (
-    <SectionRow label="Posts">
+    <SectionRow
+      label="Posts"
+      aside={<PostPreviewPanel posts={previewable} activeHref={activeHref} />}
+    >
       {posts.length > 0 ? (
-        <ul className="flex flex-col gap-y-4">
-          {posts.map((post) => (
-            <PostItem key={post.href + post.title} post={post} />
-          ))}
-        </ul>
+        // Wrapper rather than the <ul> itself: a list has a role, and handlers
+        // on a role-bearing element are what the a11y lint objects to.
+        <div onPointerLeave={() => setActiveHref(null)} onBlur={() => setActiveHref(null)}>
+          <ul className="flex flex-col gap-y-4">
+            {posts.map((post) => (
+              <PostItem key={post.href + post.title} post={post} onPreview={setActiveHref} />
+            ))}
+          </ul>
+        </div>
       ) : (
         <EmptyPosts />
       )}

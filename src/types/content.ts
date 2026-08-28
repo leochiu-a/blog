@@ -6,6 +6,9 @@ export interface Post {
   readTime: string; // e.g. "7 min read"
   date: string; // display string, e.g. "11 Feb 2025"
   datetime: string; // ISO
+  /** Frontmatter summary and hero, shown in the listing's hover preview. */
+  description?: string;
+  ogImage?: string;
   featured?: boolean; // gold ✦ marker
   draft?: boolean; // unpublished — only ever reaches the listing in `next dev`
 }

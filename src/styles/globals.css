@@ -704,3 +704,35 @@ body {
 .animate-rotate-gentle {
   animation: 60s linear infinite rotate-gentle;
 }
+
+/* ===== Post preview, anchored to the title being hovered =====
+   Without anchor positioning the cards stack in the left column, under the
+   "Posts" label (see PostPreviewPanel). Where it is supported they leave the
+   column entirely and glue themselves to their own title instead, which is the
+   only way each card can sit level with its row: the column is barely taller
+   than one card, so an in-flow panel has nowhere to travel to. */
+@supports (anchor-name: --a) {
+  .post-title {
+    anchor-name: var(--post-anchor);
+  }
+
+  .post-preview {
+    position: fixed;
+    position-anchor: var(--post-anchor);
+    /* Left of the title, growing down from its top edge. `fixed` rather than
+       the top layer: nothing here clips or out-stacks the card, so a popover
+       would only buy the show/hide lifecycle and its discrete-transition
+       dance. */
+    position-area: left span-bottom;
+    inset: auto;
+    justify-self: end;
+    /* Top edges together, so the cover image starts on the same line as the
+       title it belongs to. Centring instead would throw the first post's card
+       up over the section above, where it would read as belonging to that. */
+    align-self: start;
+    /* Percentages resolve against the space left of the title, so the card
+       takes 13rem where there is room and shrinks into the gutter where the
+       window is narrow, instead of running off the left edge. */
+    width: min(13rem, 100%);
+  }
+}

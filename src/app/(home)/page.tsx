@@ -15,6 +15,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
     readTime: entry.readTime,
     date: entry.date,
     datetime: entry.datetime,
+    description: entry.description,
+    ogImage: entry.ogImage,
     featured: entry.featured,
     draft: entry.draft,
   });
