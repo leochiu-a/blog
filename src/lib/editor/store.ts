@@ -1,6 +1,7 @@
 import { constants } from "node:fs";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import sharp from "sharp";
 import { stringify as stringifyYaml } from "yaml";
 
 /**
@@ -55,6 +56,28 @@ function imageFilename(name: string): string {
   }
 
   return `${base}.${extension}`;
+}
+
+/**
+ * Re-encodes an upload as WebP, so a screenshot pasted into the editor lands in
+ * the repository at a fraction of its PNG size. `animated` keeps every frame of
+ * an animated GIF; SVG stays vector, and a WebP is already what we want, so
+ * both pass straight through.
+ */
+async function toWebp(
+  filename: string,
+  bytes: Uint8Array,
+): Promise<{ filename: string; contents: Uint8Array }> {
+  const dot = filename.lastIndexOf(".");
+  const extension = filename.slice(dot + 1);
+  if (extension === "svg" || extension === "webp") return { filename, contents: bytes };
+
+  try {
+    const contents = await sharp(bytes, { animated: true }).webp().toBuffer();
+    return { filename: `${filename.slice(0, dot)}.webp`, contents };
+  } catch {
+    throw new EditorError(`Could not read the image: ${JSON.stringify(filename)}`, 400);
+  }
 }
 
 async function exists(path: string): Promise<boolean> {
@@ -133,7 +156,7 @@ export function createPostStore(root: string) {
   }
 
   async function saveImage(name: string, bytes: Uint8Array): Promise<string> {
-    const filename = imageFilename(name);
+    const { filename, contents } = await toWebp(imageFilename(name), bytes);
     const directory = join(root, IMAGES_DIR);
     await mkdir(directory, { recursive: true });
 
@@ -146,7 +169,7 @@ export function createPostStore(root: string) {
       candidate = `${base}-${suffix}${extension}`;
     }
 
-    await writeFile(join(directory, candidate), bytes);
+    await writeFile(join(directory, candidate), contents);
     return `${IMAGES_PUBLIC_PATH}/${candidate}`;
   }
 

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import sharp from "sharp";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createPostStore } from "./store";
 
@@ -90,30 +91,45 @@ describe("creating posts", () => {
   });
 });
 
+const PNG = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#ff0000" } })
+  .png()
+  .toBuffer();
+
 describe("saving images", () => {
-  const bytes = new Uint8Array([1, 2, 3]);
+  it("re-encodes as WebP and returns the public path", async () => {
+    const path = await store.saveImage("Photo Of A Cat.PNG", PNG);
 
-  it("writes into public/blog-images and returns the public path", async () => {
-    const path = await store.saveImage("Photo Of A Cat.PNG", bytes);
+    expect(path).toBe("/blog-images/photo-of-a-cat.webp");
+    const written = readFileSync(join(root, "public/blog-images/photo-of-a-cat.webp"));
+    await expect(sharp(written).metadata()).resolves.toMatchObject({ format: "webp" });
+  });
 
-    expect(path).toBe("/blog-images/photo-of-a-cat.png");
-    expect(readFileSync(join(root, "public/blog-images/photo-of-a-cat.png"))).toEqual(
-      Buffer.from(bytes),
-    );
+  it("leaves an SVG as it is", async () => {
+    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" />');
+    const path = await store.saveImage("logo.svg", svg);
+
+    expect(path).toBe("/blog-images/logo.svg");
+    expect(readFileSync(join(root, "public/blog-images/logo.svg"))).toEqual(svg);
   });
 
   it("never overwrites an existing image", async () => {
-    await store.saveImage("cat.png", bytes);
-    const second = await store.saveImage("cat.png", new Uint8Array([4]));
+    const first = await store.saveImage("cat.png", PNG);
+    const second = await store.saveImage("cat.png", PNG);
 
-    expect(second).toBe("/blog-images/cat-1.png");
-    expect(readFileSync(join(root, "public/blog-images/cat.png"))).toEqual(Buffer.from(bytes));
+    expect(first).toBe("/blog-images/cat.webp");
+    expect(second).toBe("/blog-images/cat-1.webp");
+  });
+
+  it("refuses bytes that are not an image", async () => {
+    await expect(store.saveImage("cat.png", new Uint8Array([1, 2, 3]))).rejects.toThrow(
+      /could not read/i,
+    );
   });
 
   it.each(["../evil.png", "a/b.png", "notes.txt", ".png", ""])(
     "refuses the filename %o",
     async (name) => {
-      await expect(store.saveImage(name, bytes)).rejects.toThrow(/filename|type/i);
+      await expect(store.saveImage(name, PNG)).rejects.toThrow(/filename|type/i);
     },
   );
 });

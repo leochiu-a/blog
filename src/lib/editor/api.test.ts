@@ -1,6 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import sharp from "sharp";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createPostStore } from "./store";
 import { createPost, deletePost, getPost, savePost, uploadImage } from "./api";
@@ -103,18 +104,22 @@ describe("creating a post", () => {
   });
 });
 
+const PNG = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#ff0000" } })
+  .png()
+  .toBuffer();
+
 describe("uploading an image", () => {
   const form = (name: string) => {
     const data = new FormData();
-    data.set("file", new File([new Uint8Array([1, 2, 3])], name, { type: "image/png" }));
+    data.set("file", new File([PNG], name, { type: "image/png" }));
     return new Request("http://localhost/api", { method: "POST", body: data });
   };
 
-  it("returns the public path of the saved image", async () => {
+  it("returns the public path of the saved image, re-encoded as WebP", async () => {
     const response = await uploadImage(form("Cat.png"), store);
 
     expect(response.status).toBe(201);
-    await expect(response.json()).resolves.toEqual({ src: "/blog-images/cat.png" });
+    await expect(response.json()).resolves.toEqual({ src: "/blog-images/cat.webp" });
   });
 
   it("400s a file that is not an image", async () => {
