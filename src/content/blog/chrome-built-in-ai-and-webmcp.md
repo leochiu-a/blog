@@ -12,7 +12,7 @@ draft: true
 featured: true
 ---
 
-<Figure src="/blog-images/chrome-built-in-ai-and-webmcp-hero.webp" alt="" width={1600} height={872} />
+<Figure src="/blog-images/chrome-built-in-ai-and-webmcp-hero.webp" alt="" width={1600} height={872} hero />
 
 ## 前言
 

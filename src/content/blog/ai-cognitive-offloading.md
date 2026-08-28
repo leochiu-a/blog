@@ -15,6 +15,7 @@ tags: ["AI", "認知卸載", "認知投降", "工程師職涯", "Engineering Man
   alt="山中湖畔的城堡，倒映在平靜的水面上"
   width={1200}
   height={800}
+  hero
 />
 
 ## 前言

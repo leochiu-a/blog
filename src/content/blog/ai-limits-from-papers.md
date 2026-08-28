@@ -14,6 +14,7 @@ tags: ["AI", "AI 極限", "軟體工程研究", "Code Review", "LLM"]
   alt="沙丘與遠方山脈，象徵 AI 能力的邊界"
   width={1200}
   height={800}
+  hero
 />
 
 ## 前言

@@ -17,6 +17,7 @@ tags: ["AI Agent", "Harness Engineering", "Loop Engineering", "Prompt Engineerin
   alt="Harness Engineering 與 Loop Engineering"
   width={1024}
   height={559}
+  hero
 />
 
 ## 為什麼要有 harness engineering？
