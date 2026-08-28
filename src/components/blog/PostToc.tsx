@@ -20,9 +20,7 @@ interface Heading {
  * those belong to the page, not to the piece being read.
  */
 function readHeadings(): Heading[] {
-  const nodes = document.querySelectorAll<HTMLHeadingElement>(
-    ".prose h2, .prose h3",
-  );
+  const nodes = document.querySelectorAll<HTMLHeadingElement>(".prose h2, .prose h3");
   return [...nodes]
     .filter((node) => node.id)
     .map((node) => ({
@@ -50,8 +48,7 @@ function tickWidths(texts: string[]): string[] {
   // A CJK character occupies about twice the width of a Latin one, so counting
   // codepoints alone would make a 10-character Chinese heading tie with a
   // 10-character English one that reads half as long.
-  const weigh = (t: string) =>
-    [...t].reduce((sum, ch) => sum + (/[　-鿿＀-￯]/.test(ch) ? 2 : 1), 0);
+  const weigh = (t: string) => [...t].reduce((sum, ch) => sum + (/[　-鿿＀-￯]/.test(ch) ? 2 : 1), 0);
 
   const spans = texts.map(weigh);
   const min = Math.min(...spans);
@@ -83,9 +80,7 @@ export function PostToc() {
       (entries) => {
         const arrived = entries
           .filter((entry) => entry.isIntersecting)
-          .sort(
-            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
-          )[0];
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
         if (arrived) setActiveId(arrived.target.id);
       },
       { rootMargin: "-80px 0px -70% 0px" },
@@ -118,49 +113,49 @@ export function PostToc() {
     // `group` so hovering anywhere in the strip — ticks or panel — keeps the
     // panel open, which is what lets the pointer travel between them.
     <nav
-        aria-label="目錄"
-        className="group fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 lg:block"
-      >
-        {/* Ticks: one per h2, never per h3. Nineteen subheadings would make a
+      aria-label="目錄"
+      className="group fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 lg:block"
+    >
+      {/* Ticks: one per h2, never per h3. Nineteen subheadings would make a
             rail of indistinguishable lines, and half of them repeat ("核心問題"
             appears once per paper) — the section is the useful grain here. */}
-        <ul className="flex w-7 flex-col gap-y-2 py-2 group-hover:opacity-0 motion-reduce:transition-none transition-opacity duration-200">
-          {sections.map((section, i) => (
-            <li key={section.id} className="flex h-0.5 items-center">
-              <span
-                style={{ width: widths[i] }}
-                // 2px and unfaded. A hairline at 40% opacity is Substack's tick
-                // on Substack's white page; these posts render on near-black,
-                // where the same line all but disappears — and the rail is only
-                // worth having if it can be found without being looked for.
-                className={cn(
-                  "block h-0.5 rounded-full transition-[background-color,width] duration-200 motion-reduce:transition-none",
-                  section.id === activeSectionId ? "bg-blog-accent" : "bg-muted-foreground",
-                )}
-              />
-            </li>
-          ))}
-        </ul>
+      <ul className="flex w-7 flex-col gap-y-2 py-2 group-hover:opacity-0 motion-reduce:transition-none transition-opacity duration-200">
+        {sections.map((section, i) => (
+          <li key={section.id} className="flex h-0.5 items-center">
+            <span
+              style={{ width: widths[i] }}
+              // 2px and unfaded. A hairline at 40% opacity is Substack's tick
+              // on Substack's white page; these posts render on near-black,
+              // where the same line all but disappears — and the rail is only
+              // worth having if it can be found without being looked for.
+              className={cn(
+                "block h-0.5 rounded-full transition-[background-color,width] duration-200 motion-reduce:transition-none",
+                section.id === activeSectionId ? "bg-blog-accent" : "bg-muted-foreground",
+              )}
+            />
+          </li>
+        ))}
+      </ul>
 
-        {/* The panel replaces the ticks in place rather than sitting beside
+      {/* The panel replaces the ticks in place rather than sitting beside
             them, so the strip never widens the page or reaches over the text. */}
-        <div
-          className={cn(
-            "pointer-events-none absolute left-0 top-1/2 max-h-[70vh] w-56 -translate-y-1/2 overflow-y-auto",
-            // Scrolls, but without drawing the bar: at 224px wide a gutter of
-            // scrollbar is a sizeable share of the panel, and it appears only
-            // on the posts long enough to overflow, so the panel would change
-            // width from one article to the next. Wheel, trackpad and keyboard
-            // all still scroll it.
-            "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-            "rounded-lg bg-popover/95 p-3 opacity-0 shadow-xl ring-1 ring-foreground/10 backdrop-blur-sm",
-            "transition-opacity duration-200 ease-out motion-reduce:transition-none",
-            "group-hover:pointer-events-auto group-hover:opacity-100",
-            "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
-          )}
-        >
-          <TocList headings={headings} activeId={activeId} />
-        </div>
+      <div
+        className={cn(
+          "pointer-events-none absolute left-0 top-1/2 max-h-[70vh] w-56 -translate-y-1/2 overflow-y-auto",
+          // Scrolls, but without drawing the bar: at 224px wide a gutter of
+          // scrollbar is a sizeable share of the panel, and it appears only
+          // on the posts long enough to overflow, so the panel would change
+          // width from one article to the next. Wheel, trackpad and keyboard
+          // all still scroll it.
+          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "rounded-lg bg-popover/95 p-3 opacity-0 shadow-xl ring-1 ring-foreground/10 backdrop-blur-sm",
+          "transition-opacity duration-200 ease-out motion-reduce:transition-none",
+          "group-hover:pointer-events-auto group-hover:opacity-100",
+          "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
+        )}
+      >
+        <TocList headings={headings} activeId={activeId} />
+      </div>
     </nav>
   );
 }

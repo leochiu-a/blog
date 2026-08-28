@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const prefersReducedMotion = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Fixed back-to-top button; slides in after scrolling past ~400px. */
 export function ScrollToTop() {
