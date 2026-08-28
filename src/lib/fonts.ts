@@ -1,14 +1,7 @@
-import {
-  EB_Garamond,
-  Cormorant_Garamond,
-  Newsreader,
-  Alegreya,
-  Inter,
-  Spectral,
-} from "next/font/google";
+import { EB_Garamond, Cormorant_Garamond, Inter, Spectral } from "next/font/google";
 
-// EB Garamond, Newsreader, Alegreya, and Inter are variable fonts (weight
-// optional). Cormorant Garamond is not, so explicit weights are required.
+// EB Garamond and Inter are variable fonts (weight optional). Cormorant
+// Garamond and Spectral are not, so explicit weights are required.
 export const garamond = EB_Garamond({
   subsets: ["latin"],
   style: ["normal", "italic"],
@@ -16,25 +9,14 @@ export const garamond = EB_Garamond({
   display: "swap",
 });
 
+// 400 (PostsSection), 500 (the mode toggle) and 600 (`font-semibold`, every
+// heading on the home page) are the only weights anything asks for — 300 and
+// 700 were four more faces nothing rendered.
 export const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   variable: "--font-cormorant",
-  display: "swap",
-});
-
-export const newsreader = Newsreader({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-newsreader",
-  display: "swap",
-});
-
-export const alegreya = Alegreya({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-alegreya",
   display: "swap",
 });
 
@@ -56,4 +38,4 @@ export const spectral = Spectral({
   display: "swap",
 });
 
-export const fontVariables = `${garamond.variable} ${cormorant.variable} ${newsreader.variable} ${alegreya.variable} ${inter.variable} ${spectral.variable}`;
+export const fontVariables = `${garamond.variable} ${cormorant.variable} ${inter.variable} ${spectral.variable}`;

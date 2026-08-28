@@ -4,7 +4,6 @@ subtitle: "「認知卸載」與「認知投降」的本質，其實就是「知
 description: "AI 可用這件事本身，就足以讓人放棄獨立判斷。這篇聊聊「認知卸載」與「認知投降」的分野，以及三個實際案例整理出的防線。"
 datetime: "2026-07-18"
 readTime: "6 min"
-font: "newsreader"
 category: "professional"
 ogImage: "/blog-images/ai-cognitive-offloading-hero.webp"
 tags: ["AI", "認知卸載", "認知投降", "工程師職涯", "Engineering Management"]

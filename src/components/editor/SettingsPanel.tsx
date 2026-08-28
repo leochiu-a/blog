@@ -19,7 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { CATEGORIES, FONTS } from "@/lib/post-frontmatter";
+import { CATEGORIES } from "@/lib/post-frontmatter";
 import {
   readFlag,
   readList,
@@ -103,7 +103,6 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
 
           {text("datetime", "datetime", "2026-01-01")}
           {text("readTime", "readTime", "5 min")}
-          {choice("font", "font", FONTS)}
           {choice("category", "category", CATEGORIES)}
           {text("ogImage", "ogImage", "/blog-images/…")}
 

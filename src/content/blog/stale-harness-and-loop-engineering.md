@@ -6,7 +6,6 @@ ogImage: "/blog-images/harness-hero.webp"
 datetime: "2026-08-25"
 updated: "2026-08-28"
 readTime: "9 min"
-font: "newsreader"
 category: "professional"
 featured: true
 tags: ["AI Agent", "Harness Engineering", "Loop Engineering", "Prompt Engineering", "AI 工程"]

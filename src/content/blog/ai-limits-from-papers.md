@@ -3,7 +3,6 @@ title: "從四篇 2025–2026 論文洞察 AI 的極限與邊界"
 description: "整理四篇 2025–2026 年的重量級論文，看清 AI 在技能侵蝕、程式碼衰退與高階判斷上的真實邊界，而不是被社群熱度牽著走。"
 datetime: "2026-04-12"
 readTime: "15 min"
-font: "newsreader"
 category: "professional"
 ogImage: "/blog-images/ai-limits-from-papers-hero.webp"
 tags: ["AI", "AI 極限", "軟體工程研究", "Code Review", "LLM"]

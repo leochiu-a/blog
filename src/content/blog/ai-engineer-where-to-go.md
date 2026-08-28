@@ -4,7 +4,6 @@ subtitle: "延伸上篇：從四篇論文洞察 AI 的極限，這次我們談�
 description: "當 AI 已經證明有極限，工程師該練什麼、該往哪個方向走？延續上一篇的論文洞察，這篇談的是「人」該如何自處。"
 datetime: "2026-04-26"
 readTime: "9 min"
-font: "newsreader"
 category: "professional"
 ogImage: "/blog-images/ai-engineer-where-to-go-hero.webp"
 tags: ["AI", "工程師職涯", "軟體工程", "AI 極限"]

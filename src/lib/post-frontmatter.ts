@@ -19,7 +19,6 @@ export const postFrontmatterSchema = z.object({
   // instead of an invisible edit.
   updated: z.string().optional(),
   readTime: z.string(),
-  font: z.enum(["garamond", "newsreader"]),
   category: z.enum(["professional", "personal"]),
   featured: z.boolean().optional(),
   draft: z.boolean().optional(),
@@ -27,7 +26,6 @@ export const postFrontmatterSchema = z.object({
 
 export type PostFrontmatter = z.infer<typeof postFrontmatterSchema>;
 
-export const FONTS = postFrontmatterSchema.shape.font.options;
 export const CATEGORIES = postFrontmatterSchema.shape.category.options;
 
 /**

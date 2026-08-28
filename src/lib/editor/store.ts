@@ -139,7 +139,6 @@ export function createPostStore(root: string) {
       title: "",
       datetime: today,
       readTime: "1 min",
-      font: "newsreader",
       category: "professional",
       draft: true,
     };

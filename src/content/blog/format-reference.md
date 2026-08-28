@@ -3,7 +3,6 @@ title: "格式參考"
 subtitle: "這篇是 draft，只在 next dev 看得到——用來對照每個格式該怎麼寫"
 datetime: "2026-08-25"
 readTime: "2 min"
-font: "newsreader"
 category: "personal"
 draft: true
 ---

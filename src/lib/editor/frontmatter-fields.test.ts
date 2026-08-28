@@ -6,7 +6,6 @@ const post = {
   title: "Hello",
   datetime: "2026-01-01",
   readTime: "2 min",
-  font: "newsreader",
   category: "personal",
   tags: ["AI"],
   draft: true,
@@ -14,7 +13,7 @@ const post = {
 
 describe("the required key list", () => {
   it("is derived from the schema, not restated", () => {
-    expect(REQUIRED_KEYS).toEqual(["title", "datetime", "readTime", "font", "category"]);
+    expect(REQUIRED_KEYS).toEqual(["title", "datetime", "readTime", "category"]);
   });
 });
 

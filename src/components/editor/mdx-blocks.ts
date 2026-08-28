@@ -42,7 +42,6 @@ export const MDX_BLOCKS: MdxBlockSpec[] = [
     attributes: [text("type", "note")],
   },
   { name: "FancyQuote", label: "FancyQuote（置中大字引言）", selfClosing: false, attributes: [] },
-  { name: "PoemCard", label: "PoemCard（詩卡）", selfClosing: false, attributes: [text("title")] },
   {
     name: "VideoEmbed",
     label: "VideoEmbed（影片）",

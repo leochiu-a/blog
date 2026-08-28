@@ -1,6 +1,5 @@
 import { Children, isValidElement } from "react";
 import type { MDXComponents } from "mdx/types";
-import { PoemCard } from "@/components/mdx/PoemCard";
 import { BookQuote } from "@/components/mdx/BookQuote";
 import { FancyQuote } from "@/components/mdx/FancyQuote";
 import { Figure } from "@/components/mdx/Figure";
@@ -37,7 +36,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     hr: OrnamentSeparator,
     blockquote: Blockquote,
-    PoemCard,
     BookQuote,
     FancyQuote,
     Figure,

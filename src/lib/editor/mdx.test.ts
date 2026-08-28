@@ -14,7 +14,6 @@ const COMPONENTS = [
   `<BookQuote speaker="S" source="B">\n  quoted line\n</BookQuote>`,
   `<Callout type="warning">\n  heads up\n</Callout>`,
   `<FancyQuote>\n  big words\n</FancyQuote>`,
-  `<PoemCard title="P">\n  a line\n</PoemCard>`,
   `<VideoEmbed src="https://example.com/v" title="V" />`,
 ];
 
@@ -73,7 +72,7 @@ describe("MDX components", () => {
 });
 
 describe("the insertable component list", () => {
-  it.each(["Figure", "BookQuote", "Callout", "PoemCard", "VideoEmbed", "FancyQuote"])(
+  it.each(["Figure", "BookQuote", "Callout", "VideoEmbed", "FancyQuote"])(
     "has a typed spec for %s",
     (name) => {
       expect(specFor(name)).toBeDefined();

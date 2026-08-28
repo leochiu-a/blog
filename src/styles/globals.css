@@ -13,7 +13,7 @@
    .dark = DARK theme (homepage, original adds `dark` to <html>). */
 :root {
   /* Font family CSS variables (--font-garamond, --font-cormorant,
-     --font-newsreader, --font-alegreya) are injected by next/font on <html>. */
+     --font-spectral, --font-sans) are injected by next/font on <html>. */
 
   --background: 0 0% 98%;
   --foreground: 210 3% 18%;
@@ -112,8 +112,6 @@ html:has(.dark) {
   --radius-xl: calc(var(--radius) + 4px);
   --font-garamond: var(--font-garamond), serif;
   --font-cormorant: var(--font-cormorant), serif;
-  --font-newsreader: var(--font-newsreader), serif;
-  --font-alegreya: var(--font-alegreya), serif;
   --font-spectral: var(--font-spectral), serif;
 
   --text-xxs: 0.625rem;
@@ -169,7 +167,7 @@ body {
   max-width: 45.5rem; /* 728px, Substack's column width */
 }
 /* Tailwind Typography scopes every rule so it stops at a `not-prose` subtree.
-   Hand-written rules repeat that guard, or they reach inside PoemCard /
+   Hand-written rules repeat that guard, or they reach inside Callout /
    FancyQuote / BookQuote and undo the point of marking them `not-prose`. */
 .prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   font-family: var(--font-sans), sans-serif;
@@ -200,7 +198,7 @@ body {
    divider — don't let the first child's own margin-top stack on top of it.
    No `not-prose` guard here: this is structural, about the child's relationship
    to the wrapper's padding, so it has to reach the `not-prose` MDX components
-   (Figure, PoemCard, FancyQuote) that open a post too. */
+   (Figure, Callout, FancyQuote) that open a post too. */
 .prose > :first-child {
   margin-top: 0;
 }
@@ -317,64 +315,6 @@ body {
   code[data-line-numbers][data-line-numbers-max-digits="3"]
   > [data-line]::before {
   width: 3ch;
-}
-
-/* ===== Poem card (embedded in blog posts that quote or feature a poem) ===== */
-.poem-page {
-  font-family: var(--font-newsreader), serif;
-}
-.poem-paper {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 4px 8px rgba(0, 0, 0, 0.04),
-    0 8px 16px rgba(0, 0, 0, 0.04),
-    0 16px 32px rgba(0, 0, 0, 0.06),
-    inset 0 0 60px rgba(0, 0, 0, 0.01);
-}
-.dark .poem-paper {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    0 4px 8px rgba(0, 0, 0, 0.15),
-    0 8px 16px rgba(0, 0, 0, 0.1),
-    0 16px 32px rgba(0, 0, 0, 0.15),
-    inset 0 0 60px rgba(0, 0, 0, 0.05);
-}
-.poem-paper::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.03;
-  pointer-events: none;
-  border-radius: 2px;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-}
-.poem-paper::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: 2px;
-  box-shadow: inset 0 0 40px rgba(180, 160, 130, 0.08);
-}
-.dark .poem-paper::after {
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.15);
-}
-.poem-body strong {
-  font-weight: 600;
-}
-.poem-body em {
-  font-style: italic;
-}
-.poem-body p {
-  margin: 0 0 1em;
-}
-.poem-body p:last-child {
-  margin-bottom: 0;
-}
-.poem-body br {
-  display: block;
-  content: "";
-  margin: 0;
 }
 
 /* ===== Warm shadows ===== */
