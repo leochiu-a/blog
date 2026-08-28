@@ -1,3 +1,6 @@
+import { cn } from "@/lib/utils";
+import { inlineContent } from "./inline-content";
+
 interface FancyQuoteProps {
   children: React.ReactNode;
 }
@@ -12,7 +15,12 @@ interface FancyQuoteProps {
 export function FancyQuote({ children }: FancyQuoteProps) {
   return (
     <figure className="my-12 not-prose">
-      <blockquote className="text-center font-spectral text-[1.625rem] leading-[1.4] text-foreground sm:text-[2rem]">
+      <blockquote
+        className={cn(
+          "text-center font-spectral text-[1.625rem] leading-[1.4] text-foreground sm:text-[2rem]",
+          inlineContent,
+        )}
+      >
         {children}
       </blockquote>
     </figure>

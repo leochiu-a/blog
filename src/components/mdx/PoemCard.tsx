@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 interface PoemCardProps {
   title?: string;
   author?: string;
@@ -18,7 +20,17 @@ export function PoemCard({ title, author, translator, source, children }: PoemCa
             {title}
           </h3>
         )}
-        <div className="poem-body ml-4 font-alegreya text-base leading-normal text-[#3d3730] dark:text-[#d8d0c0] sm:ml-6">
+        {/* The card paints its own paper palette, so it can't use the shared
+            `inlineContent` — the site's accent orange would break the sheet.
+            A link is marked by an underline in the poem's own ink instead, and
+            inline code by the same tone the card's border uses. */}
+        <div
+          className={cn(
+            "poem-body ml-4 font-alegreya text-base leading-normal text-[#3d3730] dark:text-[#d8d0c0] sm:ml-6",
+            "[&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:decoration-2",
+            "[&_code]:rounded [&_code]:bg-[#e8e4da] [&_code]:px-[0.35em] [&_code]:py-[0.15em] [&_code]:text-[0.875em] dark:[&_code]:bg-[#3d3b35]",
+          )}
+        >
           {children}
         </div>
         {(author || translator || source) && (
