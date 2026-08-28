@@ -1,0 +1,193 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+
+interface Heading {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
+/**
+ * Headings as rendered, read from the DOM rather than from the source.
+ *
+ * `content-collections` parses frontmatter only, so the body never reaches JS —
+ * and even if it did, a heading emitted by an MDX component wouldn't be in it.
+ * The rendered article is the one place the real list exists.
+ *
+ * Scoped to `.prose`: `RecentPosts` and `AuthorBio` also carry headings, and
+ * those belong to the page, not to the piece being read.
+ */
+function readHeadings(): Heading[] {
+  const nodes = document.querySelectorAll<HTMLHeadingElement>(
+    ".prose h2, .prose h3",
+  );
+  return [...nodes]
+    .filter((node) => node.id)
+    .map((node) => ({
+      id: node.id,
+      text: node.textContent?.trim() ?? "",
+      level: node.tagName === "H2" ? 2 : 3,
+    }));
+}
+
+/**
+ * Tick widths for a set of sections, as percentages of the rail.
+ *
+ * Uniform ticks say only how many sections there are — Substack's rail is ten
+ * identical 12px lines. Letting length track the title turns the collapsed rail
+ * into a shape the reader recognises, so returning to it after scrolling means
+ * finding a silhouette rather than counting.
+ *
+ * Scaled within the post rather than against fixed character counts: an article
+ * whose sections are all long English paper titles would otherwise peg every
+ * tick at the maximum and lose the very variation this exists for. Spreading
+ * the post's own shortest-to-longest across the rail keeps the contrast
+ * whatever the writing looks like.
+ */
+function tickWidths(texts: string[]): string[] {
+  // A CJK character occupies about twice the width of a Latin one, so counting
+  // codepoints alone would make a 10-character Chinese heading tie with a
+  // 10-character English one that reads half as long.
+  const weigh = (t: string) =>
+    [...t].reduce((sum, ch) => sum + (/[　-鿿＀-￯]/.test(ch) ? 2 : 1), 0);
+
+  const spans = texts.map(weigh);
+  const min = Math.min(...spans);
+  const max = Math.max(...spans);
+  // Every section the same length: no silhouette to draw, so draw them even.
+  if (max === min) return texts.map(() => "70%");
+  return spans.map((span) => `${40 + ((span - min) / (max - min)) * 60}%`);
+}
+
+export function PostToc() {
+  const [headings, setHeadings] = useState<Heading[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const found = readHeadings();
+    // The rendered article *is* the external system this effect synchronises
+    // with — the headings do not exist during render, on the server or on the
+    // client's first pass, so there is nothing to derive them from. This is the
+    // case the rule's own guidance carves out; it just cannot see it from here.
+    // eslint-disable-next-line react/set-state-in-effect
+    setHeadings(found);
+    if (found.length === 0) return;
+
+    // A band across the top of the viewport: a heading counts as current once it
+    // reaches it and stops counting once the next one arrives. Nothing in the
+    // band (a long section mid-scroll) leaves the last one standing, which is
+    // the honest answer — the reader is still inside it.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const arrived = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          )[0];
+        if (arrived) setActiveId(arrived.target.id);
+      },
+      { rootMargin: "-80px 0px -70% 0px" },
+    );
+
+    for (const { id } of found) {
+      const node = document.getElementById(id);
+      if (node) observer.observe(node);
+    }
+    return () => observer.disconnect();
+  }, []);
+
+  if (headings.length === 0) return null;
+
+  const sections = headings.filter((h) => h.level === 2);
+  const widths = tickWidths(sections.map((s) => s.text));
+  // Which top-level section the reader is in — an h3 counts towards the h2 above
+  // it, so the rail stays lit while they work down a section's subheadings.
+  const activeIndex = headings.findIndex((h) => h.id === activeId);
+  const activeSectionId =
+    activeIndex === -1
+      ? null
+      : (headings.slice(0, activeIndex + 1).findLast((h) => h.level === 2)?.id ?? null);
+
+  return (
+    // Pointer-only by nature, so it is absent below `lg` rather than restyled:
+    // the rail hangs in the gutter beside the column, which a narrow screen does
+    // not have, and its panel opens on hover, which touch does not do. Same call
+    // as `PostPreviewPanel`, which is hidden below `md` for the same reason.
+    // `group` so hovering anywhere in the strip — ticks or panel — keeps the
+    // panel open, which is what lets the pointer travel between them.
+    <nav
+        aria-label="目錄"
+        className="group fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 lg:block"
+      >
+        {/* Ticks: one per h2, never per h3. Nineteen subheadings would make a
+            rail of indistinguishable lines, and half of them repeat ("核心問題"
+            appears once per paper) — the section is the useful grain here. */}
+        <ul className="flex w-7 flex-col gap-y-2 py-2 group-hover:opacity-0 motion-reduce:transition-none transition-opacity duration-200">
+          {sections.map((section, i) => (
+            <li key={section.id} className="flex h-0.5 items-center">
+              <span
+                style={{ width: widths[i] }}
+                // 2px and unfaded. A hairline at 40% opacity is Substack's tick
+                // on Substack's white page; these posts render on near-black,
+                // where the same line all but disappears — and the rail is only
+                // worth having if it can be found without being looked for.
+                className={cn(
+                  "block h-0.5 rounded-full transition-[background-color,width] duration-200 motion-reduce:transition-none",
+                  section.id === activeSectionId ? "bg-blog-accent" : "bg-muted-foreground",
+                )}
+              />
+            </li>
+          ))}
+        </ul>
+
+        {/* The panel replaces the ticks in place rather than sitting beside
+            them, so the strip never widens the page or reaches over the text. */}
+        <div
+          className={cn(
+            "pointer-events-none absolute left-0 top-1/2 max-h-[70vh] w-56 -translate-y-1/2 overflow-y-auto",
+            // Scrolls, but without drawing the bar: at 224px wide a gutter of
+            // scrollbar is a sizeable share of the panel, and it appears only
+            // on the posts long enough to overflow, so the panel would change
+            // width from one article to the next. Wheel, trackpad and keyboard
+            // all still scroll it.
+            "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            "rounded-lg bg-popover/95 p-3 opacity-0 shadow-xl ring-1 ring-foreground/10 backdrop-blur-sm",
+            "transition-opacity duration-200 ease-out motion-reduce:transition-none",
+            "group-hover:pointer-events-auto group-hover:opacity-100",
+            "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
+          )}
+        >
+          <TocList headings={headings} activeId={activeId} />
+        </div>
+    </nav>
+  );
+}
+
+function TocList({ headings, activeId }: { headings: Heading[]; activeId: string | null }) {
+  return (
+    <ul className="flex flex-col gap-y-1.5 font-sans text-[13px] leading-snug">
+      {headings.map((heading) => (
+        <li key={heading.id} className={heading.level === 3 ? "ps-3" : undefined}>
+          <a
+            href={`#${heading.id}`}
+            // A real fragment link, not a scroll handler: it survives no-JS, it
+            // is copyable from the context menu, and it puts the section in the
+            // URL so a reader can hand someone else the exact passage.
+            className={cn(
+              "block line-clamp-2 transition-colors hover:text-blog-accent",
+              heading.id === activeId
+                ? "font-semibold text-blog-accent"
+                : heading.level === 2
+                  ? "text-foreground"
+                  : "text-muted-foreground",
+            )}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}

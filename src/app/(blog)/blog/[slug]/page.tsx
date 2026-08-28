@@ -5,6 +5,7 @@ import { posts } from "@/lib/posts";
 import { SITE_URL } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
+import { PostToc } from "@/components/blog/PostToc";
 import { RecentPosts } from "@/components/blog/RecentPosts";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
@@ -162,6 +163,10 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 <DevEditLink slug={post.slug} />
               </div>
             </div>
+
+            {/* Reads the headings out of `.prose` below, so it renders after
+                the article is in the DOM but sits above it in the layout. */}
+            <PostToc />
 
             <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
               <Post />
