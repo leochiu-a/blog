@@ -67,6 +67,7 @@ afterEach(() => {
   document.body.innerHTML = "";
   reachHeading = null;
   window.location.hash = "";
+  history.scrollRestoration = "auto";
 });
 
 const rail = () => screen.getByRole("navigation", { name: "目錄" });
@@ -283,6 +284,94 @@ describe("PostToc", () => {
       render(<PostToc />);
 
       expect(document.getElementById("前言")!.className).toContain("heading-arrival");
+    });
+  });
+
+  describe("deciding what a reload lands on", () => {
+    const article = [
+      { level: 2, id: "one", text: "First section" },
+      { level: 2, id: "two", text: "Second section" },
+    ] as const;
+
+    /**
+     * Every scroll the component asks for, in order, with what it passed.
+     *
+     * The argument is the assertion, not decoration. Bare `scrollIntoView()` is
+     * what leaves the landing offset to the heading's own `scroll-margin-top`;
+     * the plausible-looking `scrollIntoView({ block: "center" })` overrides it
+     * and drops the reader somewhere else entirely. A stub that only counted
+     * the calls would let exactly that change through green.
+     */
+    function recordScrolls() {
+      const scrolls: Array<{ id: string; options?: boolean | ScrollIntoViewOptions }> = [];
+      for (const heading of document.querySelectorAll<HTMLElement>(".prose h2, .prose h3")) {
+        heading.scrollIntoView = (options?: boolean | ScrollIntoViewOptions) => {
+          scrolls.push({ id: heading.id, options });
+        };
+      }
+      return scrolls;
+    }
+
+    it("puts the reader on the named section itself, whatever the browser did", () => {
+      // With restoration off, a reload leaves it to the browser whether to fall
+      // back to the fragment; the ones that do not open the post at the top.
+      plantArticle([...article]);
+      window.location.hash = "two";
+      const scrolls = recordScrolls();
+
+      render(<PostToc />);
+      expect(scrolls).toEqual([{ id: "two", options: undefined }]);
+    });
+
+    it("lands on a CJK section, whose fragment arrives percent-encoded", () => {
+      // The ids here are the heading text, so every section of a Chinese post
+      // reaches the browser escaped — the landing has to survive that, not just
+      // the arrival mark.
+      plantArticle([{ level: 2, id: "小結", text: "小結" }]);
+      window.location.hash = encodeURIComponent("小結");
+      const scrolls = recordScrolls();
+
+      render(<PostToc />);
+      expect(scrolls).toEqual([{ id: "小結", options: undefined }]);
+      expect(history.scrollRestoration).toBe("manual");
+    });
+
+    it("scrolls nowhere on a plain post URL", () => {
+      plantArticle([...article]);
+      const scrolls = recordScrolls();
+
+      render(<PostToc />);
+      expect(scrolls).toEqual([]);
+    });
+
+    it("hands a reload to the fragment when the URL names a section", () => {
+      // Otherwise the reload restores the offset the reader had scrolled to and
+      // never consults the fragment — a link to one section reopening at
+      // another. `manual` is what makes the browser fall back to the fragment.
+      plantArticle([...article]);
+      window.location.hash = "two";
+      render(<PostToc />);
+
+      expect(history.scrollRestoration).toBe("manual");
+    });
+
+    it("leaves a plain post URL restoring, so a reader keeps their place", () => {
+      plantArticle([...article]);
+      render(<PostToc />);
+
+      expect(history.scrollRestoration).toBe("auto");
+    });
+
+    it("hands over again for a section reached by clicking the rail", async () => {
+      // The click writes a fresh history entry, which starts out restoring like
+      // any other — so the entry a reader would reload is a different one from
+      // the entry set up on mount.
+      plantArticle([...article]);
+      render(<PostToc />);
+      expect(history.scrollRestoration).toBe("auto");
+
+      await userEvent.click(screen.getByRole("link", { name: "Second section" }));
+      expect(history.scrollRestoration).toBe("manual");
     });
   });
 

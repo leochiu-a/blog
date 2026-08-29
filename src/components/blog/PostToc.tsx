@@ -54,6 +54,41 @@ function markArrival(id: string) {
 }
 
 /**
+ * Let the fragment, not the last scroll position, decide where a reload lands.
+ *
+ * A reload does not go looking for the fragment at all: it restores the scroll
+ * offset its history entry remembers, and stops there. So a reader who reloads
+ * a link to one section is put back wherever they happened to have scrolled to
+ * — on a URL that names the section they wanted. Turning restoration off for
+ * that history entry is what lets the fragment win.
+ *
+ * Only while there is a fragment. On a plain post URL the remembered offset is
+ * the best answer there is — a reader reloading mid-article should keep their
+ * place — so restoration stays as the browser left it.
+ */
+function preferFragmentOverRememberedScroll(hasFragment: boolean) {
+  history.scrollRestoration = hasFragment ? "manual" : "auto";
+}
+
+/**
+ * Put the reader on the section the URL names.
+ *
+ * Turning restoration off is only half of it: a reload with nothing remembered
+ * leaves it to the browser whether to fall back to the fragment, and the ones
+ * that do not open the article at the top instead — the same wrong answer in a
+ * different direction. Doing the scroll here is what makes the outcome the same
+ * everywhere, and it costs nothing where the browser got there first, since it
+ * scrolls to a position the page is already at.
+ *
+ * `scrollIntoView` rather than a computed offset: it honours the headings' own
+ * `scroll-margin-top`, so the landing spot stays defined in one place — the
+ * stylesheet — instead of being duplicated as a number here.
+ */
+function showSection(id: string) {
+  document.getElementById(id)?.scrollIntoView();
+}
+
+/**
  * The heading the current URL points at.
  *
  * Ids here are the heading text, so on a Chinese post the fragment arrives
@@ -107,15 +142,23 @@ export function PostToc() {
   }, []);
 
   useEffect(() => {
-    // A cold load on a #fragment arrives already scrolled, with no click and no
-    // hashchange to hear — the mark has to be started from the URL as it stands.
-    const arrived = targetedHeadingId();
-    if (arrived) markArrival(arrived);
+    // Landing on a section: the URL either named one on arrival or has since
+    // come to name one, and both are the same landing rather than a special
+    // case and a follow-up. A cold load has no event to hear, and every later
+    // fragment — the rail's own links, the back button — writes a fresh history
+    // entry that starts out restoring like any other, so each needs all three
+    // steps. An empty hash matches no element, which leaves the mark and the
+    // scroll as the no-ops a whole-post URL wants them to be.
+    const land = () => {
+      const id = targetedHeadingId();
+      markArrival(id);
+      showSection(id);
+      preferFragmentOverRememberedScroll(Boolean(id));
+    };
 
-    // Covers the back button and any in-page link that is not the rail's own.
-    const onHashChange = () => markArrival(targetedHeadingId());
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    land();
+    window.addEventListener("hashchange", land);
+    return () => window.removeEventListener("hashchange", land);
   }, []);
 
   return (
