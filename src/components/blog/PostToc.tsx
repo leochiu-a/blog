@@ -119,7 +119,7 @@ export function PostToc() {
       {/* Ticks: one per h2, never per h3. Nineteen subheadings would make a
             rail of indistinguishable lines, and half of them repeat ("核心問題"
             appears once per paper) — the section is the useful grain here. */}
-      <ul className="flex w-7 flex-col gap-y-2 py-2 group-hover:opacity-0 motion-reduce:transition-none transition-opacity duration-200">
+      <ul className="flex w-7 flex-col gap-y-2 py-2">
         {sections.map((section, i) => (
           <li key={section.id} className="flex h-0.5 items-center">
             <span
@@ -137,32 +137,57 @@ export function PostToc() {
         ))}
       </ul>
 
-      {/* The panel replaces the ticks in place rather than sitting beside
-            them, so the strip never widens the page or reaches over the text. */}
+      {/* Beside the ticks rather than over them, so the lit tick stays in
+            view while the panel is open: the reader keeps the answer to "where
+            am I" on screen while reading "what else is there". The cost is that
+            the panel reaches over the column — acceptable for something that
+            appears on hover and leaves the moment the pointer does.
+
+            The gap to the ticks is this wrapper's padding, not a margin, so the
+            hover target runs unbroken from the rail into the panel. As a margin
+            it would be dead space belonging to neither, and crossing it would
+            start the panel fading out halfway to it. */}
       <div
         className={cn(
-          "pointer-events-none absolute left-0 top-1/2 max-h-[70vh] w-56 -translate-y-1/2 overflow-y-auto",
-          // Scrolls, but without drawing the bar: at 224px wide a gutter of
-          // scrollbar is a sizeable share of the panel, and it appears only
-          // on the posts long enough to overflow, so the panel would change
-          // width from one article to the next. Wheel, trackpad and keyboard
-          // all still scroll it.
-          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          "rounded-lg bg-popover/95 p-3 opacity-0 shadow-xl ring-1 ring-foreground/10 backdrop-blur-sm",
-          "transition-opacity duration-200 ease-out motion-reduce:transition-none",
+          "pointer-events-none absolute left-full top-1/2 -translate-y-1/2 pl-3",
+          // 150ms, not 200. Fading in over body text means the article shows
+          // through the panel for the whole fade — a heading behind it reads
+          // as a flash of bold text inside the contents. The panel is opaque
+          // at rest (below) so the ghost is only ever mid-transition; keeping
+          // that window short is the rest of the fix.
+          "opacity-0 transition-opacity duration-150 ease-out motion-reduce:transition-none",
           "group-hover:pointer-events-auto group-hover:opacity-100",
           "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
         )}
       >
-        <TocList headings={headings} activeId={activeId} />
+        <div
+          className={cn(
+            "max-h-[70vh] w-72 overflow-y-auto",
+            // Scrolls, but without drawing the bar: a gutter of scrollbar is a
+            // sizeable share of a 288px panel, and it appears only on the posts
+            // long enough to overflow, so the panel would change width from one
+            // article to the next. Wheel, trackpad and keyboard all still
+            // scroll it.
+            "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            // Fully opaque, no backdrop blur: both were free when the panel
+            // sat over an empty gutter, and both leak the article through it
+            // now that it sits over the column.
+            "rounded-lg bg-popover p-4 shadow-xl ring-1 ring-foreground/10",
+          )}
+        >
+          <TocList headings={headings} activeId={activeId} />
+        </div>
       </div>
     </nav>
   );
 }
 
 function TocList({ headings, activeId }: { headings: Heading[]; activeId: string | null }) {
+  // 15px, not the 13px of a caption. The panel is a thing to read a line of and
+  // pick from, and at 13px a two-line CJK title in it is a squint — which is
+  // what the space beside the rail was freed up to pay for.
   return (
-    <ul className="flex flex-col gap-y-1.5 font-sans text-[13px] leading-snug">
+    <ul className="flex flex-col gap-y-2 font-sans text-[15px] leading-snug">
       {headings.map((heading) => (
         <li key={heading.id} className={heading.level === 3 ? "ps-3" : undefined}>
           <a
