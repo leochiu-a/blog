@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TocRail } from "@/components/TocRail";
+import { markArrival } from "./SectionArrival";
 
 interface Heading {
   id: string;
@@ -28,82 +29,6 @@ function readHeadings(): Heading[] {
       text: node.textContent?.trim() ?? "",
       level: node.tagName === "H2" ? 2 : 3,
     }));
-}
-
-const ARRIVAL_CLASS = "heading-arrival";
-
-/**
- * Mark the heading the reader has just arrived at.
- *
- * Removing the class and re-adding it is what makes a *repeat* arrival visible.
- * Clicking the same entry twice, or clicking it again after scrolling away,
- * leaves the fragment unchanged, and a CSS animation does not restart while its
- * selector already matches — so without this the second click marks nothing,
- * which is exactly the case a reader hits when they lose their place.
- *
- * Reading `offsetWidth` between the two is not superstition: it forces the
- * pending style change to be flushed, so the browser sees the class genuinely
- * leave and return rather than coalescing both into no change at all.
- */
-function markArrival(id: string) {
-  const heading = document.getElementById(id);
-  if (!heading) return;
-  heading.classList.remove(ARRIVAL_CLASS);
-  void heading.offsetWidth;
-  heading.classList.add(ARRIVAL_CLASS);
-}
-
-/**
- * Let the fragment, not the last scroll position, decide where a reload lands.
- *
- * A reload does not go looking for the fragment at all: it restores the scroll
- * offset its history entry remembers, and stops there. So a reader who reloads
- * a link to one section is put back wherever they happened to have scrolled to
- * — on a URL that names the section they wanted. Turning restoration off for
- * that history entry is what lets the fragment win.
- *
- * Only while there is a fragment. On a plain post URL the remembered offset is
- * the best answer there is — a reader reloading mid-article should keep their
- * place — so restoration stays as the browser left it.
- */
-function preferFragmentOverRememberedScroll(hasFragment: boolean) {
-  history.scrollRestoration = hasFragment ? "manual" : "auto";
-}
-
-/**
- * Put the reader on the section the URL names.
- *
- * Turning restoration off is only half of it: a reload with nothing remembered
- * leaves it to the browser whether to fall back to the fragment, and the ones
- * that do not open the article at the top instead — the same wrong answer in a
- * different direction. Doing the scroll here is what makes the outcome the same
- * everywhere, and it costs nothing where the browser got there first, since it
- * scrolls to a position the page is already at.
- *
- * `scrollIntoView` rather than a computed offset: it honours the headings' own
- * `scroll-margin-top`, so the landing spot stays defined in one place — the
- * stylesheet — instead of being duplicated as a number here.
- */
-function showSection(id: string) {
-  document.getElementById(id)?.scrollIntoView();
-}
-
-/**
- * The heading the current URL points at.
- *
- * Ids here are the heading text, so on a Chinese post the fragment arrives
- * percent-encoded and has to be decoded to match. A hand-mangled escape throws
- * rather than returning nothing, so the raw form is the fallback — it will
- * simply fail to match an element, which is the same outcome as an empty hash.
- */
-function targetedHeadingId(): string {
-  const raw = window.location.hash.slice(1);
-  if (!raw) return "";
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
 }
 
 export function PostToc() {
@@ -139,26 +64,6 @@ export function PostToc() {
       if (node) observer.observe(node);
     }
     return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    // Landing on a section: the URL either named one on arrival or has since
-    // come to name one, and both are the same landing rather than a special
-    // case and a follow-up. A cold load has no event to hear, and every later
-    // fragment — the rail's own links, the back button — writes a fresh history
-    // entry that starts out restoring like any other, so each needs all three
-    // steps. An empty hash matches no element, which leaves the mark and the
-    // scroll as the no-ops a whole-post URL wants them to be.
-    const land = () => {
-      const id = targetedHeadingId();
-      markArrival(id);
-      showSection(id);
-      preferFragmentOverRememberedScroll(Boolean(id));
-    };
-
-    land();
-    window.addEventListener("hashchange", land);
-    return () => window.removeEventListener("hashchange", land);
   }, []);
 
   return (

@@ -6,6 +6,7 @@ import { SITE_URL } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { PostToc } from "@/components/blog/PostToc";
+import { SectionArrival } from "@/components/blog/SectionArrival";
 import { RecentPosts } from "@/components/blog/RecentPosts";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
@@ -164,9 +165,12 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               </div>
             </div>
 
-            {/* Reads the headings out of `.prose` below, so it renders after
-                the article is in the DOM but sits above it in the layout. */}
+            {/* Both read the article out of the DOM below, so they render
+                after it is there but sit above it in the layout. `PostToc`
+                draws the rail; `SectionArrival` is what a URL naming one
+                section does to the page, and draws nothing. */}
             <PostToc />
+            <SectionArrival />
 
             <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
               <Post />
