@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { PostToc } from "./PostToc";
 
 /**
@@ -65,6 +66,7 @@ afterEach(() => {
   cleanup();
   document.body.innerHTML = "";
   reachHeading = null;
+  window.location.hash = "";
 });
 
 const rail = () => screen.getByRole("navigation", { name: "目錄" });
@@ -228,6 +230,59 @@ describe("PostToc", () => {
       const current = panelEntries().filter((a) => a.className.includes("font-semibold"));
       expect(current).toHaveLength(1);
       expect(current[0].textContent).toBe("A subheading");
+    });
+  });
+
+  describe("marking the heading the reader lands on", () => {
+    const article = [
+      { level: 2, id: "one", text: "First section" },
+      { level: 2, id: "two", text: "Second section" },
+    ] as const;
+
+    const heading = (id: string) => document.querySelector(`.prose #${id}`)!;
+    const entry = (text: string) => screen.getByRole("link", { name: text });
+
+    it("marks the heading an entry points at when that entry is clicked", async () => {
+      plantArticle([...article]);
+      render(<PostToc />);
+
+      expect(heading("two").className).not.toContain("heading-arrival");
+      await userEvent.click(entry("Second section"));
+      expect(heading("two").className).toContain("heading-arrival");
+    });
+
+    it("marks it again on a second click, when the fragment has not changed", async () => {
+      // The regression this guards: `:target` cannot see this click, because the
+      // URL it would key on is already what the click asks for. A reader who has
+      // scrolled away and wants showing back to their place clicks exactly here.
+      plantArticle([...article]);
+      render(<PostToc />);
+
+      await userEvent.click(entry("First section"));
+      // Stand in for the animation having been and gone: what matters is that
+      // the class leaves and returns, since that is what restarts it.
+      heading("one").classList.remove("heading-arrival");
+
+      await userEvent.click(entry("First section"));
+      expect(heading("one").className).toContain("heading-arrival");
+    });
+
+    it("marks the heading a #fragment already in the URL points at", () => {
+      // Someone opening a link they were handed: already scrolled on arrival,
+      // with no click and no hashchange for the component to hear.
+      plantArticle([...article]);
+      window.location.hash = "two";
+      render(<PostToc />);
+
+      expect(heading("two").className).toContain("heading-arrival");
+    });
+
+    it("decodes a percent-encoded fragment, so CJK headings still match", () => {
+      plantArticle([{ level: 2, id: "前言", text: "前言" }]);
+      window.location.hash = encodeURIComponent("前言");
+      render(<PostToc />);
+
+      expect(document.getElementById("前言")!.className).toContain("heading-arrival");
     });
   });
 
