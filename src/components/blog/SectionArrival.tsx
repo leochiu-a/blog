@@ -48,31 +48,8 @@ function targetedHeadingId(): string {
 }
 
 /**
- * Put the reader on the section the URL names, if the browser has not.
- *
- * Dropping the remembered offset is only half of the reload fix: with nothing
- * remembered, whether the browser then falls back to the fragment is left to
- * the browser, and the ones that do not open the article at the top instead —
- * the same wrong answer in the other direction.
- *
- * Hence the standing start. This runs after hydration, so the browser has
- * already had its turn: a page still at the very top is one that declined, and
- * nothing but this will move the reader. A page anywhere else is one where the
- * browser landed them, or where they have started reading in the meantime —
- * and a scroll into either is an interruption rather than a fix.
- *
- * `scrollIntoView` rather than a computed offset: it honours the headings' own
- * `scroll-margin-top`, so the landing spot stays defined in the stylesheet
- * instead of being duplicated as a number here.
- */
-function showSection(id: string) {
-  const heading = document.getElementById(id);
-  if (!heading || window.scrollY > 0) return;
-  heading.scrollIntoView();
-}
-
-/**
- * What a URL naming one section of a post does to the page.
+ * What a URL naming one section of a post does to the page: it marks where the
+ * reader landed, and nothing else.
  *
  * Page-level rather than part of the contents rail, because it is not the
  * rail's to decide: the rail is pointer-only and hidden below `lg`, and draws
@@ -80,37 +57,24 @@ function showSection(id: string) {
  * followed by every reader on every screen. Producing these URLs is the rail's
  * job; what one means on arrival is the page's.
  *
+ * Where a reload lands is `SectionLanding`'s, not this component's: it has to
+ * happen at parse time to avoid a visible jump, which is earlier than any
+ * effect here can run. This is the part that has to wait for React anyway —
+ * the mark is an animation, and animating a heading nobody has painted yet
+ * would waste the half of it that exists to be seen.
+ *
  * Renders nothing.
  */
 export function SectionArrival() {
   useEffect(() => {
-    const arrive = (id: string) => {
-      markArrival(id);
-      if (!id) return;
-      // A reload never consults the fragment — it restores the offset its
-      // history entry remembers and stops there, so a link to one section
-      // reopens wherever the reader had last scrolled to. Dropping that
-      // remembered offset is what lets the fragment win.
-      //
-      // Only ever set, never cleared: an entry's URL cannot lose its fragment,
-      // and every fresh entry starts out restoring, so there is no case where
-      // writing `auto` back would be anything but a no-op.
-      history.scrollRestoration = "manual";
-    };
+    // A cold load on a #fragment arrives already scrolled, with no click and no
+    // hashchange to hear, so the mark has to be started from the URL as it
+    // stands; `hashchange` then covers the back button and every in-page link.
+    const mark = () => markArrival(targetedHeadingId());
 
-    // A cold load has no event to hear, and is also the only arrival the
-    // browser may have failed to scroll to — a fragment followed later is one
-    // it scrolls to itself.
-    const landed = targetedHeadingId();
-    arrive(landed);
-    showSection(landed);
-
-    // Covers the back button and every in-page link, the rail's own included:
-    // each writes a fresh history entry, which starts out restoring like any
-    // other, so the handover has to be redone per entry.
-    const onHashChange = () => arrive(targetedHeadingId());
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    mark();
+    window.addEventListener("hashchange", mark);
+    return () => window.removeEventListener("hashchange", mark);
   }, []);
 
   return null;

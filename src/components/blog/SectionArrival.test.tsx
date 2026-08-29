@@ -54,17 +54,37 @@ async function followFragment(id: string) {
   });
 }
 
-/** Where the page sits when the component mounts — the browser's turn, already taken. */
-function pageIsAt(y: number) {
-  Object.defineProperty(window, "scrollY", { value: y, writable: true, configurable: true });
+/**
+ * Every write of `history.scrollRestoration`, if any.
+ *
+ * Reading the value back would not answer the question: happy-dom flips it to
+ * `"manual"` by itself whenever the hash changes, so the property says nothing
+ * about who set it. The decision here is that this component writes it at all
+ * — leaving a reload to the browser's own restoration, which is the only
+ * mechanism that positions the page before the first paint rather than after.
+ */
+function recordRestorationWrites() {
+  const writes: string[] = [];
+  const inherited = Object.getOwnPropertyDescriptor(
+    Object.getPrototypeOf(history),
+    "scrollRestoration",
+  )!;
+  Object.defineProperty(history, "scrollRestoration", {
+    configurable: true,
+    get: () => inherited.get!.call(history),
+    set: (value: string) => {
+      writes.push(value);
+      inherited.set!.call(history, value);
+    },
+  });
+  return writes;
 }
 
 afterEach(() => {
   cleanup();
   document.body.innerHTML = "";
   window.location.hash = "";
-  history.scrollRestoration = "auto";
-  pageIsAt(0);
+  Reflect.deleteProperty(history, "scrollRestoration");
 });
 
 const arrived = (id: string) => document.getElementById(id)!.className.includes("heading-arrival");
@@ -99,87 +119,38 @@ describe("SectionArrival", () => {
     });
   });
 
-  describe("landing on the section", () => {
-    it("scrolls to the named section when the browser left the page at the top", () => {
+  describe("leaving the landing to the browser", () => {
+    it("never scrolls the page itself", () => {
+      // The reload flash this avoids: anything scrolled from here happens after
+      // the first paint, so the reader watches the post open at the top and
+      // then jump. Native restoration lands them before anything is painted.
       plantHeadings("one", "two");
       window.location.hash = "two";
-      const scrolls = recordScrolls();
-
-      render(<SectionArrival />);
-      expect(scrolls).toEqual([{ id: "two", options: undefined }]);
-    });
-
-    it("lands on a CJK section, whose fragment arrives percent-encoded", () => {
-      // The ids here are the heading text, so every section of a Chinese post
-      // reaches the browser escaped — the landing has to survive that, not just
-      // the arrival mark.
-      plantHeadings("小結");
-      window.location.hash = encodeURIComponent("小結");
-      const scrolls = recordScrolls();
-
-      render(<SectionArrival />);
-      expect(scrolls).toEqual([{ id: "小結", options: undefined }]);
-    });
-
-    it("leaves a page that is not at the top alone", () => {
-      // Either the browser landed the reader itself, or they have started
-      // reading before this mounted. Scrolling into either is an interruption.
-      plantHeadings("one", "two");
-      window.location.hash = "two";
-      pageIsAt(1200);
       const scrolls = recordScrolls();
 
       render(<SectionArrival />);
       expect(scrolls).toEqual([]);
     });
 
-    it("scrolls nowhere on a plain post URL", () => {
+    it("leaves scroll restoration switched on", () => {
+      // Turning it off is what opens a reload at the top in the first place.
       plantHeadings("one", "two");
-      const scrolls = recordScrolls();
+      window.location.hash = "two";
+      const writes = recordRestorationWrites();
 
       render(<SectionArrival />);
-      expect(scrolls).toEqual([]);
+      expect(writes).toEqual([]);
     });
 
-    it("leaves a fragment followed later to the browser, which scrolls to it", async () => {
+    it("still leaves both alone once a later fragment is followed", async () => {
       plantHeadings("one", "two");
       render(<SectionArrival />);
       const scrolls = recordScrolls();
+      const writes = recordRestorationWrites();
 
       await followFragment("two");
       expect(scrolls).toEqual([]);
-    });
-  });
-
-  describe("deciding what a reload lands on", () => {
-    it("hands a reload to the fragment when the URL names a section", () => {
-      // Otherwise the reload restores the offset the reader had scrolled to and
-      // never consults the fragment — a link to one section reopening at
-      // another. `manual` is what drops that remembered offset.
-      plantHeadings("one", "two");
-      window.location.hash = "two";
-      render(<SectionArrival />);
-
-      expect(history.scrollRestoration).toBe("manual");
-    });
-
-    it("leaves a plain post URL restoring, so a reader keeps their place", () => {
-      plantHeadings("one", "two");
-      render(<SectionArrival />);
-
-      expect(history.scrollRestoration).toBe("auto");
-    });
-
-    it("hands over again for a section reached later, on its own history entry", async () => {
-      // Following a fragment writes a fresh entry, which starts out restoring
-      // like any other — so the entry a reader would reload is not the one set
-      // up on mount.
-      plantHeadings("one", "two");
-      render(<SectionArrival />);
-      expect(history.scrollRestoration).toBe("auto");
-
-      await followFragment("two");
-      expect(history.scrollRestoration).toBe("manual");
+      expect(writes).toEqual([]);
     });
   });
 });
