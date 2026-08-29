@@ -15,6 +15,7 @@ import { BubbleToolbar } from "./BubbleToolbar";
 import { HeadingField } from "./HeadingField";
 import { LinkPopover } from "./LinkPopover";
 import { CodeBlockView } from "./CodeBlockView";
+import { EditorToc } from "./EditorToc";
 import { InsertMenu } from "./InsertMenu";
 import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
@@ -207,6 +208,11 @@ export function PostEditor({
       {/* Same column geometry as the reading view: the padding sits on <main>
           and the 728px cap on the track inside it, so a line wraps in the
           editor exactly where it wraps on the published page. */}
+      {/* Outside <main>, because the rail is fixed to the viewport gutter
+          rather than placed in the column — the same footing it has on the
+          published page. */}
+      {editor && <EditorToc editor={editor} />}
+
       <main className="flex w-full flex-col items-center px-6 pb-32 pt-10 font-garamond sm:px-10">
         <div className="w-full min-w-0 max-w-[45.5rem]">
           <HeadingField
