@@ -16,10 +16,10 @@ export const profile = {
  */
 export const author = {
   name: "Leo Chiu",
-  jobTitle: "Senior Frontend Engineer",
+  jobTitle: "Senior Software Engineer",
   company: "KKday",
   photo: "/images/leo.webp",
-  bio: "資深前端工程師，任職於 KKday Growth Team，主導網站 SEO / AEO（AI 搜尋優化）策略落地。平常在團隊裡推動 AI agent 的開發流程與效能優化。",
+  bio: "資深軟體工程師，任職於 KKday Growth Team，主導網站 SEO / AEO（AI 搜尋優化）策略落地。平常在團隊裡推動 AI agent 的開發流程與效能優化。",
 };
 
 export const about = {

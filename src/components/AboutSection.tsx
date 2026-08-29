@@ -10,7 +10,7 @@ export function AboutSection({ mode }: { mode: Mode }) {
         {mode === "professional" ? (
           <>
             <p>
-              資深前端工程師，專注於構建高效、可擴展的網頁應用程式。擁有豐富的經驗，熟悉各種前端技術和框架，致力於創造優質的使用者體驗。
+              資深軟體工程師，專注於構建高效、可擴展的網頁應用程式。擁有豐富的經驗，熟悉各種前端技術和框架，致力於創造優質的使用者體驗。
             </p>
             <p>
               <span className={linkClass}>
