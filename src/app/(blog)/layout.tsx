@@ -53,8 +53,8 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
   // static shell — it never receives the `[slug]` param. Every published
   // post is Traditional Chinese today; revisit if an English post ships.
   return (
-    <html lang="zh-Hant" className={fontVariables} data-scroll-behavior="smooth">
-      <body className="flex justify-center bg-background scroll-smooth font-garamond antialiased">
+    <html lang="zh-Hant" className={fontVariables}>
+      <body className="flex justify-center bg-background font-garamond antialiased">
         {children}
       </body>
     </html>

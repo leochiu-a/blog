@@ -37,8 +37,8 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   // Homepage defaults to the dark theme (professional mode); PortfolioApp
   // toggles `.dark` on <html> client-side when switching to personal mode.
   return (
-    <html lang="en" className={`dark ${fontVariables}`} data-scroll-behavior="smooth">
-      <body className="flex justify-center bg-background scroll-smooth font-garamond antialiased">
+    <html lang="en" className={`dark ${fontVariables}`}>
+      <body className="flex justify-center bg-background font-garamond antialiased">
         {children}
       </body>
     </html>
