@@ -17,6 +17,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      // The personal side of the homepage is its own prerendered route rather
+      // than a query string, so it can be crawled and ranked on its own.
+      url: `${SITE_URL}/personal/`,
+      lastModified: new Date(posts[0]?.updated ?? posts[0]?.datetime ?? Date.now()),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
   ];
 
   const postRoutes: MetadataRoute.Sitemap = posts.map((post) => ({

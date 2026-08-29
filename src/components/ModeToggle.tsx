@@ -1,18 +1,13 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import { OrnamentIcon, TrackPattern } from "@/components/icons";
 import type { Mode } from "@/types/content";
+import { otherMode } from "@/lib/mode-routes";
 
-export function ModeToggle({ mode }: { mode: Mode }) {
-  const router = useRouter();
+interface ModeToggleProps {
+  mode: Mode;
+  onChange: (mode: Mode) => void;
+}
 
-  const handleChange = (m: Mode) => {
-    const params = new URLSearchParams(window.location.search);
-    params.set("mode", m);
-    router.replace(`?${params.toString()}`);
-  };
-
+export function ModeToggle({ mode, onChange }: ModeToggleProps) {
   return (
     <div className="mode-toggle-container">
       <OrnamentIcon className="ornament ornament-left" />
@@ -25,7 +20,7 @@ export function ModeToggle({ mode }: { mode: Mode }) {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            handleChange(mode === "professional" ? "personal" : "professional");
+            onChange(otherMode(mode));
           }
         }}
       >
@@ -36,7 +31,7 @@ export function ModeToggle({ mode }: { mode: Mode }) {
             type="button"
             className={`toggle-option toggle-professional${mode === "professional" ? " active" : ""}`}
             data-mode="professional"
-            onClick={() => handleChange("professional")}
+            onClick={() => onChange("professional")}
           >
             <span className="option-icon">⚙</span>
             <span className="option-label">Professional</span>
@@ -45,7 +40,7 @@ export function ModeToggle({ mode }: { mode: Mode }) {
             type="button"
             className={`toggle-option toggle-personal${mode === "personal" ? " active" : ""}`}
             data-mode="personal"
-            onClick={() => handleChange("personal")}
+            onClick={() => onChange("personal")}
           >
             <span className="option-icon">✦</span>
             <span className="option-label">Personal</span>

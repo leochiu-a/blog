@@ -4,15 +4,15 @@ import { pathForMode, titleForMode } from "@/lib/mode-routes";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: titleForMode("professional"),
+  title: titleForMode("personal"),
   alternates: {
-    canonical: `${SITE_URL}${pathForMode("professional")}`,
+    canonical: `${SITE_URL}${pathForMode("personal")}`,
     types: {
       "application/rss+xml": "/feed.xml",
     },
   },
 };
 
-export default function Home() {
-  return <HomeScreen mode="professional" />;
+export default function Personal() {
+  return <HomeScreen mode="personal" />;
 }

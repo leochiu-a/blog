@@ -6,17 +6,10 @@ import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Home • Leo Chiu",
   description: "Senior Software Engineer at KKday.",
   icons: {
     icon: "/seo/icon.svg",
     apple: "/seo/apple-touch-icon.png",
-  },
-  alternates: {
-    canonical: SITE_URL,
-    types: {
-      "application/rss+xml": "/feed.xml",
-    },
   },
   openGraph: {
     title: "Leo Chiu",
@@ -34,10 +27,15 @@ export const metadata: Metadata = {
 };
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
-  // Homepage defaults to the dark theme (professional mode); PortfolioApp
-  // toggles `.dark` on <html> client-side when switching to personal mode.
+  // No theme class here: which theme the homepage wears follows the mode, and
+  // the mode is client state so the switch can animate (see PortfolioApp). The
+  // class lives on <main> instead, and `html:has(.dark)` in globals.css keeps
+  // <html> in step — the same arrangement the blog subtree uses.
+  //
+  // `title` and `alternates` are set per page rather than here, so `/` and
+  // `/personal/` each carry their own canonical.
   return (
-    <html lang="en" className={`dark ${fontVariables}`}>
+    <html lang="en" className={fontVariables}>
       <body className="flex justify-center bg-background font-garamond antialiased">
         {children}
       </body>
