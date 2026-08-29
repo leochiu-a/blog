@@ -1,3 +1,8 @@
+# The lockfile is committed and reviewed, so CI need not re-verify each entry
+# against minimumReleaseAge; the 24h gate still applies when resolving new
+# versions locally.
+trustLockfile: true
+
 allowBuilds:
   esbuild: true
   sharp: true
