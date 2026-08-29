@@ -121,7 +121,14 @@ export function PostToc() {
             appears once per paper) — the section is the useful grain here. */}
       <ul className="flex w-7 flex-col gap-y-2 py-2">
         {sections.map((section, i) => (
-          <li key={section.id} className="flex h-0.5 items-center">
+          // Flush right, ragged left — the same way round as Substack's. The
+          // even edge is the one facing the column, so what the reader sees
+          // beside the text they are reading is a quiet vertical rule, and the
+          // length variation runs off towards the screen edge instead of
+          // pointing a row of uneven lines at the article. It also fixes the
+          // gap to the panel, which opens on that side: flush right makes it
+          // the same 12px for every tick rather than a different one each row.
+          <li key={section.id} className="flex h-0.5 items-center justify-end">
             <span
               style={{ width: widths[i] }}
               // 2px and unfaded. A hairline at 40% opacity is Substack's tick
