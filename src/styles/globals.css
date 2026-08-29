@@ -172,6 +172,13 @@ body {
   font-family: var(--font-sans), sans-serif;
   font-weight: 800;
   scroll-margin-top: 6rem;
+  /* Shrink-to-fit, so the arrival flash below paints a box around the words
+     instead of a band across the column — the difference between "here is the
+     heading you asked for" and "this block is selected". Costs nothing the rest
+     of the time: a heading is left-aligned text whose margins run block-ways,
+     so a box that stops at the last word looks identical to one that doesn't.
+     A heading long enough to wrap gets a box as wide as its longest line. */
+  width: fit-content;
 }
 /* Section-heading rhythm: roomy above, tight below, so a heading reads as
    attached to the text it introduces. */
@@ -186,6 +193,32 @@ body {
   line-height: 1.35;
   margin-top: 0.85em;
   margin-bottom: 0.4em;
+}
+/* Arrival highlight: the heading a fragment link just landed on stays marked.
+   Jumping from the contents lands the reader at a spot that looks like every
+   other spot on the page — this is what confirms the jump went where it said it
+   would, and it does the same for a link someone was handed.
+
+   `:target` rather than a scroll handler, so it covers every way of arriving:
+   the contents rail, a pasted #fragment on a cold load, the back button.
+
+   Substack lets its equivalent stay — `::target-text` there is a flat orange
+   wash with no timeout — but a mark that outlives the question it answers stops
+   being an answer, and `:target` gives the reader no way to dismiss it short of
+   clicking something else. Three seconds is long enough to find the heading and
+   short enough that it is gone before it becomes part of the page.
+
+   The padding is `box-shadow` spread rather than real padding: a highlight that
+   pushes the text around to appear would reflow the article every time someone
+   follows a link into it. Spread paints outside the box without occupying
+   space, and follows the same border-radius. */
+.prose :where(h2, h3):not(:where([class~="not-prose"], [class~="not-prose"] *)):target {
+  /* `linear`, not `ease-out`: an eased fade dumps most of the alpha in its first
+     moments, so the highlight reads as gone while the animation is still
+     nominally running. An even fade is the one that actually lasts three
+     seconds rather than merely taking three seconds. */
+  animation: heading-arrival 3s linear;
+  border-radius: 4px;
 }
 .prose :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   margin-block: 0.85em;
@@ -583,6 +616,21 @@ body {
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+/* Half the run at full strength, then an equally long fade. The hold is what
+   survives the scroll: the animation starts the moment the link is followed,
+   while the page is still moving, so a highlight that begins fading immediately
+   is half gone by the time the reader's eye arrives. */
+@keyframes heading-arrival {
+  0%,
+  50% {
+    background-color: hsl(var(--blog-accent) / 0.25);
+    box-shadow: 0 0 0 6px hsl(var(--blog-accent) / 0.25);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 6px transparent;
   }
 }
 @keyframes rotateOrnament {
