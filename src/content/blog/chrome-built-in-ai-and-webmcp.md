@@ -26,11 +26,11 @@ Built-in AI 讓網頁不用後端就能跑模型，WebMCP 讓網頁可以被 age
 
 ## 解析 Yahoo 個案：三個關鍵的架構取捨
 
-Chrome 官方部落格寫了 [Yahoo 奇摩拍賣如何用 built-in AI 把上架時間從 20 分鐘壓到 2 分鐘](https://developer.chrome.com/blog/built-in-ai-ambient-intelligence)，在這篇文章說寫到 Yahoo 上架流程平均耗時降低 90%，從 20 分鐘縮短到 2 分鐘，全站一共上線九個 built-in AI 功能。
+Chrome 官方部落格寫了 [Yahoo 奇摩拍賣如何用 built-in AI 把上架時間從 20 分鐘壓到 2 分鐘](https://developer.chrome.com/blog/built-in-ai-ambient-intelligence)，文章中提到 Yahoo 上架流程平均耗時降低 90%，從 20 分鐘縮短到 2 分鐘，全站一共上線九個 built-in AI 功能。
 
 >> 這個數字雖然令人驚艷，但是更重要的是工程團隊的取捨。
 
-### 1. Yahoo 是為了「成本」和「隱私」才選 built-in AI
+### 1. Yahoo 是為了「成本」和「隱私」才選 Built-in AI
 
 Yahoo 面臨的問題很現實：只要用雲端 AI，流量只要一暴增，帳單就會吐血般的成長。
 
@@ -38,7 +38,7 @@ Yahoo 面臨的問題很現實：只要用雲端 AI，流量只要一暴增，�
 
 但是想到要付錢，基本上採用率就會降低。
 
-但是如果你把模型搬到使用者的裝置上，而且 built-in AI 的生成是不花錢的，這個費用的成長曲線就會被拉平。就可以毫無忌憚地開放給所有的賣家，不論多少的使用者，也不會付一毛錢給模型供應商。
+但是如果你把模型搬到使用者的裝置上，而且 built-in AI 的生成是不花錢的，這個費用的成長曲線就會被拉平，就可以毫無顧忌地開放給所有的賣家，不論多少的使用者，也不會付一毛錢給模型供應商。
 
 ### 2. 最有價值的場景，恰好是跟「隱私資料」相關的場景
 
@@ -50,9 +50,9 @@ Yahoo 上線的九個功能裡，成效最好的是個人化推薦與預測式�
 
 成效表現就很驚人。在完全不改動任何前端版面的情況下，只替換排序的資料來源，新的推薦模組點擊率接近 3%，舊版商品推薦則是 1.3% 到 1.8%。
 
-### 3. 工程難點在 built-in AI 的生命週期
+### 3. 工程難點在 Built-in AI 的生命週期
 
-這是我覺得最有參考價值的一段，他們踩到的坑跟「AI 效果好不好」幾乎無關：
+這是我覺得最有參考價值的一段，他們遇到的坑跟「AI 效果好不好」幾乎無關：
 
 - **模型下載狀態**：第一次使用時模型還沒下載完，UI 要怎麼表現？他們的做法是把它包成 Web Component（`<msc-built-in-ai-prompt>`），讓下載中 / 不可用 / 就緒三種狀態的處理集中在一個地方，而不是散落在每個功能裡。
 - **Prompt API 只能在 top-level document 用**：多頁式應用（MPA）一換頁，推論就會被中斷。他們的解法是再包一個 `<msc-shared-worker>`，用 [**SharedWorker**](https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker)**&#x20;當資源仲介**——推論集中在 worker 裡跑，同源的多個 tab 共用，結果寫進 Web Storage 並帶 TTL，換頁不會打斷正在跑的任務。
@@ -163,7 +163,7 @@ Chrome 官方建議的做法是 hybrid——用 Firebase AI Logic 做雲端 fall
 
 實務上更好的做法是：
 
-- **built-in AI 負責「即時、私密、可以錯」的功能**
+- **Built-in AI 負責「即時、私密、可以錯」的功能**
 - **雲端負責「權威、聚合、不能錯」的功能。**
 
 ---
@@ -198,8 +198,6 @@ Google 很有野心，在使用者輸入 Prompt 後，Gemini 不只回覆文字�
 
 但問題就會回歸到：現在世界上有數不清的公司、數不清的網站，這些 Agent 要怎麼能夠知道要連接到哪間公司、哪間網站？
 
-Open AI 的 Apps in ChatGPT 和 Google 的 Dynamic View，都在嘗試「把 UI 塞回對話框」**。**
-
 >> **而 WebMCP 走的則是反方向**「讓 Agent 直接走進網站，用網站原本的 UI 與工具」
 
 ---
@@ -210,7 +208,7 @@ Open AI 的 Apps in ChatGPT 和 Google 的 Dynamic View，都在嘗試「把 UI 
 
 Google 搜尋已經行之有年，如果不破壞原本使用者既有的習慣，而是把重點放在使用者已經知道要在哪一個 Web 上操作了，問題就會被簡化成：Agent 要如何在一個網站上完成一件事。
 
-今天 agent 要在你的網站上完成一件事，目前基礎只能走「看畫面 → 猜元素 → 模擬點擊」這條路。從技術來看會使用像是 Playwright 或是 Claude in Chrome 抓取 DOM、截圖獲取目標物，然後在模擬點擊來達成目標。
+今天 agent 要在你的網站上完成一件事，目前基礎只能走「看畫面 → 猜元素 → 模擬點擊」這條路。從技術來看會使用像是 Playwright 或是 Claude in Chrome 抓取 DOM、截圖獲取目標物，然後再模擬點擊來達成目標。
 
 但這條路的問題不只是慢，而且是很脆弱。
 
@@ -344,7 +342,7 @@ WebMCP 目前最適合的是拿來做表單處理，以及跨頁面搜尋。
 
 再透過已經註冊的 tools，就可以讓操作更加精準。
 
-但 Prompt API 跟 WebMCP 其實也不衝突。你可以同時註冊這些 tools，也可以使用 Prompt API，因為也不一定所有人都有使用 Agent 的習慣。
+但 Prompt API 跟 WebMCP 其實也不衝突。你可以同時註冊這些 tools，也可以使用 Prompt API，因為並非所有人都有使用 Agent 的習慣。
 
 ### 4. 使用 WebMCP 來做跨頁面搜尋
 
@@ -356,7 +354,7 @@ WebMCP 目前最適合的是拿來做表單處理，以及跨頁面搜尋。
 
 ---
 
-## Chrome built-in AI 跟 WebMCP 目前最大的限制
+## Chrome Built-in AI 跟 WebMCP 目前最大的限制
 
 我在實作時遇到了幾個最大的挑戰：
 
