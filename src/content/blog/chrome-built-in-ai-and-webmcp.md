@@ -2,12 +2,11 @@
 title: "Chrome Built-in AI 與 WebMCP 如何重塑 Web 體驗？"
 subtitle: "拆解 Yahoo 落地個案、兩大前端新 API，以及開發者現在該如何佈局"
 description: "從 Yahoo 奇摩拍賣把上架時間從 20 分鐘壓到 2 分鐘的個案出發，整理 Chrome Built-in AI 與 WebMCP 各自解決什麼問題、可以怎麼組合，以及我認為值得先落地的方向。"
-datetime: "2026-08-27"
+datetime: "2026-08-30"
 readTime: "12 min"
 category: "professional"
 ogImage: "/blog-images/chrome-built-in-ai-and-webmcp-hero.webp"
 tags: ["Built-in AI", "WebMCP", "Gemini Nano", "Prompt API", "AI Agent", "Web Platform"]
-draft: true
 featured: true
 ---
 
