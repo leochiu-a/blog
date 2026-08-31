@@ -7,6 +7,7 @@ import { TextSelection, type Command } from "@tiptap/pm/state";
 import { wrapIn } from "@tiptap/pm/commands";
 import { common, createLowlight } from "lowlight";
 import { LineNumbers } from "./line-numbers";
+import { UploadPlaceholder } from "./upload-placeholder";
 
 /**
  * Highlighting while typing.
@@ -315,6 +316,7 @@ export function createExtensions(nodeViews: NodeViewRenderers = {}) {
     UnknownInline,
     QuoteBoundary,
     LineNumbers,
+    UploadPlaceholder,
     SourceAttribute,
     MarkdownAttributes,
   ];
