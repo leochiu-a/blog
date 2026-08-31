@@ -53,6 +53,22 @@ export const MDX_BLOCKS: MdxBlockSpec[] = [
     derived: [],
   },
   {
+    name: "Clip",
+    label: "Clip（螢幕錄影短片，上傳）",
+    selfClosing: true,
+    attributes: [
+      text("src"),
+      text("poster"),
+      expression("width", "1200"),
+      expression("height", "800"),
+      text("caption"),
+    ],
+    // A clip only ever arrives by upload, which reads the real frame size and
+    // cuts the poster (PostEditor's `uploadVideo`). `caption` is the one field
+    // a person writes.
+    derived: ["src", "poster", "width", "height"],
+  },
+  {
     name: "VideoEmbed",
     label: "VideoEmbed（影片）",
     selfClosing: true,

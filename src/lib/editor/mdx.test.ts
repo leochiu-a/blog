@@ -71,9 +71,12 @@ describe("MDX components", () => {
 });
 
 describe("the insertable component list", () => {
-  it.each(["Figure", "Callout", "VideoEmbed", "FancyQuote"])("has a typed spec for %s", (name) => {
-    expect(specFor(name)).toBeDefined();
-  });
+  it.each(["Figure", "Clip", "Callout", "VideoEmbed", "FancyQuote"])(
+    "has a typed spec for %s",
+    (name) => {
+      expect(specFor(name)).toBeDefined();
+    },
+  );
 
   it("names only components the blog actually renders", () => {
     const rendered = readFileSync(join(process.cwd(), "src/mdx-components.tsx"), "utf8");

@@ -77,13 +77,26 @@ export function createPost(store: Store): Promise<Response> {
   });
 }
 
+async function uploadedFile(request: Request): Promise<File> {
+  const data = await request.formData();
+  const file = data.get("file");
+  if (!(file instanceof File)) badRequest("Expected a file");
+  return file;
+}
+
 export function uploadImage(request: Request, store: Store): Promise<Response> {
   return respond(async () => {
-    const data = await request.formData();
-    const file = data.get("file");
-    if (!(file instanceof File)) badRequest("Expected a file");
-
+    const file = await uploadedFile(request);
     const src = await store.saveImage(file.name, new Uint8Array(await file.arrayBuffer()));
     return Response.json({ src }, { status: 201 });
+  });
+}
+
+/** Answers with the whole clip — both files and their size — not just a path. */
+export function uploadVideo(request: Request, store: Store): Promise<Response> {
+  return respond(async () => {
+    const file = await uploadedFile(request);
+    const clip = await store.saveVideo(file.name, new Uint8Array(await file.arrayBuffer()));
+    return Response.json(clip, { status: 201 });
   });
 }

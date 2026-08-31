@@ -6,7 +6,7 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { TextSelection } from "@tiptap/pm/state";
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
 import { createExtensions } from "@/lib/editor/extensions";
-import type { PmNode, PostDocument } from "@/lib/editor/types";
+import type { Clip, PmNode, PostDocument } from "@/lib/editor/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { readText, withField } from "@/lib/editor/frontmatter-fields";
@@ -30,9 +30,23 @@ const STATUS_LABEL = {
   error: "Save failed",
 } as const;
 
-/** The images a paste or a drop carries, if any. */
-function imageFiles(data: DataTransfer | null) {
-  return Array.from(data?.files ?? []).filter((file) => file.type.startsWith("image/"));
+/** The images and clips a paste or a drop carries, if any. */
+function mediaFiles(data: DataTransfer | null) {
+  return Array.from(data?.files ?? []).filter(
+    (file) => file.type.startsWith("image/") || file.type.startsWith("video/"),
+  );
+}
+
+/** POSTs one file to an editor upload endpoint and reports what it saved. */
+async function upload<T>(endpoint: string, file: File): Promise<T> {
+  const body = new FormData();
+  body.set("file", file);
+  const response = await fetch(endpoint, { method: "POST", body });
+  if (!response.ok) {
+    const { error } = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(error ?? `上傳失敗（${response.status}）`);
+  }
+  return (await response.json()) as T;
 }
 
 async function save(slug: string, document: PostDocument) {
@@ -53,6 +67,13 @@ export function PostEditor({
 }) {
   const [frontmatter, setFrontmatter] = useState(initialDocument.frontmatter);
   const [showSettings, setShowSettings] = useState(false);
+  // A refused upload — an oversized clip, above all — has to say so somewhere;
+  // failing in silence looked exactly like a file that had not been picked yet.
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  // So does an upload still running: transcoding a screen recording takes a few
+  // seconds, and an editor that shows nothing at all in the meantime looks
+  // exactly like one that swallowed the file.
+  const [uploading, setUploading] = useState(false);
 
   const { status, schedule } = useAutosave((document) => save(slug, document));
 
@@ -69,9 +90,9 @@ export function PostEditor({
   );
 
   // Paste and drop want the very same upload path as the insert menu, but
-  // editorProps is built once, before uploadImage exists — so they reach it
-  // through a ref an effect below keeps pointed at the live closure.
-  const uploadImages = useRef<(files: File[]) => void>(() => {});
+  // editorProps is built once, before the upload callbacks exist — so they reach
+  // them through a ref an effect below keeps pointed at the live closures.
+  const uploadFiles = useRef<(files: File[]) => void>(() => {});
 
   const editor = useEditor({
     extensions,
@@ -80,23 +101,23 @@ export function PostEditor({
     editorProps: {
       attributes: { class: "outline-none" },
       handlePaste: (_view, event) => {
-        const files = imageFiles(event.clipboardData);
+        const files = mediaFiles(event.clipboardData);
         if (files.length === 0) return false;
-        uploadImages.current(files);
+        uploadFiles.current(files);
         return true;
       },
       handleDrop: (view, event, _slice, moved) => {
         // A drag within the document is ProseMirror's own move; only files
         // arriving from outside are ours to upload.
         if (moved) return false;
-        const files = imageFiles(event.dataTransfer);
+        const files = mediaFiles(event.dataTransfer);
         if (files.length === 0) return false;
 
         // Drop where the cursor landed, not where the selection happened to be.
         const at = view.posAtCoords({ left: event.clientX, top: event.clientY });
         if (at)
           view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, at.pos)));
-        uploadImages.current(files);
+        uploadFiles.current(files);
         return true;
       },
     },
@@ -126,43 +147,89 @@ export function PostEditor({
 
   const uploadImage = useCallback(
     async (file: File) => {
-      const body = new FormData();
-      body.set("file", file);
-      const response = await fetch("/api/editor/images/", { method: "POST", body });
-      if (!response.ok || !editor) return;
+      if (!editor) return;
+      try {
+        setUploadError(null);
+        setUploading(true);
+        const { src } = await upload<{ src: string }>("/api/editor/images/", file);
+        const bitmap = await createImageBitmap(file);
 
-      const { src } = (await response.json()) as { src: string };
-      const bitmap = await createImageBitmap(file);
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "mdxBlock",
+            attrs: {
+              name: "Figure",
+              attributes: [
+                { name: "src", value: src, expression: null },
+                { name: "alt", value: "", expression: null },
+                { name: "width", value: null, expression: String(bitmap.width) },
+                { name: "height", value: null, expression: String(bitmap.height) },
+              ],
+            },
+          })
+          .run();
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : "圖片上傳失敗");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [editor],
+  );
 
-      editor
-        .chain()
-        .focus()
-        .insertContent({
-          type: "mdxBlock",
-          attrs: {
-            name: "Figure",
-            attributes: [
-              { name: "src", value: src, expression: null },
-              { name: "alt", value: "", expression: null },
-              { name: "width", value: null, expression: String(bitmap.width) },
-              { name: "height", value: null, expression: String(bitmap.height) },
-            ],
-          },
-        })
-        .run();
+  /**
+   * A clip is uploaded as it was recorded — a 300MB QuickTime file is fine — and
+   * comes back transcoded, with a poster and the size both files share. The one
+   * ceiling is on the transcoded clip, which only the server can know, so
+   * nothing is pre-checked here; an oversized clip returns 413 and its reason.
+   */
+  const uploadVideo = useCallback(
+    async (file: File) => {
+      if (!editor) return;
+      try {
+        setUploadError(null);
+        setUploading(true);
+        const { src, poster, width, height } = await upload<Clip>("/api/editor/videos/", file);
+
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "mdxBlock",
+            attrs: {
+              name: "Clip",
+              attributes: [
+                { name: "src", value: src, expression: null },
+                { name: "poster", value: poster, expression: null },
+                { name: "width", value: null, expression: String(width) },
+                { name: "height", value: null, expression: String(height) },
+              ],
+            },
+          })
+          .run();
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : "影片上傳失敗");
+      } finally {
+        setUploading(false);
+      }
     },
     [editor],
   );
 
   useEffect(() => {
-    uploadImages.current = (files) => {
+    uploadFiles.current = (files) => {
       // Sequential: each upload inserts at the cursor, so order matters.
       void files.reduce(
-        (previous, file) => previous.then(() => uploadImage(file)),
+        (previous, file) =>
+          previous.then(() =>
+            file.type.startsWith("video/") ? uploadVideo(file) : uploadImage(file),
+          ),
         Promise.resolve(),
       );
     };
-  }, [uploadImage]);
+  }, [uploadImage, uploadVideo]);
 
   useEffect(() => {
     if (!editor) return;
@@ -191,6 +258,17 @@ export function PostEditor({
         >
           {STATUS_LABEL[status]}
         </span>
+        {uploading && <span className="text-xs text-muted-foreground">上傳中…</span>}
+        {uploadError && (
+          <button
+            type="button"
+            onClick={() => setUploadError(null)}
+            title="點一下關閉"
+            className="max-w-md truncate text-xs text-destructive"
+          >
+            {uploadError}
+          </button>
+        )}
         <Button
           variant="ghost"
           size="sm"
@@ -231,7 +309,9 @@ export function PostEditor({
           />
 
           <div className="relative mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
-            {editor && <InsertMenu editor={editor} onUploadImage={uploadImage} />}
+            {editor && (
+              <InsertMenu editor={editor} onUploadImage={uploadImage} onUploadVideo={uploadVideo} />
+            )}
             {editor && <BubbleToolbar editor={editor} />}
             {editor && <LinkPopover editor={editor} />}
             <EditorContent

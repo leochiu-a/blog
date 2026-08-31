@@ -5,11 +5,13 @@ import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PlusIcon } from "lucide-react";
+import { VIDEO_ACCEPT } from "@/lib/editor/uploads";
 import { MDX_BLOCKS, specFor } from "./mdx-blocks";
 
 type Props = {
   editor: Editor;
   onUploadImage: (file: File) => Promise<void>;
+  onUploadVideo: (file: File) => Promise<void>;
 };
 
 /**
@@ -22,7 +24,7 @@ function onEmptyParagraph(editor: Editor): boolean {
   return empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0;
 }
 
-export function InsertMenu({ editor, onUploadImage }: Props) {
+export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState<number | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
@@ -77,6 +79,12 @@ export function InsertMenu({ editor, onUploadImage }: Props) {
       .run();
   };
 
+  /** The two file pickers: label, what it offers, and where the file goes. */
+  const uploads: Array<[string, string, (file: File) => Promise<void>]> = [
+    ["圖片（上傳）", "image/*", onUploadImage],
+    ["影片（上傳短片）", VIDEO_ACCEPT, onUploadVideo],
+  ];
+
   const actions: Array<[string, () => void]> = [
     ...MDX_BLOCKS.map(
       (block) => [block.label, () => insertMdx(block.name)] as [string, () => void],
@@ -108,20 +116,25 @@ export function InsertMenu({ editor, onUploadImage }: Props) {
             </PopoverTrigger>
 
             <PopoverContent align="start" side="right" className="w-64 p-1">
-              <label className="flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground">
-                圖片（上傳）
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={async (event) => {
-                    const selected = event.target.files?.[0];
-                    event.target.value = "";
-                    setOpen(false);
-                    if (selected) await onUploadImage(selected);
-                  }}
-                />
-              </label>
+              {uploads.map(([label, accept, run]) => (
+                <label
+                  key={label}
+                  className="flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  {label}
+                  <input
+                    type="file"
+                    accept={accept}
+                    hidden
+                    onChange={async (event) => {
+                      const selected = event.target.files?.[0];
+                      event.target.value = "";
+                      setOpen(false);
+                      if (selected) await run(selected);
+                    }}
+                  />
+                </label>
+              ))}
               {actions.map(([label, run]) => (
                 <Button
                   key={label}

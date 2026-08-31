@@ -3,6 +3,9 @@ import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promise
 import { join } from "node:path";
 import sharp from "sharp";
 import { stringify as stringifyYaml } from "yaml";
+import { TranscodeError, transcodeClip } from "./transcode";
+import { MAX_CLIP_BYTES, VIDEO_EXTENSIONS } from "./uploads";
+import type { Clip } from "./types";
 
 /**
  * Every file operation the dev-only editor is allowed to perform, bound to a
@@ -14,8 +17,12 @@ import { stringify as stringifyYaml } from "yaml";
 const POSTS_DIR = "src/content/blog";
 const IMAGES_DIR = "public/blog-images";
 const IMAGES_PUBLIC_PATH = "/blog-images";
+const VIDEOS_DIR = "public/blog-videos";
+const VIDEOS_PUBLIC_PATH = "/blog-videos";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const megabytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "avif", "svg"]);
 
 export class EditorError extends Error {
@@ -35,27 +42,36 @@ function assertSlug(slug: string): string {
   return slug;
 }
 
-function imageFilename(name: string): string {
+/**
+ * The name an upload is allowed to land on disk under: slugified, extension
+ * kept, and checked against the one set of types this kind of asset permits.
+ */
+function assetFilename(name: string, extensions: Set<string>, kind: string): string {
   if (name.includes("/") || name.includes("\\") || name.includes("..")) {
     throw new EditorError(`Invalid filename: ${JSON.stringify(name)}`, 400);
   }
 
   const dot = name.lastIndexOf(".");
   const extension = dot === -1 ? "" : name.slice(dot + 1).toLowerCase();
-  if (!IMAGE_EXTENSIONS.has(extension)) {
-    throw new EditorError(`Unsupported image type: ${JSON.stringify(name)}`, 400);
+  if (!extensions.has(extension)) {
+    throw new EditorError(`Unsupported ${kind} type: ${JSON.stringify(name)}`, 400);
   }
 
-  const base = name
-    .slice(0, dot)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  if (base === "") {
+  const stem = name.slice(0, dot);
+  if (stem === "") {
     throw new EditorError(`Invalid filename: ${JSON.stringify(name)}`, 400);
   }
 
-  return `${base}.${extension}`;
+  const base = stem
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  // A stem written entirely in Chinese slugifies to nothing, and refusing it
+  // would mean refusing most recordings on this machine. Falling back to the
+  // kind keeps the upload; `writeAsset` numbers the second one. A name that is
+  // nothing but an extension has no stem at all, and is still refused above.
+  return `${base === "" ? kind : base}.${extension}`;
 }
 
 /**
@@ -154,9 +170,14 @@ export function createPostStore(root: string) {
     return slug;
   }
 
-  async function saveImage(name: string, bytes: Uint8Array): Promise<string> {
-    const { filename, contents } = await toWebp(imageFilename(name), bytes);
-    const directory = join(root, IMAGES_DIR);
+  /** Writes an asset under a name nothing else has taken, and reports its URL. */
+  async function writeAsset(
+    dir: string,
+    publicPath: string,
+    filename: string,
+    contents: Uint8Array,
+  ): Promise<string> {
+    const directory = join(root, dir);
     await mkdir(directory, { recursive: true });
 
     const dot = filename.lastIndexOf(".");
@@ -169,10 +190,59 @@ export function createPostStore(root: string) {
     }
 
     await writeFile(join(directory, candidate), contents);
-    return `${IMAGES_PUBLIC_PATH}/${candidate}`;
+    return `${publicPath}/${candidate}`;
   }
 
-  return { read, write, remove, listSlugs, createDraft, saveImage };
+  async function saveImage(name: string, bytes: Uint8Array): Promise<string> {
+    const { filename, contents } = await toWebp(
+      assetFilename(name, IMAGE_EXTENSIONS, "image"),
+      bytes,
+    );
+    return writeAsset(IMAGES_DIR, IMAGES_PUBLIC_PATH, filename, contents);
+  }
+
+  /**
+   * A clip is transcoded on the way in, the way an image is re-encoded to WebP:
+   * whatever was uploaded, what lands in the repository is an H.264 mp4 with a
+   * poster cut from its first frame. The poster goes through `saveImage`, so it
+   * ends up a WebP alongside every other image the editor has saved.
+   *
+   * The size ceiling is checked against the transcoded file, since that is the
+   * one the repository has to carry.
+   */
+  async function saveVideo(name: string, bytes: Uint8Array): Promise<Clip> {
+    const filename = assetFilename(name, VIDEO_EXTENSIONS, "video");
+    const dot = filename.lastIndexOf(".");
+    const base = filename.slice(0, dot);
+
+    let clip: Awaited<ReturnType<typeof transcodeClip>>;
+    try {
+      clip = await transcodeClip(filename.slice(dot + 1), bytes);
+    } catch (error) {
+      if (error instanceof TranscodeError) throw new EditorError(error.message, 400);
+      throw error;
+    }
+
+    if (clip.video.byteLength > MAX_CLIP_BYTES) {
+      throw new EditorError(
+        `Clip is ${megabytes(clip.video.byteLength)} after transcoding, over the ` +
+          `${megabytes(MAX_CLIP_BYTES)} ceiling: it is too long to keep in the repository`,
+        413,
+      );
+    }
+
+    // The poster is a frame of the transcoded clip, so its dimensions are the
+    // clip's own — no need to ask ffprobe for what sharp can already see.
+    const { width, height } = await sharp(clip.poster).metadata();
+    return {
+      src: await writeAsset(VIDEOS_DIR, VIDEOS_PUBLIC_PATH, `${base}.mp4`, clip.video),
+      poster: await saveImage(`${base}-poster.png`, clip.poster),
+      width,
+      height,
+    };
+  }
+
+  return { read, write, remove, listSlugs, createDraft, saveImage, saveVideo };
 }
 
 export const postStore = createPostStore(process.cwd());

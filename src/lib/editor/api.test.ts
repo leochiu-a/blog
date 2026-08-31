@@ -1,10 +1,20 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { execFile } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import sharp from "sharp";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPostStore } from "./store";
-import { createPost, deletePost, getPost, savePost, uploadImage } from "./api";
+import { transcodeClip } from "./transcode";
+import { MAX_CLIP_BYTES } from "./uploads";
+
+// Only the oversized-clip test stubs ffmpeg; the rest run the real encoder.
+vi.mock("./transcode", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./transcode")>();
+  return { ...actual, transcodeClip: vi.fn(actual.transcodeClip) };
+});
+import { createPost, deletePost, getPost, savePost, uploadImage, uploadVideo } from "./api";
 import { parsePost } from "./document";
 
 const SOURCE = `---\ntitle: "Hello"\ndatetime: "2026-01-01"\n---\n\nBody.\n`;
@@ -108,6 +118,27 @@ const PNG = await sharp({ create: { width: 8, height: 8, channels: 3, background
   .png()
   .toBuffer();
 
+/** A real clip: the upload runs through ffmpeg. See store.test.ts. */
+const CLIP = await (async () => {
+  const directory = mkdtempSync(join(tmpdir(), "editor-clip-fixture-"));
+  const path = join(directory, "fixture.mp4");
+  await promisify(execFile)("ffmpeg", [
+    "-y",
+    "-loglevel",
+    "error",
+    "-f",
+    "lavfi",
+    "-i",
+    "testsrc=size=320x240:rate=10:duration=1",
+    "-pix_fmt",
+    "yuv420p",
+    path,
+  ]);
+  const bytes = readFileSync(path);
+  rmSync(directory, { recursive: true, force: true });
+  return bytes;
+})();
+
 describe("uploading an image", () => {
   const form = (name: string) => {
     const data = new FormData();
@@ -131,6 +162,55 @@ describe("uploading an image", () => {
       new Request("http://localhost/api", { method: "POST", body: new FormData() }),
       store,
     );
+    expect(response.status).toBe(400);
+  });
+});
+
+describe("uploading a video", () => {
+  it("returns the transcoded clip, its poster and its size", async () => {
+    const data = new FormData();
+    data.set("file", new File([CLIP], "Demo Reel.mov", { type: "video/quicktime" }));
+    const response = await uploadVideo(
+      new Request("http://localhost/api", { method: "POST", body: data }),
+      store,
+    );
+
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toEqual({
+      src: "/blog-videos/demo-reel.mp4",
+      poster: "/blog-images/demo-reel-poster.webp",
+      width: 320,
+      height: 240,
+    });
+  });
+
+  it("413s a clip that is still over the ceiling after transcoding", async () => {
+    vi.mocked(transcodeClip).mockResolvedValueOnce({
+      video: new Uint8Array(MAX_CLIP_BYTES + 1),
+      poster: PNG,
+    });
+    const data = new FormData();
+    data.set("file", new File([CLIP], "long.mp4", { type: "video/mp4" }));
+    const response = await uploadVideo(
+      new Request("http://localhost/api", { method: "POST", body: data }),
+      store,
+    );
+
+    // Distinct from the 400 below: the file was readable, it is just too long.
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject({
+      error: expect.stringMatching(/ceiling/i),
+    });
+  });
+
+  it("400s a file ffmpeg cannot read", async () => {
+    const data = new FormData();
+    data.set("file", new File([new Uint8Array([1, 2, 3])], "clip.mp4", { type: "video/mp4" }));
+    const response = await uploadVideo(
+      new Request("http://localhost/api", { method: "POST", body: data }),
+      store,
+    );
+
     expect(response.status).toBe(400);
   });
 });

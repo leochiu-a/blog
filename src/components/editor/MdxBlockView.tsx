@@ -92,6 +92,29 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
           </figure>
         )}
 
+      {name === "Clip" &&
+        value("src") !== "" && (
+          // Same reasoning as Figure's preview, and the same plain element: a
+          // clip you just uploaded has to be visible here, or a successful upload
+          // is indistinguishable from one that silently did nothing. No autoplay —
+          // nothing should be moving while you write.
+          <figure className="not-prose">
+            <video
+              src={value("src")}
+              poster={value("poster")}
+              controls
+              muted
+              preload="none"
+              className="mx-auto h-auto w-full rounded-sm"
+            />
+            {value("caption") !== "" && (
+              <figcaption className="mt-3 text-center font-sans text-sm text-muted-foreground">
+                {value("caption")}
+              </figcaption>
+            )}
+          </figure>
+        )}
+
       {editing && (
         <FieldGroup className="not-prose mt-3 gap-3 rounded-md bg-muted/40 p-3 font-sans">
           {fields.map((attribute, index) => (
