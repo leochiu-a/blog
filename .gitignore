@@ -36,6 +36,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# Worker-side local secrets: read by `next dev` through getPlatformProxy, and
+# by `wrangler types`. Holds real values — never commit it.
+.dev.vars*
 
 # vercel
 .vercel
@@ -48,14 +51,21 @@ next-env.d.ts
 /.content-collections/
 
 # local planning & research docs
-/docs/
+/docs/*
+# ...except the decision records and the setup a fresh clone needs. Git
+# cannot re-include a path under an excluded directory, hence /docs/* above.
+!/docs/adr/
+!/docs/newsletter-setup.md
 /.planning/
 /.migration/
 
-# local tooling & one-time migration scripts
+# local tooling
 /.claude/
-/scripts/
 
 # cloudflare / opennext
 .open-next/
 .wrangler/
+# Generated from wrangler.jsonc by `wrangler types`, and regenerated on install
+# and before every build — committing it would only be 16k lines of diff that
+# can silently disagree with the config it came from.
+worker-configuration.d.ts

@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Read only by `pnpm newsletter:send`, through `getPlatformProxy({ configPath })`.
+  //
+  // A separate file rather than a named environment in wrangler.jsonc: a named
+  // environment inherits no bindings, so it has to mirror every binding the
+  // Worker declares or Wrangler warns that one is missing — and that mirror
+  // silently falls behind the next time a binding is added. This file declares
+  // only what the script touches, so it is complete by construction.
+  //
+  // Nothing here is ever deployed. `main` and `compatibility_date` exist only
+  // because Wrangler requires them to parse the file.
+  "name": "blog-newsletter-send",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-20",
+  "d1_databases": [
+    {
+      // `remote: true` is the whole point of this file: it points the script at
+      // the deployed subscriber list. The binding in wrangler.jsonc deliberately
+      // omits it, which is what keeps `next dev` off the real data.
+      "binding": "NEWSLETTER_DB",
+      "database_name": "blog-newsletter",
+      "database_id": "b1ce9ac3-a7d5-4b8c-950e-b2486321c688",
+      "remote": true,
+    },
+  ],
+}

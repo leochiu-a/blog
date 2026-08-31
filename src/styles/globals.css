@@ -309,6 +309,19 @@ body {
 [data-rehype-pretty-code-figure] span {
   color: var(--shiki-light);
 }
+/* Chrome paints autofilled fields with its own pale background and near-black
+   text, which on a dark surface turns a field into a light rectangle. The
+   background cannot be set directly on an autofilled input — an inset shadow
+   large enough to cover it is the way through — and both it and the text colour
+   are read from the theme's tokens so the field stays whatever the page is. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: hsl(var(--foreground));
+  -webkit-box-shadow: 0 0 0 1000px hsl(var(--card)) inset;
+  caret-color: hsl(var(--foreground));
+}
+
 .dark [data-rehype-pretty-code-figure] span {
   color: var(--shiki-dark);
 }

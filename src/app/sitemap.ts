@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { issues } from "@/lib/issues";
 import { posts } from "@/lib/posts";
 import { SITE_URL } from "@/lib/site";
 
@@ -25,7 +26,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    {
+      // The subscribe page is worth indexing; the confirm and unsubscribe pages
+      // hold nothing but somebody's signed token, and say so with `noindex`.
+      url: `${SITE_URL}/newsletter/`,
+      lastModified: new Date(issues[0]?.datetime ?? posts[0]?.datetime ?? Date.now()),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ];
+
+  const issueRoutes: MetadataRoute.Sitemap = issues.map((issue) => ({
+    url: `${SITE_URL}${issue.href}`,
+    lastModified: new Date(issue.datetime),
+    changeFrequency: "yearly",
+    priority: 0.5,
+  }));
 
   const postRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${SITE_URL}${post.href}`,
@@ -36,5 +52,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...postRoutes];
+  return [...staticRoutes, ...postRoutes, ...issueRoutes];
 }
