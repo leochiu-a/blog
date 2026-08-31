@@ -15,7 +15,14 @@ import { cn } from "@/lib/utils";
  * cheap (an image), otherwise a labelled container whose children stay
  * editable rich text. Attributes are edited in a small form, never as raw JSX.
  */
-export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
+export function MdxBlockView({
+  editor,
+  getPos,
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}: NodeViewProps) {
   const [editing, setEditing] = useState(false);
   // Every block on the page renders this same form, so the field index alone
   // repeats across them: with two panels open the labels all point at the first
@@ -42,6 +49,31 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
           ? [...attributes, updated]
           : attributes.map((attribute, position) => (position === index ? updated : attribute)),
     });
+  };
+
+  /**
+   * Clicking a preview has to select the block *and* leave the editor holding
+   * focus.
+   *
+   * `<video controls>` is a widget the browser focuses in its own right, so a
+   * click on a clip left `document.activeElement` on the video — every
+   * keystroke after that went to the video element, and Backspace did nothing,
+   * however the document was selected. The block could only be removed with the
+   * button.
+   *
+   * The select happens on click rather than pointerdown because ProseMirror's
+   * own mousedown handling runs in between and would replace it; the browser has
+   * already focused the video by then, on mousedown, so taking focus back here
+   * is enough.
+   */
+  const selectBlock = () => {
+    const position = getPos();
+    if (position === undefined) return;
+    editor.commands.setNodeSelection(position);
+    // ProseMirror's own `view.focus()`, not TipTap's `focus` command: with a
+    // node selected the command decides the editor is focused enough already
+    // and returns without touching the DOM, leaving the keys with the video.
+    editor.view.focus();
   };
 
   return (
@@ -77,7 +109,12 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
         value("src") !== "" && (
           // Deliberately a plain <img>: this preview never ships, and next/image
           // would demand configuration for paths that may not exist yet.
-          <figure className="not-prose">
+          <figure
+            className="not-prose"
+            contentEditable={false}
+            role="presentation"
+            onClick={selectBlock}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value("src")}
@@ -98,7 +135,12 @@ export function MdxBlockView({ node, updateAttributes, deleteNode, selected }: N
           // clip you just uploaded has to be visible here, or a successful upload
           // is indistinguishable from one that silently did nothing. No autoplay —
           // nothing should be moving while you write.
-          <figure className="not-prose">
+          <figure
+            className="not-prose"
+            contentEditable={false}
+            role="presentation"
+            onClick={selectBlock}
+          >
             <video
               src={value("src")}
               poster={value("poster")}
