@@ -1,11 +1,28 @@
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import sharp from "sharp";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPostStore } from "./store";
+import { transcodeClip } from "./transcode";
+import { MAX_CLIP_BYTES } from "./uploads";
+
+// Only the oversized-output test stubs ffmpeg; everything else runs the real
+// encoder, so `mockImplementation` hands the original back by default.
+vi.mock("./transcode", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./transcode")>();
+  return { ...actual, transcodeClip: vi.fn(actual.transcodeClip) };
+});
 
 let root: string;
 let store: ReturnType<typeof createPostStore>;
@@ -153,17 +170,47 @@ describe("saving images", () => {
     );
   });
 
-  it.each(["../evil.png", "a/b.png", "notes.txt", ""])("refuses the filename %o", async (name) => {
-    await expect(store.saveImage(name, PNG)).rejects.toThrow(/filename|type/i);
-  });
-
-  it.each(["螢幕截圖.png", ".png"])(
-    "names %o after its kind rather than refusing it",
+  it.each(["../evil.png", "a/b.png", "notes.txt", ".png", ""])(
+    "refuses the filename %o",
     async (name) => {
-      await expect(store.saveImage(name, PNG)).resolves.toBe("/blog-images/image.webp");
+      await expect(store.saveImage(name, PNG)).rejects.toThrow(/filename|type/i);
     },
   );
+
+  it("names an all-Chinese screenshot after its kind rather than refusing it", async () => {
+    await expect(store.saveImage("螢幕截圖.png", PNG)).resolves.toBe("/blog-images/image.webp");
+  });
 });
+
+/**
+ * A clip that arrives over the ceiling: high bitrate and 1080p, so the file is
+ * several megabytes while the transcode — 1280 wide, CRF 28 — is not.
+ */
+const BIG_CLIP = await (async () => {
+  const directory = mkdtempSync(join(tmpdir(), "editor-clip-fixture-"));
+  const path = join(directory, "big.mp4");
+  await promisify(execFile)("ffmpeg", [
+    "-y",
+    "-loglevel",
+    "error",
+    "-f",
+    "lavfi",
+    "-i",
+    "testsrc2=size=1920x1080:rate=30:duration=3",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "ultrafast",
+    "-crf",
+    "0",
+    "-pix_fmt",
+    "yuv420p",
+    path,
+  ]);
+  const bytes = readFileSync(path);
+  rmSync(directory, { recursive: true, force: true });
+  return bytes;
+})();
 
 describe("saving videos", () => {
   it("transcodes to mp4 and saves a poster beside it", async () => {
@@ -194,16 +241,44 @@ describe("saving videos", () => {
 
   it("refuses bytes that are not a video", async () => {
     await expect(store.saveVideo("clip.mp4", new Uint8Array([1, 2, 3]))).rejects.toThrow(
-      /讀不到這支影片/,
+      /could not read the video/i,
     );
   });
 
-  it.each(["../evil.mp4", "a/b.mp4", "clip.avi", "clip.png", ""])(
+  it.each(["../evil.mp4", "a/b.mp4", "clip.avi", "clip.png", ".mp4", ""])(
     "refuses the filename %o",
     async (name) => {
       await expect(store.saveVideo(name, CLIP)).rejects.toThrow(/filename|type/i);
     },
   );
+
+  it("keeps an upload far over the ceiling once transcoding brings it under", async () => {
+    // The point of the ceiling being on the output: this input is over it and
+    // must still be accepted. Capping `bytes` instead of the transcoded file
+    // passes every other test in this file and fails this one.
+    expect(BIG_CLIP.byteLength).toBeGreaterThan(MAX_CLIP_BYTES);
+
+    const clip = await store.saveVideo("big.mp4", BIG_CLIP);
+
+    expect(clip.src).toBe("/blog-videos/big.mp4");
+    expect(statSync(join(root, "public/blog-videos/big.mp4")).size).toBeLessThan(MAX_CLIP_BYTES);
+  }, 30_000);
+
+  it("refuses a clip still over the ceiling after transcoding, and keeps neither file", async () => {
+    // ffmpeg is stubbed rather than fed 30 seconds of noise: what is under test
+    // is the ceiling, not the encoder.
+    vi.mocked(transcodeClip).mockResolvedValueOnce({
+      video: new Uint8Array(MAX_CLIP_BYTES + 1),
+      poster: PNG,
+    });
+
+    await expect(store.saveVideo("long.mp4", CLIP)).rejects.toMatchObject({
+      status: 413,
+      message: expect.stringMatching(/ceiling/i),
+    });
+    expect(existsSync(join(root, "public/blog-videos/long.mp4"))).toBe(false);
+    expect(existsSync(join(root, "public/blog-images/long-poster.webp"))).toBe(false);
+  });
 
   it("names an all-Chinese recording after its kind rather than refusing it", async () => {
     await expect(store.saveVideo("螢幕錄影.mov", CLIP)).resolves.toMatchObject({

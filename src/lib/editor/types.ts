@@ -34,3 +34,11 @@ export type PostDocument = {
   /** The body, as a ProseMirror `doc` node. */
   doc: PmNode;
 };
+
+/** What the editor needs to write a `<Clip>` block: both files, and their size. */
+export type Clip = {
+  src: string;
+  poster: string;
+  width: number;
+  height: number;
+};

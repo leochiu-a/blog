@@ -43,9 +43,9 @@ async function ffmpeg(args: string[]): Promise<void> {
   } catch (error) {
     const code = (error as { code?: string }).code;
     if (code === "ENOENT") {
-      throw new TranscodeError("找不到 ffmpeg，請先 `brew install ffmpeg`");
+      throw new TranscodeError("ffmpeg is not on PATH: install it with `brew install ffmpeg`");
     }
-    throw new TranscodeError("讀不到這支影片，可能是 ffmpeg 不認得的編碼");
+    throw new TranscodeError("Could not read the video: ffmpeg refused it, or took too long");
   }
 }
 

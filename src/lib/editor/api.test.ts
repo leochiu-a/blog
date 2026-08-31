@@ -4,8 +4,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import sharp from "sharp";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPostStore } from "./store";
+import { transcodeClip } from "./transcode";
+import { MAX_CLIP_BYTES } from "./uploads";
+
+// Only the oversized-clip test stubs ffmpeg; the rest run the real encoder.
+vi.mock("./transcode", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./transcode")>();
+  return { ...actual, transcodeClip: vi.fn(actual.transcodeClip) };
+});
 import { createPost, deletePost, getPost, savePost, uploadImage, uploadVideo } from "./api";
 import { parsePost } from "./document";
 
@@ -173,6 +181,25 @@ describe("uploading a video", () => {
       poster: "/blog-images/demo-reel-poster.webp",
       width: 320,
       height: 240,
+    });
+  });
+
+  it("413s a clip that is still over the ceiling after transcoding", async () => {
+    vi.mocked(transcodeClip).mockResolvedValueOnce({
+      video: new Uint8Array(MAX_CLIP_BYTES + 1),
+      poster: PNG,
+    });
+    const data = new FormData();
+    data.set("file", new File([CLIP], "long.mp4", { type: "video/mp4" }));
+    const response = await uploadVideo(
+      new Request("http://localhost/api", { method: "POST", body: data }),
+      store,
+    );
+
+    // Distinct from the 400 below: the file was readable, it is just too long.
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject({
+      error: expect.stringMatching(/ceiling/i),
     });
   });
 

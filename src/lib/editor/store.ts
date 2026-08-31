@@ -4,7 +4,8 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { stringify as stringifyYaml } from "yaml";
 import { TranscodeError, transcodeClip } from "./transcode";
-import { VIDEO_EXTENSIONS, clipTooLarge } from "./uploads";
+import { MAX_CLIP_BYTES, VIDEO_EXTENSIONS } from "./uploads";
+import type { Clip } from "./types";
 
 /**
  * Every file operation the dev-only editor is allowed to perform, bound to a
@@ -20,15 +21,9 @@ const VIDEOS_DIR = "public/blog-videos";
 const VIDEOS_PUBLIC_PATH = "/blog-videos";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "avif", "svg"]);
 
-/** What the editor needs to write a `<Clip>` block: both files, and their size. */
-export type Clip = {
-  src: string;
-  poster: string;
-  width: number;
-  height: number;
-};
+const megabytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "avif", "svg"]);
 
 export class EditorError extends Error {
   constructor(
@@ -62,15 +57,20 @@ function assetFilename(name: string, extensions: Set<string>, kind: string): str
     throw new EditorError(`Unsupported ${kind} type: ${JSON.stringify(name)}`, 400);
   }
 
-  const base = name
-    .slice(0, dot)
+  const stem = name.slice(0, dot);
+  if (stem === "") {
+    throw new EditorError(`Invalid filename: ${JSON.stringify(name)}`, 400);
+  }
+
+  const base = stem
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  // A name written entirely in Chinese slugifies to nothing, and refusing it
-  // would mean refusing most files on this machine. Falling back to the kind
-  // keeps the upload; `writeAsset` numbers the second one.
+  // A stem written entirely in Chinese slugifies to nothing, and refusing it
+  // would mean refusing most recordings on this machine. Falling back to the
+  // kind keeps the upload; `writeAsset` numbers the second one. A name that is
+  // nothing but an extension has no stem at all, and is still refused above.
   return `${base === "" ? kind : base}.${extension}`;
 }
 
@@ -223,8 +223,13 @@ export function createPostStore(root: string) {
       throw error;
     }
 
-    const tooLarge = clipTooLarge(clip.video.byteLength);
-    if (tooLarge) throw new EditorError(tooLarge, 413);
+    if (clip.video.byteLength > MAX_CLIP_BYTES) {
+      throw new EditorError(
+        `Clip is ${megabytes(clip.video.byteLength)} after transcoding, over the ` +
+          `${megabytes(MAX_CLIP_BYTES)} ceiling: it is too long to keep in the repository`,
+        413,
+      );
+    }
 
     // The poster is a frame of the transcoded clip, so its dimensions are the
     // clip's own — no need to ask ffprobe for what sharp can already see.
