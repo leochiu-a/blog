@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { type SubscribeDeps, handleSubscribe } from "./handle-subscribe";
-import type { ExistingSubscriber } from "./subscription";
+import { type ConfirmationSent, type SubscribeDeps, handleSubscribe } from "./handle-subscribe";
+import { type ExistingSubscriber, startOfUtcDay } from "./subscription";
 
 const NOW = Date.UTC(2026, 7, 31, 12, 0, 0);
 
@@ -14,6 +14,8 @@ function request(email: string) {
 
 function deps(existing: ExistingSubscriber | null) {
   const sent: string[] = [];
+  const recorded: ConfirmationSent[] = [];
+  const sendClocks: number[] = [];
   const dependencies: SubscribeDeps = {
     now: () => NOW,
     limits: { cooldownMs: 15 * 60 * 1000, dailyCap: 200 },
@@ -21,12 +23,15 @@ function deps(existing: ExistingSubscriber | null) {
     findSubscriber: async () => existing,
     countConfirmationsOnDay: async () => 0,
     prunePending: async () => {},
-    recordConfirmationSent: async () => {},
-    sendConfirmation: async (email) => {
+    recordConfirmationSent: async (record) => {
+      recorded.push(record);
+    },
+    sendConfirmation: async (email, now) => {
       sent.push(email);
+      sendClocks.push(now);
     },
   };
-  return { dependencies, sent };
+  return { dependencies, sent, recorded, sendClocks };
 }
 
 describe("subscribing through the endpoint", () => {
@@ -55,6 +60,20 @@ describe("subscribing through the endpoint", () => {
     await handleSubscribe(request("new@example.com"), fresh.dependencies);
 
     expect(fresh.sent).toEqual(["new@example.com"]);
+  });
+
+  it("stamps the send with the clock the decision was made on", async () => {
+    const fresh = deps(null);
+
+    await handleSubscribe(request("new@example.com"), fresh.dependencies);
+
+    // Not just "some time near now": the stamp, the day the ceiling is counted
+    // against, and the instant the confirmation link expires from all have to be
+    // the one the decision used, or none of them can be pinned from here.
+    expect(fresh.recorded).toEqual([
+      { email: "new@example.com", now: NOW, day: startOfUtcDay(NOW), source: "/blog/x/" },
+    ]);
+    expect(fresh.sendClocks).toEqual([NOW]);
   });
 
   it("rejects a request that fails the challenge", async () => {

@@ -12,7 +12,7 @@ type State = "idle" | "working" | "done" | "gone" | "error";
  * Confirming and unsubscribing both go through a button rather than the link in
  * the email doing the work itself: Gmail and Outlook fetch links to scan them,
  * and a GET that changes state would let a scanner confirm subscriptions and
- * cancel them on the reader's behalf.
+ * cancel them on the subscriber's behalf.
  */
 export function TokenActionForm({
   token,

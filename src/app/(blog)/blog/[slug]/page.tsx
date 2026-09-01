@@ -187,11 +187,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 the article, a tighter one between the two. Owning both spacings
                 in one place is what keeps the bio's band symmetric — 24px above
                 its content and 24px below, instead of 24 above and 48 below. */}
-            {/* The end of a finished post is the highest-converting spot on the
-                site, and the subscribe form belongs here — but the newsletter is
-                not open yet, so /newsletter is the only way in and it is reached
-                by typing the URL. Restore this by rendering
-                `<NewsletterCta source={post.href} />`; the component is intact. */}
 
             <div className="mt-12 flex flex-col gap-y-6">
               <AuthorBio />

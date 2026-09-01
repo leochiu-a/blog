@@ -28,7 +28,7 @@ be able to put those messages in a spam folder.
 
 Replies go to `hi@leochiu.com`, which needs Cloudflare Email Routing (free, and
 already generally available) pointed at a real inbox. `news.leochiu.com` has no
-MX record, so without this a reader who hits Reply gets a bounce.
+MX record, so without this a subscriber who hits Reply gets a bounce.
 
 ## 3. Resend
 
@@ -133,7 +133,7 @@ Then rehearse the send against the local list:
 pnpm newsletter:send hello-newsletter --local --dry-run
 ```
 
-Drop `--dry-run` when you want to watch a real broadcast go out to the
+Drop `--dry-run` when you want to watch a real Issue go out to the
 simulator addresses. `--local` only redirects the database — it passes
 `remoteBindings: false` to Wrangler's platform proxy — while Resend is always
 the real Resend, which is the point: the parts worth rehearsing are its

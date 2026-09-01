@@ -9,7 +9,7 @@ import { verifyToken } from "@/lib/newsletter/tokens";
  * The token may arrive in the body (the page's button) or in the query string
  * (a mail client acting on the `List-Unsubscribe` header, which posts to the
  * URL as-is). Both are the same operation, and both are accepted without any
- * kind of sign-in — an unsubscribe link that asks the reader to log in is an
+ * kind of sign-in — an unsubscribe link that asks a subscriber to log in is an
  * unsubscribe link that does not work.
  */
 export async function POST(request: Request): Promise<Response> {

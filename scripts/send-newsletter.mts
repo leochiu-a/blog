@@ -89,7 +89,7 @@ async function reconcile(db: D1Database, apiKey: string, segmentId: string) {
     await createContact(apiKey, { email, segmentId });
   }
 
-  return { recipients: confirmed.length, pulledUnsubscribes, pushedContacts: missing.length };
+  return { recipients: confirmed.length, pulledUnsubscribes, pushedToResend: missing.length };
 }
 
 async function main() {
@@ -136,7 +136,7 @@ async function main() {
       unsubscribeUrl: "{{{RESEND_UNSUBSCRIBE_URL}}}",
     });
 
-    const { recipients, pulledUnsubscribes, pushedContacts } = await reconcile(
+    const { recipients, pulledUnsubscribes, pushedToResend } = await reconcile(
       db,
       apiKey,
       segmentId,
@@ -147,7 +147,7 @@ async function main() {
 主旨    ${email.subject}
 網頁    ${issueUrl}
 收件人  ${recipients}
-對帳    Resend 退訂回寫 ${pulledUnsubscribes} 筆、補上 ${pushedContacts} 個聯絡人
+對帳    Resend 退訂回寫 ${pulledUnsubscribes} 筆、補進 Resend 名單 ${pushedToResend} 筆
 
 --- 純文字版開頭 ---
 ${email.text.split("\n").slice(0, 20).join("\n")}

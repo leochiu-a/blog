@@ -27,10 +27,9 @@ export async function POST(request: Request): Promise<Response> {
     findSubscriber: (email) => findSubscriber(runtime.db, email),
     countConfirmationsOnDay: (day) => countConfirmationsOnDay(runtime.db, day),
     prunePending: (olderThan) => prunePending(runtime.db, olderThan),
-    recordConfirmationSent: (email, day, source) =>
-      recordConfirmationSent(runtime.db, { email, now: Date.now(), day, source }),
-    sendConfirmation: async (email) => {
-      const url = await confirmationUrl(email, runtime.tokenSecret, Date.now());
+    recordConfirmationSent: (record) => recordConfirmationSent(runtime.db, record),
+    sendConfirmation: async (email, now) => {
+      const url = await confirmationUrl(email, runtime.tokenSecret, now);
       const { subject, html, text } = confirmationEmail({ confirmUrl: url });
       await sendEmail(runtime.resendApiKey, {
         from: FROM_ADDRESS,

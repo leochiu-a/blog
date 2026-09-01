@@ -15,6 +15,11 @@ import {
  * address already on the list must get back exactly what a brand-new address
  * gets back. Anything else turns the form into a way of asking whether a given
  * person subscribes.
+ *
+ * `now()` is the only clock. Every port that stamps or expires something is
+ * handed the instant the decision was made, so all of it can be pinned from a
+ * test — narrowing one of these back and letting the adapter reach for
+ * `Date.now()` would quietly put the stamps beyond reach again.
  */
 export interface SubscribeDeps {
   now(): number;
@@ -23,8 +28,20 @@ export interface SubscribeDeps {
   findSubscriber(email: string): Promise<ExistingSubscriber | null>;
   countConfirmationsOnDay(day: number): Promise<number>;
   prunePending(olderThan: number): Promise<void>;
-  recordConfirmationSent(email: string, day: number, source: string | null): Promise<void>;
-  sendConfirmation(email: string): Promise<void>;
+  recordConfirmationSent(record: ConfirmationSent): Promise<void>;
+  sendConfirmation(email: string, now: number): Promise<void>;
+}
+
+/**
+ * What one confirmation email adds to the record. `day` travels with `now`
+ * rather than being derived downstream because the daily ceiling is only sound
+ * if the day counted against and the day incremented are the same one.
+ */
+export interface ConfirmationSent {
+  email: string;
+  now: number;
+  day: number;
+  source: string | null;
 }
 
 interface SubscribeBody {
@@ -61,8 +78,9 @@ export async function handleSubscribe(request: Request, deps: SubscribeDeps): Pr
   const now = deps.now();
   const day = startOfUtcDay(now);
 
-  // Cheap, indexed, and it keeps abandoned attempts from accumulating without
-  // needing a scheduled job the OpenNext worker has no way to run.
+  // Cheap and indexed, and at the current volume it is the only thing that ever
+  // needs to run: between signups there is nothing to prune. See `prunePending`
+  // for what a scheduled version would take.
   await deps.prunePending(now - PENDING_TTL_MS);
 
   const [existing, confirmationsSentToday] = await Promise.all([
@@ -84,8 +102,8 @@ export async function handleSubscribe(request: Request, deps: SubscribeDeps): Pr
   // the send fails. A crash in between has to leave the address on cooldown and
   // the day's allowance spent — giving either back would hand an attacker a way
   // to make sends fail deliberately and walk past both limits.
-  await deps.recordConfirmationSent(email, day, source);
-  await deps.sendConfirmation(email);
+  await deps.recordConfirmationSent({ email, now, day, source });
+  await deps.sendConfirmation(email, now);
 
   return json(ACCEPTED, 200);
 }

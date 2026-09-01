@@ -11,7 +11,7 @@ export const metadata: Metadata = {
  * Where the unsubscribe link in every Issue lands.
  *
  * No sign-in, no "tell us why", no survey — one button. The link is signed, so
- * clicking it is proof enough, and anything standing between a reader and
+ * clicking it is proof enough, and anything standing between a subscriber and
  * leaving turns an unsubscribe into a spam report.
  */
 export default async function UnsubscribePage({

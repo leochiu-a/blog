@@ -131,8 +131,16 @@ export async function unsubscribeSubscriber(
  * one fact here that must outlive everything else — deleting it would also
  * disarm the refusal that stops an old confirmation link putting them back.
  *
- * Runs on the subscribe path rather than on a schedule: the OpenNext worker
- * exposes only a `fetch` handler, so a Cron Trigger has nothing to call.
+ * Runs on the subscribe path rather than on a schedule, because at the current
+ * volume a schedule would have nothing to do between signups. That is a choice,
+ * not a platform limit: the generated OpenNext worker default-exports
+ * `{ fetch }`, so a custom entry can re-export it next to a `scheduled` handler
+ * and hang a Cron Trigger off it — module init is billed against the separate
+ * startup budget, not against the invocation's CPU.
+ *
+ * So the deletion has no deadline, and the privacy page is worded to match: it
+ * promises the confirmation link's own expiry, which `verifyToken` guarantees
+ * without any of this, and offers a manual route for deleting sooner.
  */
 export async function prunePending(db: D1Database, olderThan: number): Promise<void> {
   await db
