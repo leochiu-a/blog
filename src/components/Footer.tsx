@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { socialLinks } from "@/data/content";
 
 export function Footer({ variant = "brand" }: { variant?: "brand" | "minimal" }) {
@@ -32,14 +31,7 @@ export function Footer({ variant = "brand" }: { variant?: "brand" | "minimal" })
               RSS
             </a>
           </nav>
-          {/* Sits with the copyright rather than in the nav above: that nav is
-              "elsewhere on the web", and this is fine print about this site. */}
-          <p className={`text-muted-foreground ${textClass}`}>
-            © 2026 Leo Chiu ·{" "}
-            <Link href="/privacy/" className="transition-colors hover:text-gold">
-              隱私說明
-            </Link>
-          </p>
+          <p className={`text-muted-foreground ${textClass}`}>© 2026 Leo Chiu</p>
         </div>
       </div>
     </footer>
