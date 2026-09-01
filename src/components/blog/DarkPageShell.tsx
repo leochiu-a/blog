@@ -17,10 +17,17 @@ import { BlogHeader } from "@/components/blog/BlogHeader";
 export function DarkPageShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="dark flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10">
-      <div className="w-full min-w-0 max-w-[45.5rem]">
+      {/* `flex-1` plus `mt-auto` on the footer is the sticky-footer idiom: the
+          column grows to the full `min-h-screen`, and the free space collects
+          above the footer instead of below it. Without it a short page — the
+          subscribe page with no archive, a confirm landing — leaves the footer
+          stranded in the middle of a tall viewport. */}
+      <div className="flex w-full min-w-0 max-w-[45.5rem] flex-1 flex-col">
         <BlogHeader />
         {children}
-        <Footer variant="minimal" />
+        <div className="mt-auto">
+          <Footer variant="minimal" />
+        </div>
       </div>
     </main>
   );
