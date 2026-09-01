@@ -1,15 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { TextSelection } from "@tiptap/pm/state";
+import type { EditorView } from "@tiptap/pm/view";
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
 import { createExtensions } from "@/lib/editor/extensions";
 import type { Clip, PmNode, PostDocument } from "@/lib/editor/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { readText, withField } from "@/lib/editor/frontmatter-fields";
+import { type UploadProgress as Progress, uploadFile } from "@/lib/editor/upload";
+import {
+  addPlaceholder,
+  insertAtPlaceholder,
+  removePlaceholder,
+} from "@/lib/editor/upload-placeholder";
 import { cn } from "@/lib/utils";
 import { BubbleToolbar } from "./BubbleToolbar";
 import { HeadingField } from "./HeadingField";
@@ -21,6 +37,7 @@ import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
 import { SettingsPanel } from "./SettingsPanel";
 import { UnknownBlockView } from "./UnknownBlockView";
+import { UploadProgress } from "./UploadProgress";
 import { useAutosave } from "./useAutosave";
 
 const STATUS_LABEL = {
@@ -37,18 +54,6 @@ function mediaFiles(data: DataTransfer | null) {
   );
 }
 
-/** POSTs one file to an editor upload endpoint and reports what it saved. */
-async function upload<T>(endpoint: string, file: File): Promise<T> {
-  const body = new FormData();
-  body.set("file", file);
-  const response = await fetch(endpoint, { method: "POST", body });
-  if (!response.ok) {
-    const { error } = (await response.json().catch(() => ({}))) as { error?: string };
-    throw new Error(error ?? `上傳失敗（${response.status}）`);
-  }
-  return (await response.json()) as T;
-}
-
 async function save(slug: string, document: PostDocument) {
   const response = await fetch(`/api/editor/posts/${slug}/`, {
     method: "PUT",
@@ -56,6 +61,68 @@ async function save(slug: string, document: PostDocument) {
     body: JSON.stringify({ document }),
   });
   if (!response.ok) throw new Error(await response.text());
+}
+
+/** An upload in flight: the file, where it will land, and how far along it is. */
+type Upload = {
+  id: string;
+  element: HTMLElement;
+  name: string;
+  size: number;
+  processing: string;
+  progress: Progress;
+};
+
+type SetUpload = Dispatch<SetStateAction<Upload | null>>;
+
+/** Placeholder ids only have to be unique within one editing session. */
+let placeholders = 0;
+
+/**
+ * Where the placeholder goes: beside the paragraph the caret is in, never
+ * spliced into the middle of it.
+ *
+ * A clip is a block, and dropping a block inside a paragraph splits it — which
+ * leaves an empty half behind, or, on an empty line, renders the widget
+ * underneath that line's "開始寫…" placeholder and the `+` button in the margin.
+ * At the start of a line the clip belongs above it, anywhere else below it.
+ */
+function placeholderPosition(view: EditorView): number {
+  const { $from, empty } = view.state.selection;
+  if (!empty || !$from.parent.isTextblock) return $from.pos;
+  return $from.parentOffset === 0 ? $from.before() : $from.after();
+}
+
+/**
+ * Starts one upload, drawn as a placeholder at the caret for as long as it
+ * runs. `processing` names what the server does once the bytes are in, which is
+ * a different wait per endpoint. The id it answers with is what the caller uses
+ * to insert the result exactly where the placeholder ended up.
+ */
+function beginUpload<T>(
+  view: EditorView,
+  endpoint: string,
+  file: File,
+  processing: string,
+  setUpload: SetUpload,
+): { id: string; result: Promise<T> } {
+  const id = String((placeholders += 1));
+  const element = document.createElement("div");
+  view.dispatch(addPlaceholder(view.state.tr, { id, pos: placeholderPosition(view), element }));
+
+  const about = { id, element, name: file.name, size: file.size, processing };
+  setUpload({ ...about, progress: { phase: "sending", ratio: 0 } });
+
+  const result = uploadFile<T>(endpoint, file, (progress) =>
+    setUpload((current) => (current?.id === id ? { ...about, progress } : current)),
+  );
+  return { id, result };
+}
+
+/** Takes the placeholder down, however the upload ended. */
+function endUpload(view: EditorView, id: string, setUpload: SetUpload): void {
+  view.dispatch(removePlaceholder(view.state.tr, id));
+  setUpload((current) => (current?.id === id ? null : current));
 }
 
 export function PostEditor({
@@ -70,10 +137,10 @@ export function PostEditor({
   // A refused upload — an oversized clip, above all — has to say so somewhere;
   // failing in silence looked exactly like a file that had not been picked yet.
   const [uploadError, setUploadError] = useState<string | null>(null);
-  // So does an upload still running: transcoding a screen recording takes a few
-  // seconds, and an editor that shows nothing at all in the meantime looks
-  // exactly like one that swallowed the file.
-  const [uploading, setUploading] = useState(false);
+  // So does an upload still running: a clip is uploaded whole and then
+  // transcoded, which takes long enough that an editor showing nothing in the
+  // meantime looks exactly like one that swallowed the file.
+  const [upload, setUpload] = useState<Upload | null>(null);
 
   const { status, schedule } = useAutosave((document) => save(slug, document));
 
@@ -148,32 +215,34 @@ export function PostEditor({
   const uploadImage = useCallback(
     async (file: File) => {
       if (!editor) return;
+      const { id, result } = beginUpload<{ src: string }>(
+        editor.view,
+        "/api/editor/images/",
+        file,
+        "處理中…",
+        setUpload,
+      );
       try {
         setUploadError(null);
-        setUploading(true);
-        const { src } = await upload<{ src: string }>("/api/editor/images/", file);
+        const { src } = await result;
         const bitmap = await createImageBitmap(file);
 
-        editor
-          .chain()
-          .focus()
-          .insertContent({
-            type: "mdxBlock",
-            attrs: {
-              name: "Figure",
-              attributes: [
-                { name: "src", value: src, expression: null },
-                { name: "alt", value: "", expression: null },
-                { name: "width", value: null, expression: String(bitmap.width) },
-                { name: "height", value: null, expression: String(bitmap.height) },
-              ],
-            },
-          })
-          .run();
+        insertAtPlaceholder(editor, id, {
+          type: "mdxBlock",
+          attrs: {
+            name: "Figure",
+            attributes: [
+              { name: "src", value: src, expression: null },
+              { name: "alt", value: "", expression: null },
+              { name: "width", value: null, expression: String(bitmap.width) },
+              { name: "height", value: null, expression: String(bitmap.height) },
+            ],
+          },
+        });
       } catch (error) {
         setUploadError(error instanceof Error ? error.message : "圖片上傳失敗");
       } finally {
-        setUploading(false);
+        endUpload(editor.view, id, setUpload);
       }
     },
     [editor],
@@ -188,31 +257,33 @@ export function PostEditor({
   const uploadVideo = useCallback(
     async (file: File) => {
       if (!editor) return;
+      const { id, result } = beginUpload<Clip>(
+        editor.view,
+        "/api/editor/videos/",
+        file,
+        "轉檔中…",
+        setUpload,
+      );
       try {
         setUploadError(null);
-        setUploading(true);
-        const { src, poster, width, height } = await upload<Clip>("/api/editor/videos/", file);
+        const { src, poster, width, height } = await result;
 
-        editor
-          .chain()
-          .focus()
-          .insertContent({
-            type: "mdxBlock",
-            attrs: {
-              name: "Clip",
-              attributes: [
-                { name: "src", value: src, expression: null },
-                { name: "poster", value: poster, expression: null },
-                { name: "width", value: null, expression: String(width) },
-                { name: "height", value: null, expression: String(height) },
-              ],
-            },
-          })
-          .run();
+        insertAtPlaceholder(editor, id, {
+          type: "mdxBlock",
+          attrs: {
+            name: "Clip",
+            attributes: [
+              { name: "src", value: src, expression: null },
+              { name: "poster", value: poster, expression: null },
+              { name: "width", value: null, expression: String(width) },
+              { name: "height", value: null, expression: String(height) },
+            ],
+          },
+        });
       } catch (error) {
         setUploadError(error instanceof Error ? error.message : "影片上傳失敗");
       } finally {
-        setUploading(false);
+        endUpload(editor.view, id, setUpload);
       }
     },
     [editor],
@@ -258,7 +329,6 @@ export function PostEditor({
         >
           {STATUS_LABEL[status]}
         </span>
-        {uploading && <span className="text-xs text-muted-foreground">上傳中…</span>}
         {uploadError && (
           <button
             type="button"
@@ -321,6 +391,17 @@ export function PostEditor({
           </div>
         </div>
       </main>
+
+      {upload &&
+        createPortal(
+          <UploadProgress
+            name={upload.name}
+            size={upload.size}
+            processing={upload.processing}
+            progress={upload.progress}
+          />,
+          upload.element,
+        )}
 
       <SettingsPanel
         slug={slug}

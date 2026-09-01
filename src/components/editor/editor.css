@@ -161,3 +161,38 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/*
+ * The travelling stripe on an upload in flight.
+ *
+ * Once the last byte is out, how long the server has left — transcoding a clip
+ * — is not knowable, so there is no percentage to draw. A stripe that keeps
+ * moving is the honest form of "still working": it says something is happening
+ * without claiming to know how much is left.
+ */
+@keyframes upload-stripe {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+/* The travel stops short of leaving the track at either end: run it all the
+   way out and the bar is empty for part of every cycle, which reads as
+   finished rather than working. */
+.upload-stripe {
+  width: 33%;
+  animation: upload-stripe 1.1s ease-in-out infinite;
+}
+
+/* The stripe is perpetual motion nobody asked for, so it goes — but the wait
+   is still real, and a bar that stops at a third looks broken. Fill the track
+   and let the label carry the state. */
+@media (prefers-reduced-motion: reduce) {
+  .upload-stripe {
+    width: 100%;
+    animation: none;
+    opacity: 0.6;
+  }
+}
