@@ -40,7 +40,7 @@ read them from — Wrangler hands the same values to each:
 NEWSLETTER_TOKEN_SECRET=any-long-random-string
 RESEND_API_KEY=re_...
 RESEND_SEGMENT_ID=...
-TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+TURNSTILE_SECRET_KEY=0x4...
 ```
 
 ## 4. Turnstile
@@ -48,9 +48,11 @@ TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 Create a widget for `leochiu.com` (free, unlimited verifications) and set the
 site key in `.env.local` as `NEXT_PUBLIC_TURNSTILE_SITE_KEY` — that one is a
 Next.js public variable rather than a Worker secret, so it belongs there and not
-in `.dev.vars`. Cloudflare's
-always-passing test keys are useful for local work: site key
-`1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA`.
+in `.dev.vars`. Add `localhost` to the widget's allowed domains while you are
+there: the same real pair is used in development, and without that entry the
+widget refuses to run on `next dev` with `Turnstile Error: 600010`. Cloudflare's
+always-passing test keys are not an alternative here — see "Rehearsing the whole
+thing" for why they fail this endpoint's checks.
 
 ## 5. Worker secrets
 
@@ -98,15 +100,32 @@ against the deployed list. Drop it and type `yes` to send.
 Everything below runs against the local database and Resend's simulator
 addresses, so no real subscriber is involved.
 
-Use Cloudflare's always-passing Turnstile test keys — the site key as
-`NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA` in `.env.local`, the
-secret as `TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA` in
-`.dev.vars` — and start `next dev`.
-Swap the pair for `2x00000000000000000000AB` and
-`2x0000000000000000000000000000000AA` to watch the endpoint reject a failed
-challenge. The two have to match: a test secret only accepts dummy tokens and a
-production secret only accepts real ones, and a mismatched pair looks exactly
-like a failed challenge from the outside.
+Keep the real key pair and start `next dev`. Cloudflare's always-passing test
+keys look like the obvious choice here and cannot work: `verifyTurnstile`
+checks three things, and a dummy token fails two of them. Siteverify answers a
+dummy token with no `action` field at all, where the code requires `subscribe`,
+and with `hostname` set to `example.com`, which is not a hostname this site
+serves. Both checks are the reason that function exists rather than incidental
+to it, so the answer is not to relax them for local work.
+
+What the real widget needs instead is `localhost` among its allowed domains,
+added once in the Turnstile dashboard. `allowedHostnames()` already admits
+`localhost` and `127.0.0.1` when `NODE_ENV` is `development`, so that one
+dashboard change is the whole distance between the real keys and a working
+local subscribe. Until it is made, the browser console reports `Turnstile
+Error: 600010`, the hidden `cf-turnstile-response` field stays empty, and the
+endpoint answers 400 — which is indistinguishable from a failed challenge from
+the outside, and easy to misread as a mistyped key.
+
+To watch the endpoint reject a challenge, post a bogus token straight at it
+rather than swapping the keys over:
+
+```bash
+curl -i -X POST http://localhost:7788/api/newsletter/subscribe/ \
+  -H 'content-type: application/json' \
+  -d '{"email":"delivered@resend.dev","turnstileToken":"not-a-token"}'
+```
+
 Subscribe at `/newsletter/` using one of Resend's simulator addresses —
 `delivered@resend.dev` behaves like a normal recipient, `bounced@resend.dev`
 and `complained@resend.dev` simulate the failures. They support `+` labels, so
