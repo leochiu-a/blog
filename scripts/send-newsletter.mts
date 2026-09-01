@@ -65,14 +65,26 @@ function loadIssue(slug: string) {
 }
 
 /**
- * Brings the two stores back in line before anything is sent.
+ * Brings the two stores back in line before anything is sent, or reports what
+ * that would do.
  *
  * Both directions, because both can drift. Anyone who unsubscribed through
  * Resend is written back to D1, which is the record that has to be right;
  * anyone confirmed in D1 but missing from the segment — a contact creation that
  * failed at confirmation time — is pushed up so they are not skipped forever.
+ *
+ * With `write: false` it performs neither, and still returns the same three
+ * numbers. That is what makes `--dry-run` answerable without touching either
+ * store: every figure is derived from one snapshot taken before the writes,
+ * and `markUnsubscribedInBulk` only ever touches rows still at `confirmed`, so
+ * the count it would return is the intersection computed here.
  */
-async function reconcile(db: D1Database, apiKey: string, segmentId: string) {
+async function reconcile(
+  db: D1Database,
+  apiKey: string,
+  segmentId: string,
+  { write }: { write: boolean },
+) {
   const remote = await listContacts(apiKey, segmentId);
   const known = new Set(remote.map((contact) => contact.email.toLowerCase()));
 
@@ -80,16 +92,24 @@ async function reconcile(db: D1Database, apiKey: string, segmentId: string) {
     .filter((contact) => contact.unsubscribed)
     .map((contact) => parseEmail(contact.email))
     .filter((email): email is string => email !== null);
-
-  const pulledUnsubscribes = await markUnsubscribedInBulk(db, goneRemotely, Date.now());
+  const gone = new Set(goneRemotely);
 
   const confirmed = await confirmedEmails(db);
-  const missing = confirmed.filter((email) => !known.has(email));
-  for (const email of missing) {
-    await createContact(apiKey, { email, segmentId });
+  const staying = confirmed.filter((email) => !gone.has(email));
+  const missing = staying.filter((email) => !known.has(email));
+
+  if (write) {
+    await markUnsubscribedInBulk(db, goneRemotely, Date.now());
+    for (const email of missing) {
+      await createContact(apiKey, { email, segmentId });
+    }
   }
 
-  return { recipients: confirmed.length, pulledUnsubscribes, pushedToResend: missing.length };
+  return {
+    recipients: staying.length,
+    pulledUnsubscribes: confirmed.length - staying.length,
+    pushedToResend: missing.length,
+  };
 }
 
 async function main() {
@@ -140,21 +160,26 @@ async function main() {
       db,
       apiKey,
       segmentId,
+      { write: !dryRun },
     );
+
+    const reconciliation = dryRun
+      ? `會回寫 Resend 退訂 ${pulledUnsubscribes} 筆、補進 Resend 名單 ${pushedToResend} 筆（預覽，沒有寫入）`
+      : `Resend 退訂回寫 ${pulledUnsubscribes} 筆、補進 Resend 名單 ${pushedToResend} 筆`;
 
     console.log(`
 資料庫  ${local ? "本機（--local，不會碰到線上名單）" : "線上"}
 主旨    ${email.subject}
 網頁    ${issueUrl}
 收件人  ${recipients}
-對帳    Resend 退訂回寫 ${pulledUnsubscribes} 筆、補進 Resend 名單 ${pushedToResend} 筆
+對帳    ${reconciliation}
 
 --- 純文字版開頭 ---
 ${email.text.split("\n").slice(0, 20).join("\n")}
 ---------------------
 `);
 
-    if (dryRun) return console.log("--dry-run：沒有寄出任何東西。");
+    if (dryRun) return console.log("--dry-run：沒有寄出，也沒有寫入任何東西。");
     if (recipients === 0) return fail("沒有已確認的訂閱者，不寄。");
 
     const rl = createInterface({ input: process.stdin, output: process.stdout });

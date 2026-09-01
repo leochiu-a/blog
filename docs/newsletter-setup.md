@@ -88,8 +88,10 @@ archive and the send script refuses to mail it. Then:
 pnpm newsletter:send hello-newsletter --dry-run
 ```
 
-which prints the subject, the recipient count and the first lines of the plain
-text version without sending anything. Drop `--dry-run` and type `yes` to send.
+which prints the subject, the recipient count, what reconciliation would do,
+and the first lines of the plain text version. `--dry-run` writes nothing to
+either store — not to D1 and not to the Resend segment — so it is safe to run
+against the deployed list. Drop it and type `yes` to send.
 
 ## Rehearsing the whole thing
 

@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { startOfUtcDay } from "./subscription.ts";
 import {
   confirmSubscriber,
+  confirmedEmails,
   countConfirmationsOnDay,
   findSubscriber,
+  markUnsubscribedInBulk,
   prunePending,
   recordConfirmationSent,
   unsubscribeSubscriber,
@@ -153,5 +155,35 @@ describe("pruning abandoned signups", () => {
 
     expect(await findSubscriber(db, "confirmed@example.com")).not.toBeNull();
     expect(await findSubscriber(db, "gone@example.com")).not.toBeNull();
+  });
+});
+
+describe("what pulling Resend's unsubscribes reports", () => {
+  it("counts exactly the confirmed addresses that left", async () => {
+    // The send script's `--dry-run` reports this number without performing the
+    // write, by taking the difference between the confirmed list and the part
+    // of it that is staying. That only holds because the UPDATE is restricted
+    // to rows at `confirmed`: the two addresses below that are also gone
+    // remotely must not be counted, one being pending and the other already
+    // unsubscribed.
+    await confirmSubscriber(db, "left@example.com", NOW);
+    await confirmSubscriber(db, "staying@example.com", NOW);
+    await recordConfirmationSent(db, {
+      email: "pending@example.com",
+      now: NOW,
+      day: DAY,
+      source: null,
+    });
+    await unsubscribeSubscriber(db, "already-gone@example.com", NOW);
+
+    const goneRemotely = ["left@example.com", "pending@example.com", "already-gone@example.com"];
+    const gone = new Set(goneRemotely);
+
+    const confirmed = await confirmedEmails(db);
+    const staying = confirmed.filter((email) => !gone.has(email));
+    const predicted = confirmed.length - staying.length;
+
+    expect(await markUnsubscribedInBulk(db, goneRemotely, NOW)).toBe(predicted);
+    expect(predicted).toBe(1);
   });
 });
