@@ -1,5 +1,9 @@
-import { CONFIRMATION_COOLDOWN_MS, CONFIRMATION_DAILY_CAP } from "@/lib/newsletter/constants";
-import { FROM_ADDRESS, REPLY_TO_ADDRESS } from "@/lib/newsletter/constants";
+import {
+  CONFIRMATION_COOLDOWN_MS,
+  CONFIRMATION_DAILY_CAP,
+  FROM_ADDRESS,
+  REPLY_TO_ADDRESS,
+} from "@/lib/newsletter/constants";
 import { handleSubscribe } from "@/lib/newsletter/handle-subscribe";
 import { sendEmail } from "@/lib/newsletter/resend";
 import { confirmationUrl, newsletterRuntime } from "@/lib/newsletter/runtime";

@@ -13,6 +13,15 @@ import { unified } from "unified";
  * uses is small enough that owning the mapping is cheaper than bending a
  * general-purpose renderer into producing it.
  *
+ * The alternative was priced before this was written, and again since: mdast to
+ * inline-styled HTML needs `remark-rehype` and `rehype-stringify` plus a style
+ * inliner, none of which this project has — `rehype-pretty-code` and
+ * `rehype-slug` are plugins inside Next's MDX build and give nothing here. That
+ * is three dependencies to replace the HTML half, and the plain-text half has
+ * no rehype answer at all: the layout-aware text below is not something a
+ * stringifier produces. Revisit if an Issue ever needs constructs this does not
+ * cover, not to shorten the file.
+ *
  * An Issue is prose and links: images and fenced code are not part of what the
  * format supports. Neither is dropped, because silently losing something an
  * author wrote is worse than rendering it plainly — an image becomes a link,

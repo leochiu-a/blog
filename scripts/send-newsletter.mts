@@ -36,8 +36,8 @@ import {
 } from "../src/lib/newsletter/subscribers.ts";
 import { parseEmail } from "../src/lib/newsletter/subscription.ts";
 import { issueEmail } from "../src/lib/newsletter/templates.ts";
+import { SITE_URL } from "../src/lib/site.ts";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://leochiu.com";
 const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/;
 
 function fail(message: string): never {
