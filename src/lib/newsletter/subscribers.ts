@@ -128,8 +128,14 @@ export async function unsubscribeSubscriber(
  * Only rows that have never been anything but pending are touched. An address
  * that once confirmed or once unsubscribed keeps its row forever even while it
  * sits at `pending` again, because "this person asked not to be mailed" is the
- * one fact here that must outlive everything else — deleting it would also
- * disarm the refusal that stops an old confirmation link putting them back.
+ * one fact here that must outlive everything else, and `unsubscribed_at` is
+ * where it lives.
+ *
+ * What the guard does not do is hold the refusal in place. `decideConfirmation`
+ * reads `status`, and a fresh request has already moved that to `pending` — by
+ * then they have asked again, so confirming is right. The refusal applies to a
+ * row still sitting at `unsubscribed`, which this statement cannot reach
+ * anyway. Both halves are pinned in `subscribers.d1.test.ts`.
  *
  * Runs on the subscribe path rather than on a schedule, because at the current
  * volume a schedule would have nothing to do between signups. That is a choice,
