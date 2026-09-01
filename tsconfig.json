@@ -10,6 +10,10 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    // The send script runs under plain `node`, whose ESM resolver needs the
+    // real file name — so its imports carry `.ts`, and this lets tsc accept
+    // them. Safe with `noEmit`, which is set above.
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,

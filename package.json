@@ -2,11 +2,16 @@
   "name": "blog",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.24.0",
+  "type": "module",
   "scripts": {
     "dev": "next dev --port 7788",
-    "build": "next build",
+    "types": "wrangler types",
+    "postinstall": "wrangler types",
+    "build": "wrangler types && next build",
     "start": "next start",
+    "newsletter:send": "node scripts/send-newsletter.mts",
+    "db:local": "wrangler d1 execute blog-newsletter --local --command",
+    "db:remote": "wrangler d1 execute blog-newsletter --remote --command",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "lint": "oxlint",
@@ -35,6 +40,7 @@
     "rehype-slug": "^6.0.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
+    "resend": "^6.25.0",
     "shadcn": "^4.19.0",
     "shiki": "^4.4.3",
     "tailwind-merge": "^3.6.0",
@@ -43,6 +49,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
     "@opennextjs/cloudflare": "^1.20.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.3",
@@ -75,5 +82,6 @@
     "vitest": "^4.1.11",
     "wrangler": "^4.125.0",
     "yaml": "^2.9.0"
-  }
+  },
+  "packageManager": "pnpm@11.24.0"
 }

@@ -19,6 +19,18 @@
     // Powers next/image optimisation on Workers.
     "binding": "IMAGES",
   },
+  "d1_databases": [
+    {
+      // The newsletter subscriber list. This is the authoritative record of who
+      // asked for Issues and what state that request is in — Resend only ever
+      // holds a projection of the confirmed addresses. See
+      // docs/adr/0001-newsletter-subscriber-list-lives-in-d1.md.
+      "binding": "NEWSLETTER_DB",
+      "database_name": "blog-newsletter",
+      "database_id": "b1ce9ac3-a7d5-4b8c-950e-b2486321c688",
+      "migrations_dir": "migrations",
+    },
+  ],
   "observability": {
     "enabled": true,
   },
