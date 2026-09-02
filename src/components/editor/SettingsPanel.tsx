@@ -29,6 +29,7 @@ import {
   without,
   type FrontmatterValues,
 } from "@/lib/editor/frontmatter-fields";
+import { DateField } from "./DateField";
 import { TagInput } from "./TagInput";
 
 type Props = {
@@ -87,14 +88,10 @@ export function SettingsPanel({
     return (
       <Field>
         <FieldLabel htmlFor={key}>{label}</FieldLabel>
-        <Input
+        <DateField
           id={key}
-          type="date"
-          value={current.slice(0, 10)}
-          onChange={(event) => {
-            const day = event.target.value;
-            setText(key, day === "" ? "" : `${day}${current.slice(10)}`);
-          }}
+          value={current}
+          onChange={(day) => set(key, `${day}${current.slice(10)}`)}
         />
       </Field>
     );
