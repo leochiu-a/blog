@@ -1,3 +1,4 @@
+import { issues } from "@/lib/issues";
 import { posts } from "@/lib/posts";
 import { SITE_URL } from "@/lib/site";
 
@@ -12,17 +13,26 @@ function escapeXml(value: string): string {
 }
 
 export async function GET() {
-  const items = posts
-    .map((post) => {
-      const url = `${SITE_URL}${post.href}`;
-      const pubDate = new Date(post.datetime).toUTCString();
+  // Posts and Issues are separate collections but one publication, so the feed
+  // interleaves them by date. A `<category>` tells a reader which is which
+  // without having to guess from the URL.
+  const entries = [
+    ...posts.map((post) => ({ ...post, category: "Blog" })),
+    ...issues.map((issue) => ({ ...issue, category: "Newsletter" })),
+  ].sort((a, b) => b.datetime.localeCompare(a.datetime));
+
+  const items = entries
+    .map((entry) => {
+      const url = `${SITE_URL}${entry.href}`;
+      const pubDate = new Date(entry.datetime).toUTCString();
       return `
     <item>
-      <title>${escapeXml(post.title)}</title>
+      <title>${escapeXml(entry.title)}</title>
       <link>${url}</link>
       <guid>${url}</guid>
+      <category>${entry.category}</category>
       <pubDate>${pubDate}</pubDate>
-      <description>${escapeXml(post.subtitle ?? post.title)}</description>
+      <description>${escapeXml(entry.subtitle ?? entry.title)}</description>
     </item>`;
     })
     .join("");
