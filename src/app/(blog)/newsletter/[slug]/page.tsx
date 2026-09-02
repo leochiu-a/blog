@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { issues } from "@/lib/issues";
 import { SITE_URL } from "@/lib/site";
+import { AuthorBio } from "@/components/blog/AuthorBio";
+import { RecentIssues } from "@/components/newsletter/RecentIssues";
+import { SubscribeForm } from "@/components/newsletter/SubscribeForm";
+import { newsletter } from "@/data/content";
 
 export function generateStaticParams() {
   return issues.map((issue) => ({ slug: issue.slug }));
@@ -69,15 +73,35 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
         </div>
       </article>
 
-      <section className="mt-12 border-t border-border pt-8">
-        <p className="font-sans text-base text-muted-foreground">
-          這是電子報的其中一期。想收到下一期，到{" "}
-          <Link href="/newsletter/" className="underline">
-            訂閱頁
-          </Link>
-          留個信箱就好。
+      {/* The field itself, not a link to the page that has one: someone who
+          just read a whole edition is as close to subscribing as they will get,
+          and sending them elsewhere to type an address loses most of them.
+          Straight after the writing, before the bio and the read-more list —
+          it answers "I want the next one", which is what the last line of an
+          Issue leaves a reader with. */}
+      <section className="mt-12 flex flex-col items-center border-t border-border pt-8 text-center">
+        <p className="max-w-[30rem] font-sans text-lg leading-relaxed">
+          {newsletter.pitch.map((piece) => (
+            <span key={piece} className="inline-block">
+              {piece}
+            </span>
+          ))}
         </p>
+        <div className="mt-6 flex w-full justify-center">
+          <SubscribeForm source={issue.href} />
+        </div>
+        <p className="mt-4 font-sans text-sm text-muted-foreground">{newsletter.unsubscribe}</p>
       </section>
+
+      {/* The same post-script matter a post carries, and the same rhythm: one
+          gap after the writing, a tighter one between the two bands. An Issue
+          is read on the web by people who arrived from a link rather than from
+          a subscription, and "who wrote this" is their question too. None of it
+          reaches the inbox — the email is rendered from the Markdown alone. */}
+      <div className="mt-12 flex flex-col gap-y-6">
+        <AuthorBio />
+        <RecentIssues slug={issue.slug} />
+      </div>
     </>
   );
 }

@@ -22,6 +22,21 @@ export const author = {
   bio: "資深軟體工程師，任職於 KKday Growth Team，主導網站 SEO / AEO（AI 搜尋優化）策略落地。平常在團隊裡推動 AI agent 的開發流程與效能優化。",
 };
 
+/**
+ * The newsletter's own words, written once.
+ *
+ * The subscribe page and the foot of every Issue both make the same offer, and
+ * a pitch that reads differently depending on which page you met it on is a
+ * pitch nobody wrote on purpose. `pitch` is split where it may wrap: Chinese
+ * breaks per character, so each piece is set inline-block and a line can only
+ * break in the gaps between them.
+ */
+export const newsletter = {
+  headline: "工程上真的踩過的東西",
+  pitch: ["每兩週，分享寫作與所見。", "每天進步一點點，", "一起在終點遇見更好的自己。"],
+  unsubscribe: "隨時可以退訂，一鍵，不會問你為什麼。",
+};
+
 export const about = {
   professional: ["Senior Software Engineer. Currently working at KKday."],
   personal: ["下班之後，想的都是些無關緊要的小事。"],
