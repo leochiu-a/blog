@@ -32,9 +32,8 @@ export const author = {
  * break in the gaps between them.
  */
 export const newsletter = {
-  headline: "工程上真的踩過的東西",
+  headline: "Leo 的手寫筆記",
   pitch: ["每兩週，分享寫作與所見。", "每天進步一點點，", "一起在終點遇見更好的自己。"],
-  unsubscribe: "隨時可以退訂，一鍵，不會問你為什麼。",
 };
 
 export const about = {

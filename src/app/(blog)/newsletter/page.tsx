@@ -45,7 +45,6 @@ export default function NewsletterPage() {
         <div className="mt-8 flex w-full justify-center">
           <SubscribeForm source="/newsletter/" />
         </div>
-        <p className="mt-4 font-sans text-sm text-muted-foreground">{newsletter.unsubscribe}</p>
       </section>
 
       {issues.length > 0 && (

@@ -90,7 +90,6 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
         <div className="mt-6 flex w-full justify-center">
           <SubscribeForm source={issue.href} />
         </div>
-        <p className="mt-4 font-sans text-sm text-muted-foreground">{newsletter.unsubscribe}</p>
       </section>
 
       {/* The same post-script matter a post carries, and the same rhythm: one
