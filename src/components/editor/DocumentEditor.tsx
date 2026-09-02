@@ -34,6 +34,7 @@ import { LinkPopover } from "./LinkPopover";
 import { CodeBlockView } from "./CodeBlockView";
 import { EditorToc } from "./EditorToc";
 import { InsertMenu } from "./InsertMenu";
+import { acceptsUploads } from "./insert-options";
 import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
 import { SettingsPanel } from "./SettingsPanel";
@@ -140,7 +141,7 @@ export function DocumentEditor({
   slug: string;
   initialDocument: EditorDocument;
 }) {
-  const { mdxBlocks } = collectionOf(collection);
+  const takesUploads = acceptsUploads(collection);
   const [frontmatter, setFrontmatter] = useState(initialDocument.frontmatter);
   const [showSettings, setShowSettings] = useState(false);
   // A refused upload — an oversized clip, above all — has to say so somewhere;
@@ -303,7 +304,7 @@ export function DocumentEditor({
       // An upload lands as an MDX block, which an Issue cannot carry: the
       // archive page would show it and the email would not. Refusing the file
       // and saying so beats accepting one that disappears in the inbox.
-      if (!mdxBlocks) {
+      if (!takesUploads) {
         setUploadError("電子報是純文字排版：圖片和影片不會出現在寄出去的信裡");
         return;
       }
@@ -317,7 +318,7 @@ export function DocumentEditor({
         Promise.resolve(),
       );
     };
-  }, [mdxBlocks, uploadImage, uploadVideo]);
+  }, [takesUploads, uploadImage, uploadVideo]);
 
   useEffect(() => {
     if (!editor) return;
