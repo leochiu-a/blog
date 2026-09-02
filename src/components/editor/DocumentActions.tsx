@@ -33,6 +33,9 @@ export function DocumentActions({
   slug: string;
   title: string;
 }) {
+  const { directory, itemLabel } = collectionOf(collection);
+  // Lowercased for mid-sentence copy; the label itself is capitalised.
+  const item = itemLabel.toLowerCase();
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -44,7 +47,7 @@ export function DocumentActions({
 
     if (!response.ok) {
       const body = (await response.json()) as { error?: string };
-      window.alert(body.error ?? "Could not delete it");
+      window.alert(body.error ?? `Could not delete the ${item}`);
       return;
     }
 
@@ -76,7 +79,7 @@ export function DocumentActions({
                 onClick={() => setConfirming(true)}
                 className="flex cursor-default items-center rounded-md px-2 py-1.5 text-destructive outline-none select-none data-highlighted:bg-destructive/10"
               >
-                Delete
+                Delete {item}
               </Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
@@ -86,10 +89,9 @@ export function DocumentActions({
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent className="font-sans">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this {item}?</AlertDialogTitle>
             <AlertDialogDescription>
-              {title || slug} will be removed from {collectionOf(collection).directory}. This cannot
-              be undone.
+              {title || slug} will be removed from {directory}. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -16,8 +16,15 @@ export type CollectionName = "posts" | "issues";
 
 export interface Collection {
   name: CollectionName;
-  /** What this collection is called in the editor's own chrome. */
+  /** What the collection is called in the editor's own chrome. */
   label: string;
+  /**
+   * What one document out of the collection is called. Distinct from `label`,
+   * because the plural names a place you navigate to and the singular names
+   * the thing in front of you: "← Issues" is the archive, "Issue settings" is
+   * this one edition. A Newsletter is the publication, never one of these.
+   */
+  itemLabel: string;
   /** Where the files live, relative to the project root. */
   directory: string;
   /**
@@ -51,6 +58,7 @@ export const COLLECTIONS: Record<CollectionName, Collection> = {
   posts: {
     name: "posts",
     label: "Posts",
+    itemLabel: "Post",
     directory: "src/content/blog",
     requiredKeys: requiredKeys(postFrontmatterSchema.shape),
     previewBase: "/blog",
@@ -67,7 +75,8 @@ export const COLLECTIONS: Record<CollectionName, Collection> = {
   },
   issues: {
     name: "issues",
-    label: "Newsletter",
+    label: "Issues",
+    itemLabel: "Issue",
     directory: "src/content/newsletter",
     requiredKeys: requiredKeys(issueFrontmatterSchema.shape),
     previewBase: "/newsletter",

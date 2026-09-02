@@ -58,7 +58,7 @@ export function SettingsPanel({
   onOpenChange,
   slug,
 }: Props) {
-  const { label: collectionLabel, previewBase, requiredKeys } = collectionOf(collection);
+  const { itemLabel, previewBase, requiredKeys } = collectionOf(collection);
 
   const set = (key: string, value: unknown) => onChange(withField(frontmatter, key, value));
   const clear = (key: string) => onChange(without(frontmatter, key, requiredKeys));
@@ -121,7 +121,7 @@ export function SettingsPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[22rem] overflow-y-auto font-sans sm:max-w-none">
         <SheetHeader>
-          <SheetTitle>{collectionLabel} settings</SheetTitle>
+          <SheetTitle>{itemLabel} settings</SheetTitle>
           <SheetDescription>
             {previewBase}/{slug}/
           </SheetDescription>
