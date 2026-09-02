@@ -9,6 +9,8 @@ interface SiteverifyResult {
   success?: boolean;
   action?: string;
   hostname?: string;
+  /** Set by siteverify only when the secret was one of Cloudflare's testing keys. */
+  metadata?: { result_with_testing_key?: boolean };
 }
 
 /**
@@ -72,6 +74,18 @@ export async function verifyTurnstile({
   }
 
   if (result.success !== true) return false;
+
+  // Cloudflare's testing keys answer with no `action` and a fixed `example.com`
+  // hostname, so the two checks below can never pass for them and local work
+  // would have no way to exercise this path at all. The exemption is kept as
+  // narrow as the problem: it needs a development build *and* a response
+  // Cloudflare has itself flagged as produced by a testing key. A production
+  // siteverify never sets that flag, so neither check is weakened where it
+  // counts.
+  if (process.env.NODE_ENV === "development" && result.metadata?.result_with_testing_key === true) {
+    return true;
+  }
+
   if (result.action !== action) return false;
   return result.hostname !== undefined && allowedHostnames().has(result.hostname);
 }

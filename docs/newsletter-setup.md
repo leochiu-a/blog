@@ -48,11 +48,10 @@ TURNSTILE_SECRET_KEY=0x4...
 Create a widget for `leochiu.com` (free, unlimited verifications) and set the
 site key in `.env.local` as `NEXT_PUBLIC_TURNSTILE_SITE_KEY` — that one is a
 Next.js public variable rather than a Worker secret, so it belongs there and not
-in `.dev.vars`. Add `localhost` to the widget's allowed domains while you are
-there: the same real pair is used in development, and without that entry the
-widget refuses to run on `next dev` with `Turnstile Error: 600010`. Cloudflare's
-always-passing test keys are not an alternative here — see "Rehearsing the whole
-thing" for why they fail this endpoint's checks.
+in `.dev.vars`. The widget is bound to `leochiu.com`, so it will not run on
+`next dev` — the console reports `Turnstile Error: 600010` and no token is
+produced. Local work uses Cloudflare's testing keys instead; see "Rehearsing the
+whole thing".
 
 ## 5. Worker secrets
 
@@ -100,22 +99,25 @@ against the deployed list. Drop it and type `yes` to send.
 Everything below runs against the local database and Resend's simulator
 addresses, so no real subscriber is involved.
 
-Keep the real key pair and start `next dev`. Cloudflare's always-passing test
-keys look like the obvious choice here and cannot work: `verifyTurnstile`
-checks three things, and a dummy token fails two of them. Siteverify answers a
-dummy token with no `action` field at all, where the code requires `subscribe`,
-and with `hostname` set to `example.com`, which is not a hostname this site
-serves. Both checks are the reason that function exists rather than incidental
-to it, so the answer is not to relax them for local work.
+Use Cloudflare's always-passing testing keys — the site key as
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA` in `.env.local`, the
+secret as `TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA` in
+`.dev.vars`. **Restart `next dev` afterwards**: `.dev.vars` is read once, by
+`getPlatformProxy()` at startup, so an edited secret is invisible to a server
+that is already running and every subscribe answers 400 as though the challenge
+had failed.
 
-What the real widget needs instead is `localhost` among its allowed domains,
-added once in the Turnstile dashboard. `allowedHostnames()` already admits
-`localhost` and `127.0.0.1` when `NODE_ENV` is `development`, so that one
-dashboard change is the whole distance between the real keys and a working
-local subscribe. Until it is made, the browser console reports `Turnstile
-Error: 600010`, the hidden `cf-turnstile-response` field stays empty, and the
-endpoint answers 400 — which is indistinguishable from a failed challenge from
-the outside, and easy to misread as a mistyped key.
+Siteverify answers a testing key with no `action` and a fixed `example.com`
+hostname, neither of which `verifyTurnstile` would otherwise accept. It makes a
+single exception for them, and only when siteverify has set
+`metadata.result_with_testing_key` on a development build — a production
+response never carries that flag, so both checks stay whole where they matter.
+`src/lib/newsletter/turnstile.test.ts` holds the line.
+
+The real key pair cannot be used here at all: the widget is bound to
+`leochiu.com`, so on `localhost` it fails with `Turnstile Error: 600010` and
+never mints a token. Adding `localhost` to the widget's allowed domains is the
+alternative if you would rather rehearse against the real thing.
 
 To watch the endpoint reject a challenge, post a bogus token straight at it
 rather than swapping the keys over:
