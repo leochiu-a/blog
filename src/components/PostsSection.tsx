@@ -74,7 +74,7 @@ function EditorLink() {
   return (
     <Link
       href="/editor"
-      className="mt-1 self-start font-sans text-xs text-muted-foreground transition-colors hover:text-blog-accent"
+      className="mt-3 self-start rounded-md border border-blog-accent/40 px-4 py-2 font-sans text-sm font-medium text-blog-accent transition-colors hover:border-blog-accent hover:bg-blog-accent/10"
     >
       Open editor →
     </Link>
