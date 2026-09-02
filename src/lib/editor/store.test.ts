@@ -13,7 +13,8 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import sharp from "sharp";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPostStore } from "./store";
+import { COLLECTIONS } from "./collections";
+import { createAssetStore, createContentStore } from "./store";
 import { transcodeClip } from "./transcode";
 import { MAX_CLIP_BYTES } from "./uploads";
 
@@ -25,7 +26,8 @@ vi.mock("./transcode", async (importOriginal) => {
 });
 
 let root: string;
-let store: ReturnType<typeof createPostStore>;
+let store: ReturnType<typeof createContentStore>;
+let assets: ReturnType<typeof createAssetStore>;
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "editor-store-"));
@@ -35,7 +37,8 @@ beforeEach(() => {
     join(root, "src/content/blog/hello.md"),
     `---\ntitle: "Hello"\ndatetime: "2026-01-01"\n---\n\nBody.\n`,
   );
-  store = createPostStore(root);
+  store = createContentStore(root, COLLECTIONS.posts);
+  assets = createAssetStore(root);
 });
 
 const TRAVERSAL = ["../secret", "../../etc/passwd", "a/b", "Hello", "hello.md", "", "hello world"];
@@ -101,6 +104,20 @@ describe("creating posts", () => {
     expect(await store.listSlugs()).toContain(slug);
   });
 
+  it("creates an Issue draft in the newsletter directory, without a Post's fields", async () => {
+    mkdirSync(join(root, "src/content/newsletter"), { recursive: true });
+    const issues = createContentStore(root, COLLECTIONS.issues);
+
+    const slug = await issues.createDraft();
+
+    const created = readFileSync(join(root, `src/content/newsletter/${slug}.md`), "utf8");
+    expect(created).toContain(`draft: true`);
+    expect(created).not.toContain("readTime");
+    expect(created).not.toContain("category");
+    // The Post store is a different directory, and does not see it.
+    await expect(store.listSlugs()).resolves.toEqual(["hello"]);
+  });
+
   it("suffixes the slug rather than overwriting an existing draft", async () => {
     const first = await store.createDraft();
     const second = await store.createDraft();
@@ -141,7 +158,7 @@ const CLIP = await (async () => {
 
 describe("saving images", () => {
   it("re-encodes as WebP and returns the public path", async () => {
-    const path = await store.saveImage("Photo Of A Cat.PNG", PNG);
+    const path = await assets.saveImage("Photo Of A Cat.PNG", PNG);
 
     expect(path).toBe("/blog-images/photo-of-a-cat.webp");
     const written = readFileSync(join(root, "public/blog-images/photo-of-a-cat.webp"));
@@ -150,22 +167,22 @@ describe("saving images", () => {
 
   it("leaves an SVG as it is", async () => {
     const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" />');
-    const path = await store.saveImage("logo.svg", svg);
+    const path = await assets.saveImage("logo.svg", svg);
 
     expect(path).toBe("/blog-images/logo.svg");
     expect(readFileSync(join(root, "public/blog-images/logo.svg"))).toEqual(svg);
   });
 
   it("never overwrites an existing image", async () => {
-    const first = await store.saveImage("cat.png", PNG);
-    const second = await store.saveImage("cat.png", PNG);
+    const first = await assets.saveImage("cat.png", PNG);
+    const second = await assets.saveImage("cat.png", PNG);
 
     expect(first).toBe("/blog-images/cat.webp");
     expect(second).toBe("/blog-images/cat-1.webp");
   });
 
   it("refuses bytes that are not an image", async () => {
-    await expect(store.saveImage("cat.png", new Uint8Array([1, 2, 3]))).rejects.toThrow(
+    await expect(assets.saveImage("cat.png", new Uint8Array([1, 2, 3]))).rejects.toThrow(
       /could not read/i,
     );
   });
@@ -173,12 +190,12 @@ describe("saving images", () => {
   it.each(["../evil.png", "a/b.png", "notes.txt", ".png", ""])(
     "refuses the filename %o",
     async (name) => {
-      await expect(store.saveImage(name, PNG)).rejects.toThrow(/filename|type/i);
+      await expect(assets.saveImage(name, PNG)).rejects.toThrow(/filename|type/i);
     },
   );
 
   it("names an all-Chinese screenshot after its kind rather than refusing it", async () => {
-    await expect(store.saveImage("螢幕截圖.png", PNG)).resolves.toBe("/blog-images/image.webp");
+    await expect(assets.saveImage("螢幕截圖.png", PNG)).resolves.toBe("/blog-images/image.webp");
   });
 });
 
@@ -214,7 +231,7 @@ const BIG_CLIP = await (async () => {
 
 describe("saving videos", () => {
   it("transcodes to mp4 and saves a poster beside it", async () => {
-    const clip = await store.saveVideo("Demo Reel.MOV", CLIP);
+    const clip = await assets.saveVideo("Demo Reel.MOV", CLIP);
 
     expect(clip).toEqual({
       src: "/blog-videos/demo-reel.mp4",
@@ -231,16 +248,16 @@ describe("saving videos", () => {
   });
 
   it("never overwrites an existing clip", async () => {
-    await expect(store.saveVideo("demo.mp4", CLIP)).resolves.toMatchObject({
+    await expect(assets.saveVideo("demo.mp4", CLIP)).resolves.toMatchObject({
       src: "/blog-videos/demo.mp4",
     });
-    await expect(store.saveVideo("demo.mp4", CLIP)).resolves.toMatchObject({
+    await expect(assets.saveVideo("demo.mp4", CLIP)).resolves.toMatchObject({
       src: "/blog-videos/demo-1.mp4",
     });
   });
 
   it("refuses bytes that are not a video", async () => {
-    await expect(store.saveVideo("clip.mp4", new Uint8Array([1, 2, 3]))).rejects.toThrow(
+    await expect(assets.saveVideo("clip.mp4", new Uint8Array([1, 2, 3]))).rejects.toThrow(
       /could not read the video/i,
     );
   });
@@ -248,7 +265,7 @@ describe("saving videos", () => {
   it.each(["../evil.mp4", "a/b.mp4", "clip.avi", "clip.png", ".mp4", ""])(
     "refuses the filename %o",
     async (name) => {
-      await expect(store.saveVideo(name, CLIP)).rejects.toThrow(/filename|type/i);
+      await expect(assets.saveVideo(name, CLIP)).rejects.toThrow(/filename|type/i);
     },
   );
 
@@ -258,7 +275,7 @@ describe("saving videos", () => {
     // passes every other test in this file and fails this one.
     expect(BIG_CLIP.byteLength).toBeGreaterThan(MAX_CLIP_BYTES);
 
-    const clip = await store.saveVideo("big.mp4", BIG_CLIP);
+    const clip = await assets.saveVideo("big.mp4", BIG_CLIP);
 
     expect(clip.src).toBe("/blog-videos/big.mp4");
     expect(statSync(join(root, "public/blog-videos/big.mp4")).size).toBeLessThan(MAX_CLIP_BYTES);
@@ -272,7 +289,7 @@ describe("saving videos", () => {
       poster: PNG,
     });
 
-    await expect(store.saveVideo("long.mp4", CLIP)).rejects.toMatchObject({
+    await expect(assets.saveVideo("long.mp4", CLIP)).rejects.toMatchObject({
       status: 413,
       message: expect.stringMatching(/ceiling/i),
     });
@@ -281,7 +298,7 @@ describe("saving videos", () => {
   });
 
   it("names an all-Chinese recording after its kind rather than refusing it", async () => {
-    await expect(store.saveVideo("螢幕錄影.mov", CLIP)).resolves.toMatchObject({
+    await expect(assets.saveVideo("螢幕錄影.mov", CLIP)).resolves.toMatchObject({
       src: "/blog-videos/video.mp4",
       poster: "/blog-images/video-poster.webp",
     });

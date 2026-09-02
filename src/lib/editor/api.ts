@@ -1,13 +1,14 @@
-import { parsePost, serializePost } from "./document";
-import { EditorError, type createPostStore } from "./store";
-import type { PostDocument } from "./types";
+import { parseDocument, serializeDocument } from "./document";
+import { EditorError, type createAssetStore, type createContentStore } from "./store";
+import type { EditorDocument } from "./types";
 
 /**
  * Request handlers for the dev-only editor. They take the store explicitly so
  * the route files stay one-liners and the behaviour is testable without a
  * running server.
  */
-type Store = ReturnType<typeof createPostStore>;
+type ContentStore = ReturnType<typeof createContentStore>;
+type AssetStore = ReturnType<typeof createAssetStore>;
 
 async function respond(handler: () => Promise<Response>): Promise<Response> {
   try {
@@ -35,8 +36,8 @@ async function readJson(request: Request): Promise<Record<string, unknown>> {
   }
 }
 
-function asDocument(value: unknown): PostDocument {
-  const document = value as PostDocument | null;
+function asDocument(value: unknown): EditorDocument {
+  const document = value as EditorDocument | null;
   if (
     typeof document !== "object" ||
     document === null ||
@@ -45,32 +46,36 @@ function asDocument(value: unknown): PostDocument {
     document.frontmatter === null ||
     document.doc?.type !== "doc"
   ) {
-    badRequest("Expected a post document");
+    badRequest("Expected a document");
   }
   return document;
 }
 
-export function getPost(slug: string, store: Store): Promise<Response> {
-  return respond(async () => Response.json(parsePost(await store.read(slug))));
+export function getDocument(slug: string, store: ContentStore): Promise<Response> {
+  return respond(async () => Response.json(parseDocument(await store.read(slug))));
 }
 
-export function savePost(slug: string, request: Request, store: Store): Promise<Response> {
+export function saveDocument(
+  slug: string,
+  request: Request,
+  store: ContentStore,
+): Promise<Response> {
   return respond(async () => {
     const body = await readJson(request);
-    const contents = serializePost(asDocument(body.document));
+    const contents = serializeDocument(asDocument(body.document));
     await store.write(slug, contents);
     return Response.json({ slug });
   });
 }
 
-export function deletePost(slug: string, store: Store): Promise<Response> {
+export function deleteDocument(slug: string, store: ContentStore): Promise<Response> {
   return respond(async () => {
     await store.remove(slug);
     return Response.json({ slug });
   });
 }
 
-export function createPost(store: Store): Promise<Response> {
+export function createDocument(store: ContentStore): Promise<Response> {
   return respond(async () => {
     const slug = await store.createDraft();
     return Response.json({ slug }, { status: 201 });
@@ -84,7 +89,7 @@ async function uploadedFile(request: Request): Promise<File> {
   return file;
 }
 
-export function uploadImage(request: Request, store: Store): Promise<Response> {
+export function uploadImage(request: Request, store: AssetStore): Promise<Response> {
   return respond(async () => {
     const file = await uploadedFile(request);
     const src = await store.saveImage(file.name, new Uint8Array(await file.arrayBuffer()));
@@ -93,7 +98,7 @@ export function uploadImage(request: Request, store: Store): Promise<Response> {
 }
 
 /** Answers with the whole clip — both files and their size — not just a path. */
-export function uploadVideo(request: Request, store: Store): Promise<Response> {
+export function uploadVideo(request: Request, store: AssetStore): Promise<Response> {
   return respond(async () => {
     const file = await uploadedFile(request);
     const clip = await store.saveVideo(file.name, new Uint8Array(await file.arrayBuffer()));

@@ -27,11 +27,3 @@ export const postFrontmatterSchema = z.object({
 export type PostFrontmatter = z.infer<typeof postFrontmatterSchema>;
 
 export const CATEGORIES = postFrontmatterSchema.shape.category.options;
-
-/**
- * Keys content-collections requires. Removing one stops the post compiling,
- * so the editor may blank them but never drop them.
- */
-export const REQUIRED_KEYS = Object.entries(postFrontmatterSchema.shape)
-  .filter(([, field]) => !field.safeParse(undefined).success)
-  .map(([key]) => key);

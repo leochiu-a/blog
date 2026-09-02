@@ -15,8 +15,9 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { TextSelection } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
+import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
 import { createExtensions } from "@/lib/editor/extensions";
-import type { Clip, PmNode, PostDocument } from "@/lib/editor/types";
+import type { Clip, PmNode, EditorDocument } from "@/lib/editor/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { readText, withField } from "@/lib/editor/frontmatter-fields";
@@ -54,8 +55,8 @@ function mediaFiles(data: DataTransfer | null) {
   );
 }
 
-async function save(slug: string, document: PostDocument) {
-  const response = await fetch(`/api/editor/posts/${slug}/`, {
+async function save(collection: CollectionName, slug: string, document: EditorDocument) {
+  const response = await fetch(apiPath(collection, slug), {
     method: "PUT",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ document }),
@@ -125,12 +126,19 @@ function endUpload(view: EditorView, id: string, setUpload: SetUpload): void {
   setUpload((current) => (current?.id === id ? null : current));
 }
 
-export function PostEditor({
+/**
+ * The writing surface, for either collection. What a Post and an Issue do not
+ * share — which API saves it, where it is previewed, which settings it has —
+ * comes from the collection; everything about editing prose is the same.
+ */
+export function DocumentEditor({
+  collection,
   slug,
   initialDocument,
 }: {
+  collection: CollectionName;
   slug: string;
-  initialDocument: PostDocument;
+  initialDocument: EditorDocument;
 }) {
   const [frontmatter, setFrontmatter] = useState(initialDocument.frontmatter);
   const [showSettings, setShowSettings] = useState(false);
@@ -142,7 +150,7 @@ export function PostEditor({
   // meantime looks exactly like one that swallowed the file.
   const [upload, setUpload] = useState<Upload | null>(null);
 
-  const { status, schedule } = useAutosave((document) => save(slug, document));
+  const { status, schedule } = useAutosave((document) => save(collection, slug, document));
 
   const extensions = useMemo(
     () => [
@@ -192,7 +200,7 @@ export function PostEditor({
 
   /** One place that assembles what gets written to disk. */
   const scheduleSave = useCallback(
-    (next: Partial<PostDocument>) => {
+    (next: Partial<EditorDocument>) => {
       if (!editor) return;
       schedule({
         frontmatterSource: initialDocument.frontmatterSource,
@@ -311,13 +319,15 @@ export function PostEditor({
     };
   }, [editor, scheduleSave]);
 
-  const isProfessional = frontmatter.category === "professional";
+  // The editor reads the way the page it writes reads: a professional Post is
+  // dark and a personal one is light, and every newsletter page is dark.
+  const isDark = collection === "issues" || frontmatter.category === "professional";
 
   return (
-    <div className={cn("min-h-screen", isProfessional && "dark")}>
+    <div className={cn("min-h-screen", isDark && "dark")}>
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/90 px-6 py-2 font-sans text-sm backdrop-blur">
         <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/editor" />}>
-          ← Posts
+          ← {collectionOf(collection).label}
         </Button>
         <Separator orientation="vertical" className="h-5" />
         <span className="flex-1 truncate text-muted-foreground">{slug}</span>
@@ -343,11 +353,17 @@ export function PostEditor({
           variant="ghost"
           size="sm"
           nativeButton={false}
-          render={<Link href={`/blog/${slug}/`} target="_blank" />}
+          render={
+            <Link href={`${collectionOf(collection).previewBase}/${slug}/`} target="_blank" />
+          }
         >
           Preview
         </Button>
-        <PublishButton frontmatter={frontmatter} onChange={updateFrontmatter} />
+        <PublishButton
+          collection={collection}
+          frontmatter={frontmatter}
+          onChange={updateFrontmatter}
+        />
         <Button variant="ghost" size="sm" onClick={() => setShowSettings((open) => !open)}>
           Settings
         </Button>
@@ -404,6 +420,7 @@ export function PostEditor({
         )}
 
       <SettingsPanel
+        collection={collection}
         slug={slug}
         frontmatter={frontmatter}
         onChange={updateFrontmatter}

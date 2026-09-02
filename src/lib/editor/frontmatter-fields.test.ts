@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { REQUIRED_KEYS } from "@/lib/post-frontmatter";
+import { COLLECTIONS } from "./collections";
 import { readFlag, readList, readText, withField, without } from "./frontmatter-fields";
+
+const REQUIRED_KEYS = COLLECTIONS.posts.requiredKeys;
 
 const post = {
   title: "Hello",
@@ -12,8 +14,12 @@ const post = {
 };
 
 describe("the required key list", () => {
-  it("is derived from the schema, not restated", () => {
+  it("is derived from a Post's schema, not restated", () => {
     expect(REQUIRED_KEYS).toEqual(["title", "datetime", "readTime", "category"]);
+  });
+
+  it("is derived from an Issue's schema too", () => {
+    expect(COLLECTIONS.issues.requiredKeys).toEqual(["title", "datetime"]);
   });
 });
 
@@ -40,12 +46,12 @@ describe("changing a field", () => {
   });
 
   it("drops an optional key", () => {
-    expect(without(post, "draft")).toEqual({ ...post, draft: undefined });
-    expect("draft" in without(post, "draft")).toBe(false);
+    expect(without(post, "draft", REQUIRED_KEYS)).toEqual({ ...post, draft: undefined });
+    expect("draft" in without(post, "draft", REQUIRED_KEYS)).toBe(false);
   });
 
   it.each(REQUIRED_KEYS)("refuses to drop %s, blanking it instead", (key) => {
-    const next = without(post, key);
+    const next = without(post, key, REQUIRED_KEYS);
 
     expect(key in next).toBe(true);
     expect(next[key]).toBe("");

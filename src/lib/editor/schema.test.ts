@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { getSchema } from "@tiptap/core";
 import { Node as PmSchemaNode } from "@tiptap/pm/model";
 import { describe, expect, it } from "vitest";
-import { parsePost, serializePost } from "./document";
+import { parseDocument, serializeDocument } from "./document";
 import { extensions } from "./extensions";
 import type { PmNode } from "./types";
 
@@ -19,11 +19,11 @@ function throughEditorSchema(doc: PmNode): PmNode {
 describe("editor schema", () => {
   it.each(postFiles)("%s survives a trip through the editor schema", (name) => {
     const source = readFileSync(join(POSTS_DIR, name), "utf8");
-    const document = parsePost(source);
+    const document = parseDocument(source);
 
     const reloaded = { ...document, doc: throughEditorSchema(document.doc) };
 
-    expect(serializePost(reloaded)).toBe(source);
+    expect(serializeDocument(reloaded)).toBe(source);
   });
 
   it.each([
@@ -38,10 +38,10 @@ describe("editor schema", () => {
     `a [link](https://example.com "titled") inline`,
   ])("keeps %o intact through the editor schema", (body) => {
     const source = `---\ntitle: "t"\ndatetime: "2026-01-01"\n---\n\n${body}\n`;
-    const document = parsePost(source);
+    const document = parseDocument(source);
 
     const reloaded = { ...document, doc: throughEditorSchema(document.doc) };
 
-    expect(serializePost(reloaded)).toBe(source);
+    expect(serializeDocument(reloaded)).toBe(source);
   });
 });

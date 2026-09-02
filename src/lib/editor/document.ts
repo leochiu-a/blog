@@ -2,14 +2,14 @@ import type { Root } from "mdast";
 import { blockToMdast, mdastToPm } from "./bridge";
 import { applyFrontmatter, parseFrontmatter } from "./frontmatter";
 import { parseMarkdown, stringifyMarkdown } from "./markdown";
-import type { PmNode, PostDocument } from "./types";
+import type { PmNode, EditorDocument } from "./types";
 
 const FRONTMATTER = /^---\n([\s\S]*?)\n---\n\n/;
 
 /** Where a top-level block's original source is stashed, for lossless saves. */
 const SOURCE_ATTR = "source";
 
-export function parsePost(source: string): PostDocument {
+export function parseDocument(source: string): EditorDocument {
   const match = FRONTMATTER.exec(source);
   if (!match) throw new Error("Post is missing a `---` frontmatter block");
 
@@ -37,7 +37,7 @@ export function parsePost(source: string): PostDocument {
   };
 }
 
-export function serializePost(document: PostDocument): string {
+export function serializeDocument(document: EditorDocument): string {
   const frontmatter = applyFrontmatter(document.frontmatterSource, document.frontmatter);
   return `---\n${frontmatter}\n---\n\n${serializeBody(document.doc)}`;
 }

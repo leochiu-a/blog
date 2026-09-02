@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -23,19 +24,27 @@ import { Button } from "@/components/ui/button";
  * Deleting removes the file from disk, so it asks first: the confirmation is
  * the whole safety net here, there is no trash to restore from.
  */
-export function PostActions({ slug, title }: { slug: string; title: string }) {
+export function DocumentActions({
+  collection,
+  slug,
+  title,
+}: {
+  collection: CollectionName;
+  slug: string;
+  title: string;
+}) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const remove = async () => {
     setBusy(true);
-    const response = await fetch(`/api/editor/posts/${slug}`, { method: "DELETE" });
+    const response = await fetch(apiPath(collection, slug), { method: "DELETE" });
     setBusy(false);
 
     if (!response.ok) {
       const body = (await response.json()) as { error?: string };
-      window.alert(body.error ?? "Could not delete the post");
+      window.alert(body.error ?? "Could not delete it");
       return;
     }
 
@@ -67,7 +76,7 @@ export function PostActions({ slug, title }: { slug: string; title: string }) {
                 onClick={() => setConfirming(true)}
                 className="flex cursor-default items-center rounded-md px-2 py-1.5 text-destructive outline-none select-none data-highlighted:bg-destructive/10"
               >
-                Delete post
+                Delete
               </Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
@@ -77,9 +86,10 @@ export function PostActions({ slug, title }: { slug: string; title: string }) {
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent className="font-sans">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this?</AlertDialogTitle>
             <AlertDialogDescription>
-              {title || slug} will be removed from src/content/blog. This cannot be undone.
+              {title || slug} will be removed from {collectionOf(collection).directory}. This cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

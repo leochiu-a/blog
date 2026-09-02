@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePost, serializePost } from "./document";
+import { parseDocument, serializeDocument } from "./document";
 import { forgetSource } from "./testing";
 
 const FRONTMATTER = `---\ntitle: "t"\ndatetime: "2026-01-01"\n---\n\n`;
@@ -23,12 +23,12 @@ const BODIES = {
 describe.each(Object.entries(BODIES))("%s", (_name, body) => {
   it("round-trips byte-identically", () => {
     const source = post(body);
-    expect(serializePost(parsePost(source))).toBe(source);
+    expect(serializeDocument(parseDocument(source))).toBe(source);
   });
 
   it("serializes back to the same markdown after an edit", () => {
     const source = post(body);
-    expect(serializePost(forgetSource(parsePost(source)))).toBe(source);
+    expect(serializeDocument(forgetSource(parseDocument(source)))).toBe(source);
   });
 });
 
@@ -36,11 +36,11 @@ describe("a table the writer didn't align", () => {
   const ragged = post(`| a | b |\n| - | :-: |\n| 1 | 2 |`);
 
   it("keeps the writer's own spacing while it is untouched", () => {
-    expect(serializePost(parsePost(ragged))).toBe(ragged);
+    expect(serializeDocument(parseDocument(ragged))).toBe(ragged);
   });
 
   it("writes it out aligned once it has been edited", () => {
-    expect(serializePost(forgetSource(parsePost(ragged)))).toBe(
+    expect(serializeDocument(forgetSource(parseDocument(ragged)))).toBe(
       post(`| a |  b  |\n| - | :-: |\n| 1 |  2  |`),
     );
   });
@@ -60,12 +60,12 @@ describe("punctuation the serializer escapes once a block is edited", () => {
     // bracket, so this is literal text — and literal asterisks get escaped.
     ["最值得留的是**「冷門規則」**。", "最值得留的是\\*\\*「冷門規則」\\*\\*。"],
   ])("writes %o as %o", (written, expected) => {
-    expect(serializePost(forgetSource(parsePost(post(written))))).toBe(post(expected));
+    expect(serializeDocument(forgetSource(parseDocument(post(written))))).toBe(post(expected));
   });
 
   it("leaves emphasis alone when CommonMark does read it as emphasis", () => {
     const emphasised = post("最值得留的是「**冷門規則**」。");
 
-    expect(serializePost(forgetSource(parsePost(emphasised)))).toBe(emphasised);
+    expect(serializeDocument(forgetSource(parseDocument(emphasised)))).toBe(emphasised);
   });
 });

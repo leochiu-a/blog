@@ -1,7 +1,7 @@
 /**
  * The editor document model — a plain-JSON ProseMirror document plus the
- * post's frontmatter. Everything here has to survive `JSON.stringify`, because
- * it travels between the editor route and the dev-only file APIs.
+ * document's frontmatter. Everything here has to survive `JSON.stringify`,
+ * because it travels between the editor route and the dev-only file APIs.
  */
 export type PmMark = {
   type: string;
@@ -26,7 +26,7 @@ export type MdxAttribute = {
   expression: string | null;
 };
 
-export type PostDocument = {
+export type EditorDocument = {
   /** Frontmatter as a plain object, for the settings panel. */
   frontmatter: Record<string, unknown>;
   /** The original YAML text, so untouched keys keep their exact formatting. */

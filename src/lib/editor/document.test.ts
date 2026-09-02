@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parsePost, serializePost, stringifyBlock } from "./document";
+import { parseDocument, serializeDocument, stringifyBlock } from "./document";
 import { forgetSource } from "./testing";
 import type { PmNode } from "./types";
 
@@ -16,7 +16,7 @@ describe("post round-trip", () => {
 
   it.each(postFiles)("%s survives parse -> serialize byte-identically", (name) => {
     const source = read(name);
-    expect(serializePost(parsePost(source))).toBe(source);
+    expect(serializeDocument(parseDocument(source))).toBe(source);
   });
 
   /**
@@ -47,7 +47,7 @@ describe("post round-trip", () => {
 
   it.each(postFiles)("%s re-serializes to the same markdown, block by block", (name) => {
     const source = read(name);
-    const blocks = parsePost(source).doc.content ?? [];
+    const blocks = parseDocument(source).doc.content ?? [];
     let compared = 0;
 
     for (const block of blocks) {
@@ -68,7 +68,7 @@ describe("post round-trip", () => {
 
   it("drops the empty paragraphs the editor keeps around for clicking into", () => {
     const source = read(postFiles[0]!);
-    const document = parsePost(source);
+    const document = parseDocument(source);
 
     // Tiptap's trailing-node behaviour always leaves one of these at the end.
     document.doc.content = [
@@ -77,12 +77,12 @@ describe("post round-trip", () => {
       { type: "paragraph", content: [] },
     ];
 
-    expect(serializePost(document)).toBe(source);
+    expect(serializeDocument(document)).toBe(source);
   });
 
   it.each(postFiles)("%s survives a re-serialization from scratch", (name) => {
-    const original = parsePost(read(name));
-    const reparsed = parsePost(serializePost(forgetSource(original)));
+    const original = parseDocument(read(name));
+    const reparsed = parseDocument(serializeDocument(forgetSource(original)));
 
     expect(forgetSource(reparsed).doc).toEqual(forgetSource(original).doc);
     expect(reparsed.frontmatter).toEqual(original.frontmatter);

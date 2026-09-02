@@ -5,16 +5,16 @@ import sharp from "sharp";
 import { stringify as stringifyYaml } from "yaml";
 import { TranscodeError, transcodeClip } from "./transcode";
 import { MAX_CLIP_BYTES, VIDEO_EXTENSIONS } from "./uploads";
+import { COLLECTIONS, type Collection } from "./collections";
 import type { Clip } from "./types";
 
 /**
  * Every file operation the dev-only editor is allowed to perform, bound to a
  * project root. Nothing here takes a path from the client — only a slug or a
  * filename, both validated against a strict pattern — so a request can't reach
- * outside the two directories the editor owns.
+ * outside the directories the editor owns.
  */
 
-const POSTS_DIR = "src/content/blog";
 const IMAGES_DIR = "public/blog-images";
 const IMAGES_PUBLIC_PATH = "/blog-images";
 const VIDEOS_DIR = "public/blog-videos";
@@ -105,31 +105,36 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-export function createPostStore(root: string) {
-  const postPath = (slug: string) => join(root, POSTS_DIR, `${assertSlug(slug)}.md`);
+/**
+ * The documents of one collection — Posts or Issues. Which directory it reads
+ * and writes, and what a new draft starts as, is the collection's to say; the
+ * file handling is the same either way.
+ */
+export function createContentStore(root: string, collection: Collection) {
+  const documentPath = (slug: string) => join(root, collection.directory, `${assertSlug(slug)}.md`);
 
   async function read(slug: string): Promise<string> {
-    const path = postPath(slug);
-    if (!(await exists(path))) throw new EditorError(`Post not found: ${slug}`, 404);
+    const path = documentPath(slug);
+    if (!(await exists(path))) throw new EditorError(`Document not found: ${slug}`, 404);
     return readFile(path, "utf8");
   }
 
   async function write(slug: string, contents: string): Promise<void> {
-    const path = postPath(slug);
-    // Saving only ever updates a post that exists; new posts go through
+    const path = documentPath(slug);
+    // Saving only ever updates a document that exists; new ones go through
     // `create`, which is the one place a file is allowed to appear.
-    if (!(await exists(path))) throw new EditorError(`Post not found: ${slug}`, 404);
+    if (!(await exists(path))) throw new EditorError(`Document not found: ${slug}`, 404);
     await writeFile(path, contents, "utf8");
   }
 
   async function remove(slug: string): Promise<void> {
-    const path = postPath(slug);
-    if (!(await exists(path))) throw new EditorError(`Post not found: ${slug}`, 404);
+    const path = documentPath(slug);
+    if (!(await exists(path))) throw new EditorError(`Document not found: ${slug}`, 404);
     await rm(path);
   }
 
   async function listSlugs(): Promise<string[]> {
-    const names = await readdir(join(root, POSTS_DIR));
+    const names = await readdir(join(root, collection.directory));
     return names
       .filter((name) => name.endsWith(".md"))
       .map((name) => name.slice(0, -3))
@@ -137,39 +142,37 @@ export function createPostStore(root: string) {
   }
 
   /**
-   * New posts are created empty and unnamed: the title is typed in place at the
-   * top of the editor, so asking for one up front only got in the way. That
-   * makes the slug ours to pick — dated, with a suffix when a day gets a
-   * second draft — and it is what the post lives at, since nothing renames it.
+   * New documents are created empty and unnamed: the title is typed in place at
+   * the top of the editor, so asking for one up front only got in the way. That
+   * makes the slug ours to pick — dated, with a suffix when a day gets a second
+   * draft — and it is what the document lives at, since nothing renames it.
    */
   async function createDraft(): Promise<string> {
     const today = new Date().toISOString().slice(0, 10);
     let slug = `untitled-${today}`;
-    for (let suffix = 2; await exists(postPath(slug)); suffix += 1) {
+    for (let suffix = 2; await exists(documentPath(slug)); suffix += 1) {
       slug = `untitled-${today}-${suffix}`;
     }
 
-    // Every field content-collections requires, so the new post compiles the
-    // moment it lands on disk. `draft` keeps it out of production until ready.
-    const values = {
-      title: "",
-      datetime: today,
-      readTime: "1 min",
-      category: "professional",
-      draft: true,
-    };
-
-    const yaml = stringifyYaml(values, {
+    const yaml = stringifyYaml(collection.newDraft(today), {
       defaultStringType: "QUOTE_DOUBLE",
       defaultKeyType: "PLAIN",
       lineWidth: 0,
       flowCollectionPadding: false,
     }).replace(/\n$/, "");
 
-    await writeFile(postPath(slug), `---\n${yaml}\n---\n\n`, "utf8");
+    await writeFile(documentPath(slug), `---\n${yaml}\n---\n\n`, "utf8");
     return slug;
   }
 
+  return { read, write, remove, listSlugs, createDraft };
+}
+
+/**
+ * Images and clips, which belong to the repository rather than to one
+ * collection: a Post and an Issue drop the same file into the same directory.
+ */
+export function createAssetStore(root: string) {
   /** Writes an asset under a name nothing else has taken, and reports its URL. */
   async function writeAsset(
     dir: string,
@@ -242,7 +245,9 @@ export function createPostStore(root: string) {
     };
   }
 
-  return { read, write, remove, listSlugs, createDraft, saveImage, saveVideo };
+  return { saveImage, saveVideo };
 }
 
-export const postStore = createPostStore(process.cwd());
+export const postStore = createContentStore(process.cwd(), COLLECTIONS.posts);
+export const issueStore = createContentStore(process.cwd(), COLLECTIONS.issues);
+export const assetStore = createAssetStore(process.cwd());

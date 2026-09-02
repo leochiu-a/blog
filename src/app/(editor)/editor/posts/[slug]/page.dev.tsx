@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { parsePost } from "@/lib/editor/document";
+import { parseDocument } from "@/lib/editor/document";
 import { EditorError, postStore } from "@/lib/editor/store";
-import { PostEditor } from "@/components/editor/PostEditor";
+import { DocumentEditor } from "@/components/editor/DocumentEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -13,5 +13,5 @@ export default async function EditPost({ params }: { params: Promise<{ slug: str
     throw error;
   });
 
-  return <PostEditor slug={slug} initialDocument={parsePost(source)} />;
+  return <DocumentEditor collection="posts" slug={slug} initialDocument={parseDocument(source)} />;
 }

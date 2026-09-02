@@ -1,18 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Pin } from "lucide-react";
-import { parsePost } from "@/lib/editor/document";
+import { editorPath, type CollectionName } from "@/lib/editor/collections";
+import { parseDocument } from "@/lib/editor/document";
 import { readFlag, readText } from "@/lib/editor/frontmatter-fields";
 import { CATEGORIES } from "@/lib/post-frontmatter";
-import { postStore } from "@/lib/editor/store";
-import { NewPostButton } from "@/components/editor/NewPostButton";
-import { PostActions } from "@/components/editor/PostActions";
+import { issueStore, postStore } from "@/lib/editor/store";
+import { NewDocumentButton } from "@/components/editor/NewDocumentButton";
+import { DocumentActions } from "@/components/editor/DocumentActions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
-type PostSummary = {
+type DocumentSummary = {
   slug: string;
   title: string;
   subtitle: string;
@@ -24,11 +25,18 @@ type PostSummary = {
   draft: boolean;
 };
 
-async function loadPosts(): Promise<PostSummary[]> {
-  const slugs = await postStore.listSlugs();
-  const posts = await Promise.all(
+type Store = typeof postStore;
+
+/**
+ * A collection's documents, newest first. Keys an Issue does not have — a read
+ * time, a category, an image — come back empty, and the card leaves out what
+ * is empty, so one summary shape covers both collections.
+ */
+async function loadDocuments(store: Store): Promise<DocumentSummary[]> {
+  const slugs = await store.listSlugs();
+  const documents = await Promise.all(
     slugs.map(async (slug) => {
-      const { frontmatter } = parsePost(await postStore.read(slug));
+      const { frontmatter } = parseDocument(await store.read(slug));
       return {
         slug,
         title: readText(frontmatter, "title") || slug,
@@ -42,7 +50,7 @@ async function loadPosts(): Promise<PostSummary[]> {
       };
     }),
   );
-  return posts.sort((a, b) => b.datetime.localeCompare(a.datetime));
+  return documents.sort((a, b) => b.datetime.localeCompare(a.datetime));
 }
 
 /**
@@ -52,10 +60,18 @@ async function loadPosts(): Promise<PostSummary[]> {
  * reads as a post rather than as a filename, which is what makes a long list
  * worth scanning.
  */
-function PostCard({ post }: { post: PostSummary }) {
+function DocumentCard({
+  collection,
+  document,
+}: {
+  collection: CollectionName;
+  document: DocumentSummary;
+}) {
+  const href = editorPath(collection, document.slug);
+
   return (
     <li className="py-6">
-      {post.featured && (
+      {document.featured && (
         <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Pin className="size-3.5" aria-hidden="true" />
           Featured
@@ -64,39 +80,41 @@ function PostCard({ post }: { post: PostSummary }) {
 
       <div className="flex items-start gap-6">
         <div className="min-w-0 flex-1">
-          <Link href={`/editor/${post.slug}`} className="group/link block">
+          <Link href={href} className="group/link block">
             {/* Category is the section heading above, so the byline carries
                 what differs row to row: when it was written, how long it is. */}
             <p className="text-xs text-muted-foreground">
-              {post.datetime}
-              {post.readTime && ` · ${post.readTime}`}
+              {/* An Issue's datetime carries a time and an offset, which is
+                  noise in a list — the day is what tells one row from another. */}
+              {document.datetime.slice(0, 10)}
+              {document.readTime && ` · ${document.readTime}`}
             </p>
             <h3 className="mt-1 text-xl font-bold leading-snug transition-colors group-hover/link:text-blog-accent">
-              {post.title}
+              {document.title}
             </h3>
-            {post.subtitle && (
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.subtitle}</p>
+            {document.subtitle && (
+              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{document.subtitle}</p>
             )}
           </Link>
 
           {/* The footer carries what you act on rather than what you read: the
               state of the file, and the menu that can delete it. */}
           <div className="mt-4 flex items-center gap-3">
-            {post.draft && <Badge variant="secondary">draft</Badge>}
+            {document.draft && <Badge variant="secondary">draft</Badge>}
             <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/70">
-              {post.slug}
+              {document.slug}
             </span>
             {/* Outside the link: a row is one destination, and deleting is not it. */}
-            <PostActions slug={post.slug} title={post.title} />
+            <DocumentActions collection={collection} slug={document.slug} title={document.title} />
           </div>
         </div>
 
-        {post.ogImage && (
+        {document.ogImage && (
           // A second way into the same post, so it is hidden from assistive
           // tech and skipped by the keyboard — the title above already leads here.
-          <Link href={`/editor/${post.slug}`} tabIndex={-1} aria-hidden="true" className="shrink-0">
+          <Link href={href} tabIndex={-1} aria-hidden="true" className="shrink-0">
             <Image
-              src={post.ogImage}
+              src={document.ogImage}
               alt=""
               width={160}
               height={107}
@@ -109,18 +127,30 @@ function PostCard({ post }: { post: PostSummary }) {
   );
 }
 
-function PostList({ posts }: { posts: PostSummary[] }) {
+function DocumentList({
+  collection,
+  documents,
+}: {
+  collection: CollectionName;
+  documents: DocumentSummary[];
+}) {
   return (
     <ul className="divide-y border-t">
-      {posts.map((post) => (
-        <PostCard key={post.slug} post={post} />
+      {documents.map((document) => (
+        <DocumentCard key={document.slug} collection={collection} document={document} />
       ))}
     </ul>
   );
 }
 
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">{children}</h2>
+  );
+}
+
 export default async function EditorIndex() {
-  const posts = await loadPosts();
+  const [posts, issues] = await Promise.all([loadDocuments(postStore), loadDocuments(issueStore)]);
 
   return (
     // The index is chrome, not a post, so it has no category to follow — it
@@ -145,7 +175,7 @@ export default async function EditorIndex() {
           </div>
           {/* The action sits with the list it adds to, not in the shared bar —
               the bar is navigation between editor surfaces. */}
-          <NewPostButton />
+          <NewDocumentButton collection="posts" label="New post" />
         </div>
 
         {CATEGORIES.map((category) => {
@@ -154,13 +184,27 @@ export default async function EditorIndex() {
 
           return (
             <section key={category} className="mt-10">
-              <h2 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
+              <SectionHeading>
                 {category} · {inCategory.length}
-              </h2>
-              <PostList posts={inCategory} />
+              </SectionHeading>
+              <DocumentList collection="posts" documents={inCategory} />
             </section>
           );
         })}
+
+        {/* Issues live on the same page as Posts rather than behind their own
+            route: there are a handful of them, they are written in the same
+            editor, and one list is one place to come back to. */}
+        <section className="mt-16">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-3xl font-extrabold tracking-tight">Newsletter</h2>
+            <NewDocumentButton collection="issues" label="New issue" />
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">{issues.length} issues</p>
+          <div className="mt-10">
+            <DocumentList collection="issues" documents={issues} />
+          </div>
+        </section>
       </main>
     </div>
   );

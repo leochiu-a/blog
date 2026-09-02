@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import sharp from "sharp";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPostStore } from "./store";
+import { COLLECTIONS } from "./collections";
+import { createAssetStore, createContentStore } from "./store";
 import { transcodeClip } from "./transcode";
 import { MAX_CLIP_BYTES } from "./uploads";
 
@@ -14,18 +15,27 @@ vi.mock("./transcode", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./transcode")>();
   return { ...actual, transcodeClip: vi.fn(actual.transcodeClip) };
 });
-import { createPost, deletePost, getPost, savePost, uploadImage, uploadVideo } from "./api";
-import { parsePost } from "./document";
+import {
+  createDocument,
+  deleteDocument,
+  getDocument,
+  saveDocument,
+  uploadImage,
+  uploadVideo,
+} from "./api";
+import { parseDocument } from "./document";
 
 const SOURCE = `---\ntitle: "Hello"\ndatetime: "2026-01-01"\n---\n\nBody.\n`;
 
 let root: string;
-let store: ReturnType<typeof createPostStore>;
+let store: ReturnType<typeof createContentStore>;
+let assets: ReturnType<typeof createAssetStore>;
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "editor-api-"));
   mkdirSync(join(root, "src/content/blog"), { recursive: true });
-  store = createPostStore(root);
+  store = createContentStore(root, COLLECTIONS.posts);
+  assets = createAssetStore(root);
   writeFileSync(join(root, "src/content/blog/hello.md"), SOURCE);
 });
 
@@ -38,7 +48,7 @@ const json = (body: unknown) =>
 
 describe("GET a post", () => {
   it("returns the parsed document", async () => {
-    const response = await getPost("hello", store);
+    const response = await getDocument("hello", store);
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
@@ -58,20 +68,20 @@ describe("GET a post", () => {
   });
 
   it("404s an unknown slug", async () => {
-    expect((await getPost("nope", store)).status).toBe(404);
+    expect((await getDocument("nope", store)).status).toBe(404);
   });
 
   it("400s a slug that tries to escape the posts directory", async () => {
-    expect((await getPost("../secret", store)).status).toBe(400);
+    expect((await getDocument("../secret", store)).status).toBe(400);
   });
 });
 
 describe("saving a post", () => {
   it("writes the serialized document back to disk", async () => {
-    const document = parsePost(SOURCE);
+    const document = parseDocument(SOURCE);
     document.frontmatter.title = "Renamed";
 
-    const response = await savePost("hello", json({ document }), store);
+    const response = await saveDocument("hello", json({ document }), store);
 
     expect(response.status).toBe(200);
     expect(readFileSync(join(root, "src/content/blog/hello.md"), "utf8")).toBe(
@@ -80,16 +90,24 @@ describe("saving a post", () => {
   });
 
   it("400s a body that is not a document", async () => {
-    expect((await savePost("hello", json({ document: null }), store)).status).toBe(400);
+    expect((await saveDocument("hello", json({ document: null }), store)).status).toBe(400);
   });
 
   it("400s a slug that tries to escape the posts directory", async () => {
-    const response = await savePost("../secret", json({ document: parsePost(SOURCE) }), store);
+    const response = await saveDocument(
+      "../secret",
+      json({ document: parseDocument(SOURCE) }),
+      store,
+    );
     expect(response.status).toBe(400);
   });
 
   it("404s a slug with no post behind it, rather than creating one", async () => {
-    const response = await savePost("never-existed", json({ document: parsePost(SOURCE) }), store);
+    const response = await saveDocument(
+      "never-existed",
+      json({ document: parseDocument(SOURCE) }),
+      store,
+    );
 
     expect(response.status).toBe(404);
     await expect(store.listSlugs()).resolves.toEqual(["hello"]);
@@ -98,7 +116,7 @@ describe("saving a post", () => {
 
 describe("creating a post", () => {
   it("creates a dated draft and returns its slug", async () => {
-    const response = await createPost(store);
+    const response = await createDocument(store);
 
     expect(response.status).toBe(201);
     const { slug } = (await response.json()) as { slug: string };
@@ -107,8 +125,8 @@ describe("creating a post", () => {
   });
 
   it("gives a second draft on the same day its own slug", async () => {
-    const first = (await (await createPost(store)).json()) as { slug: string };
-    const second = (await (await createPost(store)).json()) as { slug: string };
+    const first = (await (await createDocument(store)).json()) as { slug: string };
+    const second = (await (await createDocument(store)).json()) as { slug: string };
 
     expect(second.slug).toBe(`${first.slug}-2`);
   });
@@ -147,20 +165,20 @@ describe("uploading an image", () => {
   };
 
   it("returns the public path of the saved image, re-encoded as WebP", async () => {
-    const response = await uploadImage(form("Cat.png"), store);
+    const response = await uploadImage(form("Cat.png"), assets);
 
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toEqual({ src: "/blog-images/cat.webp" });
   });
 
   it("400s a file that is not an image", async () => {
-    expect((await uploadImage(form("notes.txt"), store)).status).toBe(400);
+    expect((await uploadImage(form("notes.txt"), assets)).status).toBe(400);
   });
 
   it("400s a request with no file", async () => {
     const response = await uploadImage(
       new Request("http://localhost/api", { method: "POST", body: new FormData() }),
-      store,
+      assets,
     );
     expect(response.status).toBe(400);
   });
@@ -172,7 +190,7 @@ describe("uploading a video", () => {
     data.set("file", new File([CLIP], "Demo Reel.mov", { type: "video/quicktime" }));
     const response = await uploadVideo(
       new Request("http://localhost/api", { method: "POST", body: data }),
-      store,
+      assets,
     );
 
     expect(response.status).toBe(201);
@@ -193,7 +211,7 @@ describe("uploading a video", () => {
     data.set("file", new File([CLIP], "long.mp4", { type: "video/mp4" }));
     const response = await uploadVideo(
       new Request("http://localhost/api", { method: "POST", body: data }),
-      store,
+      assets,
     );
 
     // Distinct from the 400 below: the file was readable, it is just too long.
@@ -208,7 +226,7 @@ describe("uploading a video", () => {
     data.set("file", new File([new Uint8Array([1, 2, 3])], "clip.mp4", { type: "video/mp4" }));
     const response = await uploadVideo(
       new Request("http://localhost/api", { method: "POST", body: data }),
-      store,
+      assets,
     );
 
     expect(response.status).toBe(400);
@@ -217,7 +235,7 @@ describe("uploading a video", () => {
 
 describe("deleting a post", () => {
   it("removes the file and reports the slug", async () => {
-    const response = await deletePost("hello", store);
+    const response = await deleteDocument("hello", store);
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ slug: "hello" });
@@ -225,10 +243,10 @@ describe("deleting a post", () => {
   });
 
   it("404s an unknown slug", async () => {
-    expect((await deletePost("nope", store)).status).toBe(404);
+    expect((await deleteDocument("nope", store)).status).toBe(404);
   });
 
   it("400s a slug that tries to escape the posts directory", async () => {
-    expect((await deletePost("../secret", store)).status).toBe(400);
+    expect((await deleteDocument("../secret", store)).status).toBe(400);
   });
 });

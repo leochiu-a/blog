@@ -2,7 +2,7 @@ import { getSchema } from "@tiptap/core";
 import { EditorState, TextSelection } from "@tiptap/pm/state";
 import { describe, expect, it } from "vitest";
 import { backspaceOutOfQuote, cycleQuote, enterOutOfPullQuote, extensions } from "./extensions";
-import { parsePost } from "./document";
+import { parseDocument } from "./document";
 import type { PmNode } from "./types";
 
 const schema = getSchema(extensions);
@@ -10,7 +10,7 @@ const schema = getSchema(extensions);
 /** The document a post loads as, with the cursor at the very end of the body. */
 function stateAtEnd(body: string) {
   const source = `---\ntitle: "t"\ndatetime: "2026-01-01"\n---\n\n${body}\n`;
-  const doc = parsePost(source).doc as PmNode;
+  const doc = parseDocument(source).doc as PmNode;
   const node = schema.nodeFromJSON({
     ...doc,
     content: [...(doc.content ?? []), { type: "paragraph" }],
@@ -98,7 +98,7 @@ describe("cycling a block through the quote styles", () => {
   /** The cursor inside the first block of the document. */
   function stateInFirstBlock(body: string) {
     const source = `---\ntitle: "t"\ndatetime: "2026-01-01"\n---\n\n${body}\n`;
-    const doc = parsePost(source).doc as PmNode;
+    const doc = parseDocument(source).doc as PmNode;
     const state = EditorState.create({ schema, doc: schema.nodeFromJSON(doc) });
     return state.apply(state.tr.setSelection(TextSelection.near(state.doc.resolve(2))));
   }
