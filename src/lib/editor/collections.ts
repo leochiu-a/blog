@@ -27,6 +27,16 @@ export interface Collection {
   requiredKeys: string[];
   /** Where a published document is served, for the Preview link. */
   previewBase: string;
+  /**
+   * Whether blocks beyond plain Markdown are worth offering.
+   *
+   * An Issue is rendered into an inbox by `src/lib/newsletter/email.ts`, which
+   * knows Markdown and nothing else: an MDX component there is dropped from
+   * the email while still showing on the archive page — written, visible in
+   * preview, and silently missing from the thing that was actually sent. So
+   * the editor does not offer them, and does not take a dropped image either.
+   */
+  mdxBlocks: boolean;
   /** The frontmatter a new draft is created with, given today's date. */
   newDraft: (today: string) => Record<string, unknown>;
 }
@@ -44,6 +54,7 @@ export const COLLECTIONS: Record<CollectionName, Collection> = {
     directory: "src/content/blog",
     requiredKeys: requiredKeys(postFrontmatterSchema.shape),
     previewBase: "/blog",
+    mdxBlocks: true,
     // Every field content-collections requires, so a new post compiles the
     // moment it lands on disk. `draft` keeps it out of production until ready.
     newDraft: (today) => ({
@@ -60,6 +71,7 @@ export const COLLECTIONS: Record<CollectionName, Collection> = {
     directory: "src/content/newsletter",
     requiredKeys: requiredKeys(issueFrontmatterSchema.shape),
     previewBase: "/newsletter",
+    mdxBlocks: false,
     // An Issue has no category and no read time: it is written for an inbox,
     // where neither means anything.
     newDraft: (today) => ({ title: "", datetime: today, draft: true }),

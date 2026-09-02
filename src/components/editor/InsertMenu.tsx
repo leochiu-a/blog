@@ -5,10 +5,12 @@ import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PlusIcon } from "lucide-react";
+import { collectionOf, type CollectionName } from "@/lib/editor/collections";
 import { VIDEO_ACCEPT } from "@/lib/editor/uploads";
 import { MDX_BLOCKS, specFor } from "./mdx-blocks";
 
 type Props = {
+  collection: CollectionName;
   editor: Editor;
   onUploadImage: (file: File) => Promise<void>;
   onUploadVideo: (file: File) => Promise<void>;
@@ -24,7 +26,12 @@ function onEmptyParagraph(editor: Editor): boolean {
   return empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0;
 }
 
-export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
+export function InsertMenu({ collection, editor, onUploadImage, onUploadVideo }: Props) {
+  // What the collection can actually render. An Issue is Markdown on its way
+  // to an inbox: an MDX block, an upload and a fenced code block all reach the
+  // archive page and none of them reach the email, so the menu leaves them out
+  // rather than offering a block that disappears on the way out.
+  const { mdxBlocks } = collectionOf(collection);
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState<number | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
@@ -80,15 +87,23 @@ export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
   };
 
   /** The two file pickers: label, what it offers, and where the file goes. */
-  const uploads: Array<[string, string, (file: File) => Promise<void>]> = [
-    ["圖片（上傳）", "image/*", onUploadImage],
-    ["影片（上傳短片）", VIDEO_ACCEPT, onUploadVideo],
-  ];
+  const uploads: Array<[string, string, (file: File) => Promise<void>]> = mdxBlocks
+    ? [
+        ["圖片（上傳）", "image/*", onUploadImage],
+        ["影片（上傳短片）", VIDEO_ACCEPT, onUploadVideo],
+      ]
+    : [];
 
-  const actions: Array<[string, () => void]> = [
+  /** Blocks an email cannot carry: the MDX components, and a fenced code block. */
+  const rich: Array<[string, () => void]> = [
     ...MDX_BLOCKS.map(
       (block) => [block.label, () => insertMdx(block.name)] as [string, () => void],
     ),
+    ["程式碼區塊", () => (setOpen(false), editor.chain().focus().toggleCodeBlock().run())],
+  ];
+
+  /** Plain Markdown, which every collection renders — inbox included. */
+  const prose: Array<[string, () => void]> = [
     [
       "Pull quote（>>）",
       () => {
@@ -96,9 +111,10 @@ export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
         editor.chain().focus().toggleBlockquote().toggleBlockquote().run();
       },
     ],
-    ["程式碼區塊", () => (setOpen(false), editor.chain().focus().toggleCodeBlock().run())],
     ["分隔線", () => (setOpen(false), editor.chain().focus().setHorizontalRule().run())],
   ];
+
+  const actions = mdxBlocks ? [...rich, ...prose] : prose;
 
   return (
     <div ref={anchor} className="pointer-events-none absolute inset-0">

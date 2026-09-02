@@ -140,6 +140,7 @@ export function DocumentEditor({
   slug: string;
   initialDocument: EditorDocument;
 }) {
+  const { mdxBlocks } = collectionOf(collection);
   const [frontmatter, setFrontmatter] = useState(initialDocument.frontmatter);
   const [showSettings, setShowSettings] = useState(false);
   // A refused upload — an oversized clip, above all — has to say so somewhere;
@@ -299,6 +300,14 @@ export function DocumentEditor({
 
   useEffect(() => {
     uploadFiles.current = (files) => {
+      // An upload lands as an MDX block, which an Issue cannot carry: the
+      // archive page would show it and the email would not. Refusing the file
+      // and saying so beats accepting one that disappears in the inbox.
+      if (!mdxBlocks) {
+        setUploadError("電子報是純文字排版：圖片和影片不會出現在寄出去的信裡");
+        return;
+      }
+
       // Sequential: each upload inserts at the cursor, so order matters.
       void files.reduce(
         (previous, file) =>
@@ -308,7 +317,7 @@ export function DocumentEditor({
         Promise.resolve(),
       );
     };
-  }, [uploadImage, uploadVideo]);
+  }, [mdxBlocks, uploadImage, uploadVideo]);
 
   useEffect(() => {
     if (!editor) return;
@@ -396,7 +405,12 @@ export function DocumentEditor({
 
           <div className="relative mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
             {editor && (
-              <InsertMenu editor={editor} onUploadImage={uploadImage} onUploadVideo={uploadVideo} />
+              <InsertMenu
+                collection={collection}
+                editor={editor}
+                onUploadImage={uploadImage}
+                onUploadVideo={uploadVideo}
+              />
             )}
             {editor && <BubbleToolbar editor={editor} />}
             {editor && <LinkPopover editor={editor} />}

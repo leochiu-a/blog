@@ -77,6 +77,29 @@ export function SettingsPanel({
     </Field>
   );
 
+  /**
+   * The day, picked rather than typed. An Issue's `datetime` carries a time and
+   * a UTC offset that nothing here should be rewriting, so whatever follows the
+   * day is kept exactly as the file had it.
+   */
+  const date = (key: string, label: string) => {
+    const current = readText(frontmatter, key);
+    return (
+      <Field>
+        <FieldLabel htmlFor={key}>{label}</FieldLabel>
+        <Input
+          id={key}
+          type="date"
+          value={current.slice(0, 10)}
+          onChange={(event) => {
+            const day = event.target.value;
+            setText(key, day === "" ? "" : `${day}${current.slice(10)}`);
+          }}
+        />
+      </Field>
+    );
+  };
+
   const choice = (key: string, label: string, options: readonly string[]) => (
     <Field>
       <FieldLabel htmlFor={key}>{label}</FieldLabel>
@@ -119,7 +142,7 @@ export function SettingsPanel({
             />
           </Field>
 
-          {text("datetime", "datetime", "2026-01-01")}
+          {date("datetime", "datetime")}
 
           {collection === "posts" && (
             <>
