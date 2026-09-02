@@ -141,9 +141,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.5
         version: 19.2.5(@types/react@19.2.18)
-      date-fns:
-        specifier: ^4.4.0
-        version: 4.4.0
       happy-dom:
         specifier: ^20.11.13
         version: 20.11.13
