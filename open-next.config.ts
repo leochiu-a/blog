@@ -1,7 +1,7 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache";
 
-export default defineCloudflareConfig({
+const config = defineCloudflareConfig({
   // Every route here is prerendered at build time and only changes on a
   // redeploy, so the prerendered HTML can live in Workers Assets alongside the
   // rest of the static output. Without this the worker re-rendered each page on
@@ -16,3 +16,19 @@ export default defineCloudflareConfig({
   // involved. Safe here because nothing uses PPR.
   enableCacheInterception: true,
 });
+
+/**
+ * How OpenNext builds the Next app.
+ *
+ * Without this it runs the package's own `build` script — which is the script
+ * that calls `opennextjs-cloudflare build` — and the two call each other until
+ * the machine gives up. Naming the Next build here is what lets `pnpm build`
+ * mean "produce the thing wrangler.jsonc points at" rather than "produce
+ * `.next/` and stop half way".
+ *
+ * `wrangler types` is not part of this: `postinstall` already runs it, so the
+ * generated bindings are in place before any build starts.
+ */
+config.buildCommand = "next build";
+
+export default config;
