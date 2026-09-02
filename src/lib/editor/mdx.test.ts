@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { MDX_BLOCKS, specFor } from "@/components/editor/mdx-blocks";
-import { parsePost, serializePost } from "./document";
+import { parseDocument, serializeDocument } from "./document";
 import type { MdxAttribute, PmNode } from "./types";
 
 const FRONTMATTER = `---\ntitle: "t"\ndatetime: "2026-01-01"\n---\n\n`;
@@ -21,11 +21,11 @@ const attributesOf = (block: PmNode) => (block.attrs as { attributes: MdxAttribu
 describe("MDX components", () => {
   it.each(COMPONENTS)("keeps %s intact through a round-trip", (component) => {
     const source = post(component);
-    expect(serializePost(parsePost(source))).toBe(source);
+    expect(serializeDocument(parseDocument(source))).toBe(source);
   });
 
   it("exposes string and expression attributes separately", () => {
-    const document = parsePost(post(COMPONENTS[0]!));
+    const document = parseDocument(post(COMPONENTS[0]!));
     const [block] = document.doc.content!;
 
     expect(block!.type).toBe("mdxBlock");
@@ -40,7 +40,7 @@ describe("MDX components", () => {
   });
 
   it("serializes an edited attribute back as JSX", () => {
-    const document = parsePost(post(COMPONENTS[1]!));
+    const document = parseDocument(post(COMPONENTS[1]!));
     const [block] = document.doc.content!;
     const attributes = attributesOf(block!).map((attribute) =>
       attribute.name === "alt"
@@ -55,13 +55,13 @@ describe("MDX components", () => {
       doc: { ...document.doc, content: [{ ...block!, attrs: { ...block!.attrs, attributes } }] },
     };
 
-    expect(serializePost(edited)).toBe(
+    expect(serializeDocument(edited)).toBe(
       post(`<Figure src="/a.png" alt="changed" width={640} height={800} />`),
     );
   });
 
   it("keeps a component's children editable as rich text", () => {
-    const document = parsePost(post(COMPONENTS[2]!));
+    const document = parseDocument(post(COMPONENTS[2]!));
     const [block] = document.doc.content!;
 
     expect(block!.content).toEqual([

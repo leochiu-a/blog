@@ -1,4 +1,4 @@
 import { uploadVideo } from "@/lib/editor/api";
-import { postStore } from "@/lib/editor/store";
+import { assetStore } from "@/lib/editor/store";
 
-export const POST = (request: Request) => uploadVideo(request, postStore);
+export const POST = (request: Request) => uploadVideo(request, assetStore);

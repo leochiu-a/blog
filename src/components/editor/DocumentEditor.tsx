@@ -15,8 +15,9 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { TextSelection } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
+import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
 import { createExtensions } from "@/lib/editor/extensions";
-import type { Clip, PmNode, PostDocument } from "@/lib/editor/types";
+import type { Clip, PmNode, EditorDocument } from "@/lib/editor/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { readText, withField } from "@/lib/editor/frontmatter-fields";
@@ -33,6 +34,7 @@ import { LinkPopover } from "./LinkPopover";
 import { CodeBlockView } from "./CodeBlockView";
 import { EditorToc } from "./EditorToc";
 import { InsertMenu } from "./InsertMenu";
+import { acceptsUploads } from "./insert-options";
 import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
 import { SettingsPanel } from "./SettingsPanel";
@@ -54,8 +56,8 @@ function mediaFiles(data: DataTransfer | null) {
   );
 }
 
-async function save(slug: string, document: PostDocument) {
-  const response = await fetch(`/api/editor/posts/${slug}/`, {
+async function save(collection: CollectionName, slug: string, document: EditorDocument) {
+  const response = await fetch(apiPath(collection, slug), {
     method: "PUT",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ document }),
@@ -125,13 +127,21 @@ function endUpload(view: EditorView, id: string, setUpload: SetUpload): void {
   setUpload((current) => (current?.id === id ? null : current));
 }
 
-export function PostEditor({
+/**
+ * The writing surface, for either collection. What a Post and an Issue do not
+ * share — which API saves it, where it is previewed, which settings it has —
+ * comes from the collection; everything about editing prose is the same.
+ */
+export function DocumentEditor({
+  collection,
   slug,
   initialDocument,
 }: {
+  collection: CollectionName;
   slug: string;
-  initialDocument: PostDocument;
+  initialDocument: EditorDocument;
 }) {
+  const takesUploads = acceptsUploads(collection);
   const [frontmatter, setFrontmatter] = useState(initialDocument.frontmatter);
   const [showSettings, setShowSettings] = useState(false);
   // A refused upload — an oversized clip, above all — has to say so somewhere;
@@ -142,7 +152,7 @@ export function PostEditor({
   // meantime looks exactly like one that swallowed the file.
   const [upload, setUpload] = useState<Upload | null>(null);
 
-  const { status, schedule } = useAutosave((document) => save(slug, document));
+  const { status, schedule } = useAutosave((document) => save(collection, slug, document));
 
   const extensions = useMemo(
     () => [
@@ -192,7 +202,7 @@ export function PostEditor({
 
   /** One place that assembles what gets written to disk. */
   const scheduleSave = useCallback(
-    (next: Partial<PostDocument>) => {
+    (next: Partial<EditorDocument>) => {
       if (!editor) return;
       schedule({
         frontmatterSource: initialDocument.frontmatterSource,
@@ -291,6 +301,14 @@ export function PostEditor({
 
   useEffect(() => {
     uploadFiles.current = (files) => {
+      // An upload lands as an MDX block, which an Issue cannot carry: the
+      // archive page would show it and the email would not. Refusing the file
+      // and saying so beats accepting one that disappears in the inbox.
+      if (!takesUploads) {
+        setUploadError("電子報是純文字排版：圖片和影片不會出現在寄出去的信裡");
+        return;
+      }
+
       // Sequential: each upload inserts at the cursor, so order matters.
       void files.reduce(
         (previous, file) =>
@@ -300,7 +318,7 @@ export function PostEditor({
         Promise.resolve(),
       );
     };
-  }, [uploadImage, uploadVideo]);
+  }, [takesUploads, uploadImage, uploadVideo]);
 
   useEffect(() => {
     if (!editor) return;
@@ -311,13 +329,15 @@ export function PostEditor({
     };
   }, [editor, scheduleSave]);
 
-  const isProfessional = frontmatter.category === "professional";
+  // The editor reads the way the page it writes reads: a professional Post is
+  // dark and a personal one is light, and every newsletter page is dark.
+  const isDark = collection === "issues" || frontmatter.category === "professional";
 
   return (
-    <div className={cn("min-h-screen", isProfessional && "dark")}>
+    <div className={cn("min-h-screen", isDark && "dark")}>
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/90 px-6 py-2 font-sans text-sm backdrop-blur">
         <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/editor" />}>
-          ← Posts
+          ← {collectionOf(collection).label}
         </Button>
         <Separator orientation="vertical" className="h-5" />
         <span className="flex-1 truncate text-muted-foreground">{slug}</span>
@@ -343,11 +363,17 @@ export function PostEditor({
           variant="ghost"
           size="sm"
           nativeButton={false}
-          render={<Link href={`/blog/${slug}/`} target="_blank" />}
+          render={
+            <Link href={`${collectionOf(collection).previewBase}/${slug}/`} target="_blank" />
+          }
         >
           Preview
         </Button>
-        <PublishButton frontmatter={frontmatter} onChange={updateFrontmatter} />
+        <PublishButton
+          collection={collection}
+          frontmatter={frontmatter}
+          onChange={updateFrontmatter}
+        />
         <Button variant="ghost" size="sm" onClick={() => setShowSettings((open) => !open)}>
           Settings
         </Button>
@@ -380,7 +406,12 @@ export function PostEditor({
 
           <div className="relative mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
             {editor && (
-              <InsertMenu editor={editor} onUploadImage={uploadImage} onUploadVideo={uploadVideo} />
+              <InsertMenu
+                collection={collection}
+                editor={editor}
+                onUploadImage={uploadImage}
+                onUploadVideo={uploadVideo}
+              />
             )}
             {editor && <BubbleToolbar editor={editor} />}
             {editor && <LinkPopover editor={editor} />}
@@ -404,6 +435,7 @@ export function PostEditor({
         )}
 
       <SettingsPanel
+        collection={collection}
         slug={slug}
         frontmatter={frontmatter}
         onChange={updateFrontmatter}

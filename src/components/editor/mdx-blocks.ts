@@ -33,7 +33,7 @@ export const MDX_BLOCKS: MdxBlockSpec[] = [
       expression("height", "800"),
       text("caption"),
     ],
-    // Dropping an image sets all three from the file itself (PostEditor's
+    // Dropping an image sets all three from the file itself (DocumentEditor's
     // `uploadImage`, which reads the real bitmap size). `alt` and `caption`
     // are the only two a person writes.
     derived: ["src", "width", "height"],
@@ -64,7 +64,7 @@ export const MDX_BLOCKS: MdxBlockSpec[] = [
       text("caption"),
     ],
     // A clip only ever arrives by upload, which reads the real frame size and
-    // cuts the poster (PostEditor's `uploadVideo`). `caption` is the one field
+    // cuts the poster (DocumentEditor's `uploadVideo`). `caption` is the one field
     // a person writes.
     derived: ["src", "poster", "width", "height"],
   },

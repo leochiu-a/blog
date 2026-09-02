@@ -5,10 +5,17 @@ import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PlusIcon } from "lucide-react";
-import { VIDEO_ACCEPT } from "@/lib/editor/uploads";
-import { MDX_BLOCKS, specFor } from "./mdx-blocks";
+import type { CollectionName } from "@/lib/editor/collections";
+import {
+  insertOptions,
+  type InsertCommand,
+  type InsertOption,
+  type UploadOption,
+} from "./insert-options";
+import { specFor } from "./mdx-blocks";
 
 type Props = {
+  collection: CollectionName;
   editor: Editor;
   onUploadImage: (file: File) => Promise<void>;
   onUploadVideo: (file: File) => Promise<void>;
@@ -24,7 +31,18 @@ function onEmptyParagraph(editor: Editor): boolean {
   return empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0;
 }
 
-export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
+/** The commands with nothing to configure, keyed by the option that names one. */
+const COMMANDS: Record<InsertCommand, (editor: Editor) => void> = {
+  codeBlock: (editor) => editor.chain().focus().toggleCodeBlock().run(),
+  // Twice, because the first call only extends the blockquote the caret is in.
+  pullQuote: (editor) => editor.chain().focus().toggleBlockquote().toggleBlockquote().run(),
+  horizontalRule: (editor) => editor.chain().focus().setHorizontalRule().run(),
+};
+
+export function InsertMenu({ collection, editor, onUploadImage, onUploadVideo }: Props) {
+  // What this collection may insert lives in `insert-options`, which is where
+  // the reasoning about what an email can carry belongs.
+  const options = insertOptions(collection);
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState<number | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
@@ -65,7 +83,6 @@ export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
   const insertMdx = (name: string) => {
     const spec = specFor(name);
     if (!spec) return;
-    setOpen(false);
     editor
       .chain()
       .focus()
@@ -79,26 +96,14 @@ export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
       .run();
   };
 
-  /** The two file pickers: label, what it offers, and where the file goes. */
-  const uploads: Array<[string, string, (file: File) => Promise<void>]> = [
-    ["圖片（上傳）", "image/*", onUploadImage],
-    ["影片（上傳短片）", VIDEO_ACCEPT, onUploadVideo],
-  ];
+  const uploads = options.filter((option): option is UploadOption => option.kind === "upload");
+  const actions = options.filter((option) => option.kind !== "upload");
 
-  const actions: Array<[string, () => void]> = [
-    ...MDX_BLOCKS.map(
-      (block) => [block.label, () => insertMdx(block.name)] as [string, () => void],
-    ),
-    [
-      "Pull quote（>>）",
-      () => {
-        setOpen(false);
-        editor.chain().focus().toggleBlockquote().toggleBlockquote().run();
-      },
-    ],
-    ["程式碼區塊", () => (setOpen(false), editor.chain().focus().toggleCodeBlock().run())],
-    ["分隔線", () => (setOpen(false), editor.chain().focus().setHorizontalRule().run())],
-  ];
+  const run = (option: InsertOption) => {
+    setOpen(false);
+    if (option.kind === "mdx") insertMdx(option.block);
+    if (option.kind === "command") COMMANDS[option.command](editor);
+  };
 
   return (
     <div ref={anchor} className="pointer-events-none absolute inset-0">
@@ -116,33 +121,36 @@ export function InsertMenu({ editor, onUploadImage, onUploadVideo }: Props) {
             </PopoverTrigger>
 
             <PopoverContent align="start" side="right" className="w-64 p-1">
-              {uploads.map(([label, accept, run]) => (
+              {uploads.map((option) => (
                 <label
-                  key={label}
+                  key={option.id}
                   className="flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                 >
-                  {label}
+                  {option.label}
                   <input
                     type="file"
-                    accept={accept}
+                    accept={option.accept}
                     hidden
                     onChange={async (event) => {
                       const selected = event.target.files?.[0];
                       event.target.value = "";
                       setOpen(false);
-                      if (selected) await run(selected);
+                      if (!selected) return;
+                      await (option.target === "video"
+                        ? onUploadVideo(selected)
+                        : onUploadImage(selected));
                     }}
                   />
                 </label>
               ))}
-              {actions.map(([label, run]) => (
+              {actions.map((option) => (
                 <Button
-                  key={label}
+                  key={option.id}
                   variant="ghost"
                   className="w-full justify-start font-normal"
-                  onClick={run}
+                  onClick={() => run(option)}
                 >
-                  {label}
+                  {option.label}
                 </Button>
               ))}
             </PopoverContent>

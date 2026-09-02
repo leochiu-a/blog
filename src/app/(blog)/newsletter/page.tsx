@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SubscribeForm } from "@/components/newsletter/SubscribeForm";
+import { newsletter } from "@/data/content";
 import { issues } from "@/lib/issues";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "電子報 • Leo Chiu",
-  description: "每兩週，分享寫作與所見。",
+  description: newsletter.pitch[0],
   alternates: { canonical: `${SITE_URL}/newsletter/` },
 };
 
@@ -30,21 +31,20 @@ export default function NewsletterPage() {
               That is the point: Chinese wraps per character, so a headline that
               needs to wrap will break mid-word and strand single glyphs. */}
         <h1 className="font-sans text-3xl font-extrabold leading-[1.2] tracking-tight sm:text-4xl md:text-5xl">
-          工程上真的踩過的東西
+          {newsletter.headline}
         </h1>
         {/* Body copy can wrap, but only between phrases: each span is
               inline-block, so a line can break in the gaps and nowhere else. */}
         <p className="mt-5 max-w-[30rem] font-sans text-lg leading-relaxed text-muted-foreground">
-          <span className="inline-block">每兩週，分享寫作與所見。</span>
-          <span className="inline-block">每天進步一點點，</span>
-          <span className="inline-block">一起在終點遇見更好的自己。</span>
+          {newsletter.pitch.map((piece) => (
+            <span key={piece} className="inline-block">
+              {piece}
+            </span>
+          ))}
         </p>
         <div className="mt-8 flex w-full justify-center">
           <SubscribeForm source="/newsletter/" />
         </div>
-        <p className="mt-4 font-sans text-sm text-muted-foreground">
-          隨時可以退訂，一鍵，不會問你為什麼。
-        </p>
       </section>
 
       {issues.length > 0 && (

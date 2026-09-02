@@ -20,6 +20,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { CATEGORIES } from "@/lib/post-frontmatter";
+import { collectionOf, type CollectionName } from "@/lib/editor/collections";
 import {
   readFlag,
   readList,
@@ -28,9 +29,11 @@ import {
   without,
   type FrontmatterValues,
 } from "@/lib/editor/frontmatter-fields";
+import { DateField } from "./DateField";
 import { TagInput } from "./TagInput";
 
 type Props = {
+  collection: CollectionName;
   frontmatter: FrontmatterValues;
   onChange: (next: FrontmatterValues) => void;
   open: boolean;
@@ -39,12 +42,26 @@ type Props = {
 };
 
 /**
- * Post settings live here rather than in the writing surface, the way Medium
- * and Substack split "the story" from "everything about the story".
+ * Settings live here rather than in the writing surface, the way Medium and
+ * Substack split "the story" from "everything about the story".
+ *
+ * Which fields there are is the collection's business: a Post is filed and
+ * indexed — a category, tags, an image, a read time — while an Issue is a
+ * letter, and the only thing it has that a Post does not is the subject line
+ * the inbox shows.
  */
-export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug }: Props) {
+export function SettingsPanel({
+  collection,
+  frontmatter,
+  onChange,
+  open,
+  onOpenChange,
+  slug,
+}: Props) {
+  const { itemLabel, previewBase, requiredKeys } = collectionOf(collection);
+
   const set = (key: string, value: unknown) => onChange(withField(frontmatter, key, value));
-  const clear = (key: string) => onChange(without(frontmatter, key));
+  const clear = (key: string) => onChange(without(frontmatter, key, requiredKeys));
 
   /** An emptied optional field is a removed key; a required one is only blanked. */
   const setText = (key: string, value: string) => (value === "" ? clear(key) : set(key, value));
@@ -60,6 +77,25 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
       />
     </Field>
   );
+
+  /**
+   * The day, picked rather than typed. An Issue's `datetime` carries a time and
+   * a UTC offset that nothing here should be rewriting, so whatever follows the
+   * day is kept exactly as the file had it.
+   */
+  const date = (key: string, label: string) => {
+    const current = readText(frontmatter, key);
+    return (
+      <Field>
+        <FieldLabel htmlFor={key}>{label}</FieldLabel>
+        <DateField
+          id={key}
+          value={current}
+          onChange={(day) => set(key, `${day}${current.slice(10)}`)}
+        />
+      </Field>
+    );
+  };
 
   const choice = (key: string, label: string, options: readonly string[]) => (
     <Field>
@@ -85,8 +121,10 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[22rem] overflow-y-auto font-sans sm:max-w-none">
         <SheetHeader>
-          <SheetTitle>Post settings</SheetTitle>
-          <SheetDescription>/blog/{slug}/</SheetDescription>
+          <SheetTitle>{itemLabel} settings</SheetTitle>
+          <SheetDescription>
+            {previewBase}/{slug}/
+          </SheetDescription>
         </SheetHeader>
 
         <FieldGroup className="px-4 pb-6">
@@ -101,28 +139,39 @@ export function SettingsPanel({ frontmatter, onChange, open, onOpenChange, slug 
             />
           </Field>
 
-          {text("datetime", "datetime", "2026-01-01")}
-          {text("readTime", "readTime", "5 min")}
-          {choice("category", "category", CATEGORIES)}
-          {text("ogImage", "ogImage", "/blog-images/…")}
+          {date("datetime", "datetime")}
 
-          <Field>
-            <FieldLabel htmlFor="tags">tags</FieldLabel>
-            <TagInput
-              id="tags"
-              tags={readList(frontmatter, "tags")}
-              onChange={(next) => (next.length > 0 ? set("tags", next) : clear("tags"))}
-            />
-          </Field>
+          {collection === "posts" && (
+            <>
+              {text("readTime", "readTime", "5 min")}
+              {choice("category", "category", CATEGORIES)}
+              {text("ogImage", "ogImage", "/blog-images/…")}
 
-          <Field orientation="horizontal">
-            <FieldLabel htmlFor="featured">featured</FieldLabel>
-            <Switch
-              id="featured"
-              checked={readFlag(frontmatter, "featured")}
-              onCheckedChange={(checked) => (checked ? set("featured", true) : clear("featured"))}
-            />
-          </Field>
+              <Field>
+                <FieldLabel htmlFor="tags">tags</FieldLabel>
+                <TagInput
+                  id="tags"
+                  tags={readList(frontmatter, "tags")}
+                  onChange={(next) => (next.length > 0 ? set("tags", next) : clear("tags"))}
+                />
+              </Field>
+
+              <Field orientation="horizontal">
+                <FieldLabel htmlFor="featured">featured</FieldLabel>
+                <Switch
+                  id="featured"
+                  checked={readFlag(frontmatter, "featured")}
+                  onCheckedChange={(checked) =>
+                    checked ? set("featured", true) : clear("featured")
+                  }
+                />
+              </Field>
+            </>
+          )}
+
+          {/* Only when it should read differently from the title — empty means
+              the subject is the title, which is what the send script does. */}
+          {collection === "issues" && text("subject", "subject", "留空就用標題")}
         </FieldGroup>
       </SheetContent>
     </Sheet>

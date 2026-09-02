@@ -1,7 +1,7 @@
 import { getSchema } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
 import { extensions } from "./extensions";
-import { parsePost } from "./document";
+import { parseDocument } from "./document";
 import { activeEntry, readOutline } from "./outline";
 import type { PmNode } from "./types";
 
@@ -10,7 +10,7 @@ const schema = getSchema(extensions);
 /** A post body as the editor holds it, ready to be read for its sections. */
 function docOf(body: string) {
   const source = `---\ntitle: "t"\ndatetime: "2026-01-01"\n---\n\n${body}\n`;
-  return schema.nodeFromJSON(parsePost(source).doc as PmNode);
+  return schema.nodeFromJSON(parseDocument(source).doc as PmNode);
 }
 
 describe("readOutline", () => {

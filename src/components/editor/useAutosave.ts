@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PostDocument } from "@/lib/editor/types";
+import type { EditorDocument } from "@/lib/editor/types";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -11,10 +11,10 @@ export type SaveStatus = "idle" | "saving" | "saved" | "error";
  */
 const DELAY_MS = 800;
 
-export function useAutosave(save: (document: PostDocument) => Promise<void>) {
+export function useAutosave(save: (document: EditorDocument) => Promise<void>) {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pending = useRef<PostDocument | null>(null);
+  const pending = useRef<EditorDocument | null>(null);
   const saveRef = useRef(save);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export function useAutosave(save: (document: PostDocument) => Promise<void>) {
   }, []);
 
   const schedule = useCallback(
-    (value: PostDocument) => {
+    (value: EditorDocument) => {
       pending.current = value;
       setStatus("idle");
       if (timer.current) clearTimeout(timer.current);

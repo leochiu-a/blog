@@ -77,10 +77,12 @@ the daily cap and Turnstile are what actually carry that load.
 
 ## Writing and sending
 
-Write an Issue as a file in `src/content/newsletter/`, using
-`hello-newsletter.md` as the shape. The dev editor at `/editor` still only
-knows about posts — `src/lib/editor/store.ts` is fixed to `src/content/blog` —
-so teaching it about Issues is a separate change.
+Write an Issue in the dev editor: `pnpm dev`, then `/editor`, then **New issue**
+under Newsletter. It is the same writing surface posts use, saving to
+`src/content/newsletter/` — its settings are the ones an Issue has (a
+description, a date, and a subject line for when it should read differently
+from the title). Writing the file by hand works just as well; use
+`hello-newsletter.md` as the shape.
 
 Keep `draft: true` until the Issue is finished: a draft is hidden from the
 archive and the send script refuses to mail it. Then:

@@ -20,13 +20,13 @@ export function AuthorBio() {
       <Image
         src={author.photo}
         alt={`${author.name} 的照片`}
-        width={56}
-        height={56}
+        width={64}
+        height={64}
         loading="lazy"
-        className="size-14 shrink-0 rounded-full object-cover"
+        className="size-16 shrink-0 rounded-full object-cover"
       />
       <div className="min-w-0">
-        <p className="font-sans text-base font-bold leading-snug">
+        <p className="font-sans text-lg font-bold leading-snug">
           {/* The home page is where the fuller bio and the work live — a reader
               who arrived from search has no other route to it. */}
           <Link href="/" className="transition-colors hover:text-blog-accent">
@@ -36,7 +36,9 @@ export function AuthorBio() {
             {author.jobTitle} @ {author.company}
           </span>
         </p>
-        <p className="mt-1 font-sans text-sm leading-relaxed text-muted-foreground">{author.bio}</p>
+        <p className="mt-1.5 font-sans text-base leading-relaxed text-muted-foreground">
+          {author.bio}
+        </p>
         <nav className="mt-2 flex flex-wrap gap-x-4" aria-label={`${author.name} 的其他連結`}>
           {profiles.map(({ label, href }) => (
             <a

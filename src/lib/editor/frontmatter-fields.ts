@@ -1,5 +1,3 @@
-import { REQUIRED_KEYS } from "@/lib/post-frontmatter";
-
 /**
  * Frontmatter as the file actually holds it — YAML the editor didn't write can
  * contain anything — with typed access on top, so call sites stop casting.
@@ -29,14 +27,18 @@ export function withField(
 }
 
 /**
- * Remove a field — except a required one, which is blanked instead.
+ * Remove a field — except one the collection requires, which is blanked instead.
  *
- * Dropping `datetime` or `readTime` stops the post compiling, and an editor
+ * Dropping `datetime` or `readTime` stops the document compiling, and an editor
  * that does it the moment you clear an input is an editor that breaks the
  * build behind your back. Emptying is visible; deleting isn't.
  */
-export function without(frontmatter: FrontmatterValues, key: string): FrontmatterValues {
-  if (REQUIRED_KEYS.includes(key)) return { ...frontmatter, [key]: "" };
+export function without(
+  frontmatter: FrontmatterValues,
+  key: string,
+  requiredKeys: string[],
+): FrontmatterValues {
+  if (requiredKeys.includes(key)) return { ...frontmatter, [key]: "" };
 
   const { [key]: _removed, ...rest } = frontmatter;
   return rest;
