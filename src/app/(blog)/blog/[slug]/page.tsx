@@ -9,6 +9,7 @@ import { PostToc } from "@/components/blog/PostToc";
 import { SectionArrival } from "@/components/blog/SectionArrival";
 import { SectionLanding } from "@/components/blog/SectionLanding";
 import { RecentPosts } from "@/components/blog/RecentPosts";
+import { SubscribeCta } from "@/components/newsletter/SubscribeCta";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
@@ -181,6 +182,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 runs the moment the parser arrives — which is only after the
                 headings exist. */}
             <SectionLanding />
+
+            <SubscribeCta source={post.href} />
 
             {/* The bio and the read-more list are both post-script matter, so
                 the rhythm lives here rather than in each section: one gap after
