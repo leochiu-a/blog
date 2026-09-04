@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { CheckIcon, LinkIcon, MailIcon, MoreHorizontalIcon, Share2Icon } from "lucide-react";
-import { FacebookMark, LinkedInMark, ThreadsMark, XMark } from "@/components/icons";
+import { CheckIcon, LinkIcon, MoreHorizontalIcon, Share2Icon } from "lucide-react";
+import { FacebookMark, ThreadsMark, XMark } from "@/components/icons";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -52,15 +52,12 @@ function ShareTile({
   icon,
   brand,
   href,
-  newTab,
   onClick,
 }: {
   label: string;
   icon: ReactNode;
   brand?: boolean;
   href?: string;
-  /** Off for `mailto:`, which has no page to land on. */
-  newTab?: boolean;
   onClick?: () => void;
 }) {
   const content = (
@@ -68,23 +65,23 @@ function ShareTile({
       <span
         aria-hidden
         className={cn(
-          "flex size-14 items-center justify-center rounded-full transition-transform group-hover:-translate-y-0.5 group-focus-visible:ring-3 group-focus-visible:ring-ring/50",
+          "flex size-12 items-center justify-center rounded-full transition-transform group-hover:-translate-y-0.5 group-focus-visible:ring-3 group-focus-visible:ring-ring/50 sm:size-14",
           brand ? "bg-white" : "border border-muted-foreground/40 text-foreground",
         )}
       >
         {icon}
       </span>
-      <span className="font-sans text-xs text-muted-foreground">{label}</span>
+      <span className="font-sans text-[0.6875rem] text-muted-foreground sm:text-xs">{label}</span>
     </>
   );
-  const className = "group flex w-[4.5rem] cursor-pointer flex-col items-center gap-2 outline-none";
+  // `min-w-0` is what lets `flex-1` actually shrink: without it each column's
+  // `min-width: auto` floors at its own content, and five fixed-width tiles
+  // overflow the panel on a phone instead of dividing it.
+  const className =
+    "group flex min-w-0 flex-1 basis-0 cursor-pointer flex-col items-center gap-2 outline-none";
 
   return href ? (
-    <a
-      href={href}
-      {...(newTab && { target: "_blank", rel: "noopener noreferrer" })}
-      className={className}
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
       {content}
     </a>
   ) : (
@@ -175,49 +172,23 @@ export function SharePost({ title, url, image }: SharePostProps) {
           </div>
         </div>
 
-        {/* Four fixed columns rather than a wrapping row: the tile count varies
-            — six here, seven where the OS offers a share sheet — and wrapping
-            leaves the last one centred under the others as an orphan. Columns
-            keep every row aligned at any count. */}
-        <div className="grid grid-cols-4 gap-x-1 gap-y-4">
+        {/* Equal, non-wrapping columns. The count varies — four here, five
+            where the OS offers a share sheet — and a wrapping row strands the
+            last tile centred under the others. */}
+        <div className="flex gap-x-1 sm:gap-x-3">
           <ShareTile
             label="Facebook"
-            icon={<FacebookMark className="size-10 text-[#1877F2]" />}
+            icon={<FacebookMark className="size-9 text-[#1877F2] sm:size-10" />}
             brand
             href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-            newTab
-          />
-          <ShareTile
-            label="X"
-            icon={<XMark className="size-7 text-black" />}
-            brand
-            href={`https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`}
-            newTab
-          />
-          <ShareTile
-            label="Threads"
-            icon={<ThreadsMark className="size-7 text-black" />}
-            brand
-            // Threads' intent takes only `text`, with no separate `url`
-            // parameter, so the link goes inside the text or it does not
-            // travel with the post at all.
-            href={`https://www.threads.com/intent/post?text=${encodeURIComponent(`${title} ${url}`)}`}
-            newTab
-          />
-          <ShareTile
-            label="LinkedIn"
-            icon={<LinkedInMark className="size-9 text-[#0A66C2]" />}
-            brand
-            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
-            newTab
           />
           <ShareTile
             label={COPY_TILE[copyState]}
             icon={
               copyState === "copied" ? (
-                <CheckIcon className="size-6" />
+                <CheckIcon className="size-5 sm:size-6" />
               ) : (
-                <LinkIcon className="size-6" />
+                <LinkIcon className="size-5 sm:size-6" />
               )
             }
             onClick={() => {
@@ -228,14 +199,24 @@ export function SharePost({ title, url, image }: SharePostProps) {
             }}
           />
           <ShareTile
-            label="Email"
-            icon={<MailIcon className="size-6" />}
-            href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`}
+            label="Threads"
+            icon={<ThreadsMark className="size-6 text-black sm:size-7" />}
+            brand
+            // Threads' intent takes only `text`, with no separate `url`
+            // parameter, so the link goes inside the text or it does not
+            // travel with the post at all.
+            href={`https://www.threads.com/intent/post?text=${encodeURIComponent(`${title} ${url}`)}`}
+          />
+          <ShareTile
+            label="X"
+            icon={<XMark className="size-6 text-black sm:size-7" />}
+            brand
+            href={`https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`}
           />
           {canShareNatively && (
             <ShareTile
               label="更多"
-              icon={<MoreHorizontalIcon className="size-6" />}
+              icon={<MoreHorizontalIcon className="size-5 sm:size-6" />}
               // A reader backing out of the OS sheet rejects the promise. That
               // is not an error worth surfacing anywhere.
               onClick={() => void navigator.share({ title, url }).catch(() => {})}

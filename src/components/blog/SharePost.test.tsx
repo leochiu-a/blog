@@ -100,17 +100,16 @@ describe("SharePost", () => {
     const hrefFor = (name: string) =>
       within(panel).getByRole("link", { name }).getAttribute("href") ?? "";
 
-    for (const name of ["X", "Facebook", "LinkedIn", "Email"]) {
+    for (const name of ["X", "Facebook"]) {
       expect(hrefFor(name)).toContain(encodeURIComponent(POST.url));
     }
     // Threads takes one `text` parameter and no `url`, so the link has to be
     // encoded inside the text to travel with the post at all.
     expect(hrefFor("Threads")).toContain(encodeURIComponent(`${POST.title} ${POST.url}`));
     // Facebook's sharer takes the URL alone and reads the title off the page it
-    // fetches, so only the other two carry the title.
+    // fetches, so it is the one network here that is not handed the title.
     expect(hrefFor("X")).toContain(encodeURIComponent(POST.title));
-    expect(hrefFor("Email")).toContain(encodeURIComponent(POST.title));
-    expect(hrefFor("Email")).toMatch(/^mailto:/);
+    expect(hrefFor("Facebook")).not.toContain(encodeURIComponent(POST.title));
   });
 
   it("offers the OS share sheet only where the browser has one", async () => {
