@@ -354,7 +354,7 @@ export function DocumentEditor({
             type="button"
             onClick={() => setUploadError(null)}
             title="點一下關閉"
-            className="max-w-md truncate text-xs text-destructive"
+            className="max-w-md cursor-pointer truncate text-xs text-destructive"
           >
             {uploadError}
           </button>

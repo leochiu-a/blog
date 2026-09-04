@@ -38,6 +38,7 @@ export function TagInput({ id, tags, onChange }: Props) {
         <Badge
           key={tag}
           variant="secondary"
+          className="cursor-pointer"
           onClick={() => remove(tag)}
           render={<button type="button" aria-label={`Remove ${tag}`} />}
         >

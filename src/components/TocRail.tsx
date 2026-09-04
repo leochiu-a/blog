@@ -163,7 +163,7 @@ export function TocRail({
               <li key={item.key} className={item.level === 3 ? "ps-3" : undefined}>
                 {renderEntry(item, {
                   className: cn(
-                    "block w-full text-start line-clamp-2 transition-colors hover:text-blog-accent",
+                    "block w-full cursor-pointer text-start line-clamp-2 transition-colors hover:text-blog-accent",
                     item.key === activeKey
                       ? "font-semibold text-blog-accent"
                       : item.level === 2

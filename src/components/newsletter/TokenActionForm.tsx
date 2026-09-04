@@ -67,7 +67,7 @@ export function TokenActionForm({
         onClick={run}
         disabled={state === "working"}
         className={cn(
-          "h-11 w-fit rounded-full px-6 font-sans text-[1.0625rem] font-semibold transition-opacity hover:opacity-90 disabled:opacity-60",
+          "h-11 w-fit cursor-pointer rounded-full px-6 font-sans text-[1.0625rem] font-semibold transition-opacity hover:opacity-90 disabled:opacity-60",
           tone === "primary" ? "bg-gold text-neutral-900" : "border border-border text-foreground",
         )}
       >

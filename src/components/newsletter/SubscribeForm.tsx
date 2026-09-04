@@ -78,7 +78,7 @@ export function SubscribeForm({ source }: { source?: string }) {
           <button
             type="submit"
             disabled={state === "sending"}
-            className="shrink-0 bg-gold px-4 font-sans text-sm font-semibold text-neutral-900 transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="shrink-0 cursor-pointer bg-gold px-4 font-sans text-sm font-semibold text-neutral-900 transition-opacity hover:opacity-90 disabled:opacity-60"
           >
             {state === "sending" ? "寄送中…" : "訂閱"}
           </button>

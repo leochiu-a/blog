@@ -31,7 +31,7 @@ export function ScrollToTop() {
       // The parked position stays a translate even under reduced motion: it is
       // what keeps an invisible button from sitting clickable over the corner.
       // Only the 300ms travel goes, so the button arrives without sliding 7rem.
-      className="z-90 fixed bottom-8 end-4 flex h-8 w-8 translate-y-28 items-center justify-center rounded-full border-2 border-transparent bg-background text-3xl text-foreground opacity-0 shadow-md transition-all duration-300 motion-reduce:transition-none hover:border-border/75 data-[show=true]:translate-y-0 data-[show=true]:opacity-100 sm:end-8 sm:h-12 sm:w-12"
+      className="z-90 fixed bottom-8 end-4 flex cursor-pointer h-8 w-8 translate-y-28 items-center justify-center rounded-full border-2 border-transparent bg-background text-3xl text-foreground opacity-0 shadow-md transition-all duration-300 motion-reduce:transition-none hover:border-border/75 data-[show=true]:translate-y-0 data-[show=true]:opacity-100 sm:end-8 sm:h-12 sm:w-12"
     >
       <svg
         aria-hidden="true"
