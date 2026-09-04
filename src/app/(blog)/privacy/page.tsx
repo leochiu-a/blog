@@ -32,15 +32,12 @@ export default function PrivacyPage() {
       <div className="prose prose-lg prose-zinc mt-8 border-t border-border pt-8">
         <h2>訂閱電子報時</h2>
         <p>
-          你在訂閱表單送出的<strong>電子郵件地址</strong>，會存在 Cloudflare D1
-          資料庫裡。同一列還會記下：
+          你在訂閱表單送出的<strong>電子郵件地址</strong>，會存在我的資料庫裡。另外還會記下：
         </p>
         <ul>
           <li>目前狀態（等待確認、已確認、已退訂、無法投遞）</li>
           <li>送出訂閱、寄出確認信、完成確認、退訂各自的時間</li>
-          <li>
-            你從哪一頁送出訂閱的（例如 <code>/blog/某篇文章/</code>）
-          </li>
+          <li>你是在哪一頁訂閱的</li>
         </ul>
         <p>
           後面兩項是<strong>同意紀錄</strong>
@@ -60,9 +57,8 @@ export default function PrivacyPage() {
           沒有完成確認的地址不會進入寄送名單，也會在之後的清理中刪除。想要立刻刪除，寄信告訴我。
         </p>
         <p>
-          信件透過 <strong>Resend</strong> 寄送，所以已確認的地址也會存在 Resend
-          那邊，作為寄送名單。Resend 會記錄投遞結果，也可能記錄開信與點擊。
-          權威的名單在我自己的資料庫，Resend 那份是為了寄信而存在的副本。
+          信是透過寄送服務 <strong>Resend</strong> 寄出的，所以已確認的地址也會存一份在他們那裡。
+          他們會記錄信有沒有成功寄到，也可能記錄開信與點擊。
         </p>
 
         <h2>退訂</h2>
@@ -87,9 +83,8 @@ export default function PrivacyPage() {
           它以隱藏模式運作，所以你不會看到任何要點擊的東西。
         </p>
         <p>
-          Turnstile 會處理一些用來判斷是不是機器人的訊號，包括
-          <strong>用戶端 IP 位址、TLS 指紋、User-Agent、以及 sitekey 與來源網域</strong>。
-          這些訊號由 Cloudflare 處理，用途僅限偵測與阻擋機器人。
+          為了判斷你是不是機器人，Cloudflare 會處理你的 <strong>IP 位址</strong>
+          ，以及瀏覽器本來就會送出的一些技術訊號。這些只用來擋機器人，不做別的事。
         </p>
         <p>
           依 Cloudflare 對隱藏模式的要求，此處引用{" "}
