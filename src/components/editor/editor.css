@@ -27,7 +27,7 @@
   font-family: var(--font-spectral), serif;
   font-size: 1.625rem;
   line-height: 1.4;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
 }
 
 @media (min-width: 640px) {
@@ -155,7 +155,7 @@
   display: inline-block;
   margin-right: 1.5ch;
   text-align: right;
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
   /* The gutter is not code: dragging over the block must not pick it up, and a
      copied snippet must not come out with numbers in it. */
   user-select: none;
