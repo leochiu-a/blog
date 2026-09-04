@@ -7,7 +7,6 @@ import { CheckIcon, LinkIcon, MoreHorizontalIcon, Share2Icon } from "lucide-reac
 import { FacebookMark, ThreadsMark, XMark } from "@/components/icons";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SITE_URL } from "@/lib/site";
-import { cn } from "@/lib/utils";
 
 interface SharePostProps {
   title: string;
@@ -36,27 +35,24 @@ const COPY_TILE: Record<CopyState, string> = {
 };
 
 /**
- * One tile in the share grid: a round icon with its label under it.
+ * One tile in the share row: a round icon with its label under it.
  *
- * Two tiers, which is the whole reason the tiles read as a set rather than a
- * pile of buttons. A network gets `brand`: its own logo on a white disc, the
- * way brand assets are meant to be shown, and white rather than the brand
- * colour so the disc survives a dark post. Everything else — the actions that
- * belong to this page, not to a network — gets a plain outlined disc.
+ * Every tile gets the same outlined disc and the same foreground glyph, so the
+ * row reads as one set. Brand colour on the networks and not on the page's own
+ * actions read as three designs sharing a row — and a brand palette cannot be
+ * held to one contrast across a light post and a dark one anyway.
  *
  * Renders as a link when it has an `href` and a button otherwise, so copy and
- * the OS share sheet sit in the same grid without being links to nowhere.
+ * the OS share sheet sit in the same row without being links to nowhere.
  */
 function ShareTile({
   label,
   icon,
-  brand,
   href,
   onClick,
 }: {
   label: string;
   icon: ReactNode;
-  brand?: boolean;
   href?: string;
   onClick?: () => void;
 }) {
@@ -64,10 +60,7 @@ function ShareTile({
     <>
       <span
         aria-hidden
-        className={cn(
-          "flex size-12 items-center justify-center rounded-full transition-transform group-hover:-translate-y-0.5 group-focus-visible:ring-3 group-focus-visible:ring-ring/50 sm:size-14",
-          brand ? "bg-white" : "border border-muted-foreground/40 text-foreground",
-        )}
+        className="flex size-12 items-center justify-center rounded-full border border-muted-foreground/40 text-foreground transition-transform group-hover:-translate-y-0.5 group-focus-visible:ring-3 group-focus-visible:ring-ring/50 sm:size-14"
       >
         {icon}
       </span>
@@ -178,8 +171,7 @@ export function SharePost({ title, url, image }: SharePostProps) {
         <div className="flex gap-x-1 sm:gap-x-3">
           <ShareTile
             label="Facebook"
-            icon={<FacebookMark className="size-9 text-[#1877F2] sm:size-10" />}
-            brand
+            icon={<FacebookMark className="size-5 sm:size-6" />}
             href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
           />
           <ShareTile
@@ -200,8 +192,7 @@ export function SharePost({ title, url, image }: SharePostProps) {
           />
           <ShareTile
             label="Threads"
-            icon={<ThreadsMark className="size-6 text-black sm:size-7" />}
-            brand
+            icon={<ThreadsMark className="size-5 sm:size-6" />}
             // Threads' intent takes only `text`, with no separate `url`
             // parameter, so the link goes inside the text or it does not
             // travel with the post at all.
@@ -209,8 +200,7 @@ export function SharePost({ title, url, image }: SharePostProps) {
           />
           <ShareTile
             label="X"
-            icon={<XMark className="size-6 text-black sm:size-7" />}
-            brand
+            icon={<XMark className="size-5 sm:size-6" />}
             href={`https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`}
           />
           {canShareNatively && (
