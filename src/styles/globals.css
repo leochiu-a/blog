@@ -8,6 +8,45 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+/* Four of the tokens below are written as whole colours rather than as the
+   HSL channels the rest use, and are registered here. That is what lets the
+   mode swap fade them: an unregistered custom property is untyped text, so
+   `0 0% 95%` to `0 0% 11%` is one discrete step, and anything naming its own
+   colour — `text-foreground`, the toggle's track — landed on the new theme in
+   a single frame while the page around it was still travelling. Registered as
+   `<color>`, the token interpolates and every consumer follows it for free.
+
+   Which is the point of doing it here rather than per element: this reaches
+   values a `transition` on the element never could. `.toggle-track` is a
+   linear-gradient, and `background-image` does not interpolate between two
+   gradients — but re-resolve the gradient against a moving token and it fades
+   anyway. Box shadows and Tailwind's `/40` alpha modifiers come along the
+   same way.
+
+   Only these four so far: they are the ones the homepage visibly moves. The
+   rest stay channels until something snaps, at which point the fix is to move
+   that token up here too. */
+@property --foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: hsl(210 3% 18%);
+}
+@property --muted-foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: hsl(0 0% 40%);
+}
+@property --background {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: hsl(0 0% 98%);
+}
+@property --muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: hsl(0 0% 95%);
+}
+
 /* ===== Design tokens (HSL channels, from thariq.io) =====
    :root = LIGHT theme (blog pages, no html class on original).
    .dark = DARK theme (homepage, original adds `dark` to <html>). */
@@ -15,10 +54,10 @@
   /* Font family CSS variables (--font-garamond, --font-spectral,
      --font-sans) are injected by next/font on <html>. */
 
-  --background: 0 0% 98%;
-  --foreground: 210 3% 18%;
-  --muted: 0 0% 95%;
-  --muted-foreground: 0 0% 40%;
+  --background: hsl(0 0% 98%);
+  --foreground: hsl(210 3% 18%);
+  --muted: hsl(0 0% 95%);
+  --muted-foreground: hsl(0 0% 40%);
   --card: 0 0% 100%;
   --border: 0 0% 90%;
   /* accents — shared across themes. Warm gold/amber family: --gold is the
@@ -58,10 +97,24 @@
    the page background and overscroll area match instead of flashing light. */
 .dark,
 html:has(.dark) {
-  --background: 0 0% 11%;
-  --foreground: 0 0% 95%;
-  --muted: 0 0% 20%;
-  --muted-foreground: 0 0% 65%;
+  /* Longer than the trip out, because the two directions are not the same
+     problem. Arriving at the dark theme, what is being taken away is a bright
+     surface, and taking it away slowly is the whole reason this fade exists.
+     Arriving at the light one, what is left over is the old dark surface, and
+     a slow tail there just reads as the black refusing to clear — the curve
+     covers 80% of the distance in the first half and then crawls, which is
+     exactly the part that gets noticed. A transition takes its timing from the
+     style it is arriving at, which is what lets these two differ at all. */
+  transition:
+    --background 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    --muted 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    --foreground 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    --muted-foreground 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --background: hsl(0 0% 11%);
+  --foreground: hsl(0 0% 95%);
+  --muted: hsl(0 0% 20%);
+  --muted-foreground: hsl(0 0% 65%);
   --card: 0 0% 15%;
   --border: 0 0% 22%;
   --primary: 0 0% 95%;
@@ -81,13 +134,13 @@ html:has(.dark) {
 }
 
 @theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
   --color-gold: hsl(var(--gold));
   --color-bronze: hsl(var(--bronze));
   --color-burnt-sienna: hsl(var(--burnt-sienna));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-card: hsl(var(--card));
   --color-border: hsl(var(--border));
   --color-ring: hsl(var(--ring));
@@ -126,13 +179,40 @@ html:has(.dark) {
   }
 }
 
+/* Nothing here declares a transition: the four tokens these resolve are
+   registered colours and carry the fade themselves (see the @property block
+   above), so every consumer follows without being told. Fading
+   `background-color` on this element instead would have covered this rule and
+   nothing else — not `.toggle-track`, whose surface is a linear-gradient, and
+   gradients are not an interpolable value for `background-image`. */
 html {
-  background-color: hsl(var(--background));
+  background-color: var(--background);
 }
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-garamond), serif;
+}
+
+/* The two elements a `dark` class ever lands on, so the two where these tokens
+   change value: <html> on a blog route, <main> on the homepage (see
+   PortfolioApp). The transition has to sit on the element whose declaration
+   changes — descendants just inherit whatever it is currently animating. */
+html,
+main {
+  /* Ink at half the surface's duration. Swapping a dark theme for a light one
+     drags the text past the background it sits on, so somewhere in the middle
+     the two meet and the page is briefly hard to read — unavoidable, since the
+     endpoints straddle. What the split buys is where that lands: at one speed
+     the crossing sits at ~200ms and contrast is still only 110/255 at 250ms;
+     with the ink at 250ms it crosses at ~150ms and is back to 154 by 250ms and
+     climbing. Text also stops moving in half the time, which is the point —
+     large surfaces can afford a slow fade, type reads as sluggish. */
+  transition:
+    --background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    --muted 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    --foreground 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    --muted-foreground 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ===== Blog prose (Tailwind Typography), Substack-style =====
@@ -145,18 +225,18 @@ body {
   --tw-prose-headings: hsl(var(--blog-ink));
   --tw-prose-links: hsl(var(--blog-accent));
   --tw-prose-bold: hsl(var(--blog-ink));
-  --tw-prose-counters: hsl(var(--muted-foreground));
-  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--muted-foreground);
   --tw-prose-quotes: hsl(var(--blog-ink));
   --tw-prose-quote-borders: hsl(var(--border));
-  --tw-prose-captions: hsl(var(--muted-foreground));
+  --tw-prose-captions: var(--muted-foreground);
   /* Every remaining Tailwind Typography default is a fixed zinc value, which
      reads as dark-on-dark once a post renders in the dark theme. Point them all
      at tokens so both themes follow from the same source. */
-  --tw-prose-lead: hsl(var(--muted-foreground));
+  --tw-prose-lead: var(--muted-foreground);
   --tw-prose-code: hsl(var(--blog-ink));
   --tw-prose-pre-code: hsl(var(--blog-ink));
-  --tw-prose-pre-bg: hsl(var(--muted) / 0.5);
+  --tw-prose-pre-bg: hsl(from var(--muted) h s l / 0.5);
   --tw-prose-hr: hsl(var(--border));
   --tw-prose-th-borders: hsl(var(--border));
   --tw-prose-td-borders: hsl(var(--border));
@@ -260,7 +340,7 @@ body {
 /* Code sits in a light chip/panel rather than a dark slab. Tailwind Typography
    wraps inline code in literal backticks — drop them. */
 .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  background-color: hsl(var(--muted));
+  background-color: var(--muted);
   border-radius: 4px;
   padding: 0.15em 0.35em;
   font-size: 0.875em;
@@ -271,7 +351,7 @@ body {
   content: none;
 }
 .prose :where(pre):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  background-color: hsl(var(--muted) / 0.5);
+  background-color: hsl(from var(--muted) h s l / 0.5);
   color: hsl(var(--blog-ink));
   border: 1px solid hsl(var(--border));
   border-radius: 6px;
@@ -317,9 +397,9 @@ body {
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-text-fill-color: hsl(var(--foreground));
+  -webkit-text-fill-color: var(--foreground);
   -webkit-box-shadow: 0 0 0 1000px hsl(var(--card)) inset;
-  caret-color: hsl(var(--foreground));
+  caret-color: var(--foreground);
 }
 
 .dark [data-rehype-pretty-code-figure] span {
@@ -347,7 +427,7 @@ input:-webkit-autofill:focus {
   margin-right: 1.5ch;
   text-align: right;
   /* Not a token, so it opts out of the shiki colours set above. */
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
 }
 [data-rehype-pretty-code-figure]
   code[data-line-numbers][data-line-numbers-max-digits="2"]
@@ -433,13 +513,30 @@ input:-webkit-autofill:focus {
   position: relative;
   width: 280px;
   height: 48px;
-  background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted) / 0.2));
+  /* Literal colours rather than --background / --muted, and the duplication is
+     the point: those tokens fade, and re-resolving this gradient against them
+     each frame fades the track with them. The pill riding on top is
+     translucent — a tint mixed with `transparent` — so for the length of that
+     fade it is a sienna wash over a still-dark track, which reads as a black
+     smear rather than as the light pill it becomes. The control answers on the
+     frame it is clicked; the page is what eases. Keep these two in step with
+     the --background / --muted pairs above. */
+  background: linear-gradient(135deg, hsl(0 0% 98%), hsl(0 0% 95% / 0.2));
+  /* The labels' ink, held here so the toggle's whole static palette sits in
+     one place. Unregistered on purpose: --foreground is a registered <color>
+     and interpolates, which is exactly what these must not do. */
+  --toggle-ink: hsl(210 3% 18%);
   border: 1.5px solid hsl(var(--gold) / 0.2);
   border-radius: 2rem;
   overflow: hidden;
   box-shadow:
     inset 0 2px 8px #0000001a,
     0 2px 12px hsl(var(--gold) / 0.1);
+}
+
+.dark .toggle-track {
+  background: linear-gradient(135deg, hsl(0 0% 11%), hsl(0 0% 20% / 0.2));
+  --toggle-ink: hsl(0 0% 95%);
 }
 
 .track-pattern {
@@ -452,19 +549,56 @@ input:-webkit-autofill:focus {
   opacity: 0.6;
 }
 
+/* The pill's entire look — fill and glow — is derived from one colour, so a
+   mode swap is a single value being interpolated instead of two gradients and
+   two shadows each animating on their own. Registering it with @property is
+   what makes it interpolate at all: an unregistered custom property is an
+   untyped token, and gold would jump to sienna in one frame. */
+@property --indicator-tint {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: hsl(40 75% 50%);
+}
+
 .toggle-indicator {
+  --indicator-tint: hsl(var(--gold));
   position: absolute;
   left: 4px;
   top: 50%;
-  transform: translateY(-50%);
   width: 132px;
   height: 40px;
-  background: linear-gradient(135deg, hsl(var(--gold) / 0.5), hsl(var(--gold) / 0.3));
+  transform: translate(0, -50%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--indicator-tint) 50%, transparent),
+    color-mix(in oklab, var(--indicator-tint) 30%, transparent)
+  );
   border-radius: 2rem;
-  transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* Travel is a transform, not `left`: `left` relayouts the track every frame,
+     and this pill carries a backdrop-filter, so each of those frames also
+     re-samples the blur behind it. A transform stays on the compositor.
+
+     The curve overshoots on arrival only. The old back-out curve was symmetric
+     about both ends — its control points (-0.55 / 1.55) put 12.7px of travel
+     past the destination and an equal 12.7px behind the start, so the pill
+     wound up backwards before setting off. The bounce on arrival is the part
+     worth keeping and this curve matches its size (13.4px over the 137px
+     trip); the wind-up before it is what is gone. Amplitude is what makes a
+     bounce read, so it is worth checking when this curve is touched: an
+     earlier attempt here left only 4.1px and the effect simply vanished.
+
+     Only the travel is animated. The tint — and with it the whole fill and
+     glow, which are derived from it — cuts straight to the new mode. Faded,
+     the pill spent its trip as neither colour, which read as the mode being
+     undecided while the thing that names it was already on its way; landing
+     the colour on the first frame makes the slide the only thing moving. This
+     is why the token is still registered as a `<color>`: not to interpolate it
+     here, but so `color-mix()` in the gradient and shadows below resolve
+     against one value instead of four hand-kept ones. */
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow:
-    0 4px 16px hsl(var(--gold) / 0.25),
-    0 2px 8px hsl(var(--gold) / 0.15),
+    0 4px 16px color-mix(in oklab, var(--indicator-tint) 25%, transparent),
+    0 2px 8px color-mix(in oklab, var(--indicator-tint) 15%, transparent),
     inset 0 1px 2px #fff3,
     inset 0 -1px 2px #0000000d;
   backdrop-filter: blur(12px);
@@ -485,17 +619,13 @@ input:-webkit-autofill:focus {
 }
 
 .mode-toggle.personal-mode .toggle-indicator {
-  left: calc(100% - 136px);
-  background: linear-gradient(
-    135deg,
-    hsl(var(--burnt-sienna) / 0.5),
-    hsl(var(--burnt-sienna) / 0.3)
-  );
-  box-shadow:
-    0 4px 16px hsl(var(--burnt-sienna) / 0.25),
-    0 2px 8px hsl(var(--burnt-sienna) / 0.15),
-    inset 0 1px 2px #fff3,
-    inset 0 -1px 2px #0000000d;
+  /* Travel, in the same hard pixels the rest of this component is built from:
+     the track's padding box (280 less its 1.5px borders) less the pill and the
+     4px gutter it keeps at each end — 277 - 132 - 8. Not a percentage: inside
+     `translate` those resolve against the pill's own box, which knows nothing
+     about the track's borders and lands it 3px too far right. */
+  transform: translate(137px, -50%);
+  --indicator-tint: hsl(var(--burnt-sienna));
 }
 
 .toggle-option {
@@ -514,8 +644,13 @@ input:-webkit-autofill:focus {
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.5px;
-  color: hsl(var(--foreground) / 0.4);
-  transition: 0.4s;
+  /* No transition on colour, here or on the two rules below. Which side is
+     lit and how bright the track is are the same answer, and the track gives
+     it on the frame the button is pressed — a label still crossfading behind
+     an already-swapped pill is the one part left looking undecided. The cost
+     is that :hover lands instantly too; on a control this small that reads as
+     responsive rather than abrupt. */
+  color: hsl(from var(--toggle-ink) h s l / 0.4);
   z-index: 2;
   padding: 0 1rem;
 }
@@ -526,14 +661,16 @@ input:-webkit-autofill:focus {
   right: 0;
 }
 .toggle-option:hover {
-  color: hsl(var(--foreground) / 0.7);
+  color: hsl(from var(--toggle-ink) h s l / 0.7);
 }
 .toggle-option.active {
-  color: hsl(var(--foreground));
+  color: var(--toggle-ink);
   font-weight: 600;
 }
 .toggle-option .option-icon {
-  transition: 0.4s;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .toggle-option.active .option-icon {
   opacity: 1;
@@ -552,8 +689,9 @@ input:-webkit-autofill:focus {
     width: 112px;
     height: 36px;
   }
+  /* 237 - 112 - 8, the same arithmetic against this breakpoint's track. */
   .mode-toggle.personal-mode .toggle-indicator {
-    left: calc(100% - 116px);
+    transform: translate(117px, -50%);
   }
   .toggle-option {
     font-size: 0.8rem;
@@ -699,7 +837,7 @@ input:-webkit-autofill:focus {
      keeps travelling; what goes is the back-out curve, whose overshoot
      (-0.55 / 1.55) throws it past the target and back. Short and linear. */
   .toggle-indicator {
-    transition: 0.15s linear;
+    transition: transform 0.15s linear;
   }
 }
 
