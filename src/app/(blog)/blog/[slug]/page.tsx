@@ -74,19 +74,11 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   const Post = post.mdx;
 
-  const formatDate = (value?: string) =>
-    value
-      ? new Date(value).toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })
-      : "";
-
-  const date = formatDate(post.datetime);
-  // Only shown when a revision actually happened — a "last updated" that always
-  // equals the publish date is noise, not a freshness signal.
-  const updated = post.updated && post.updated !== post.datetime ? formatDate(post.updated) : "";
+  const date = new Date(post.datetime).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   const postUrl = `${SITE_URL}${post.href}`;
 
@@ -157,12 +149,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                     </>
                   )}
                   {post.readTime && ` · ${post.readTime}`}
-                  {updated && (
-                    <>
-                      {" · 更新於 "}
-                      <time dateTime={post.updated}>{updated}</time>
-                    </>
-                  )}
                 </p>
                 {/* `ms-auto` on the group rather than on either control, so
                     the share trigger stays last whether or not the dev-only

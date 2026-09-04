@@ -23,7 +23,7 @@ export function DevEditLink({ slug }: { slug: string }) {
   return (
     <Link
       href={`/editor/${slug}`}
-      className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
+      className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground"
     >
       <SquarePenIcon className="size-4" />
       Edit

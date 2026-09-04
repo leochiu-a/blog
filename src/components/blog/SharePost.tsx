@@ -96,6 +96,10 @@ function ShareTile({
  * the same weight as the byline it sits in. A pill there would be the heaviest
  * thing on the line and leave the row lopsided.
  *
+ * It is desktop-only. A phone browser already puts a share button in its own
+ * chrome, and that one can reach every app on the device — an in-page link that
+ * offers four networks is a worse version of something the reader already has.
+ *
  * Every network here is reached through its documented sharer URL, which needs
  * no SDK, script tag, or app id. That is the whole reason to prefer them over
  * each network's embedded share button.
@@ -114,7 +118,7 @@ export function SharePost({ title, url, image }: SharePostProps) {
 
   return (
     <Dialog>
-      <DialogTrigger className="inline-flex cursor-pointer items-center gap-1.5 font-sans text-sm text-muted-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors outline-none hover:text-foreground hover:decoration-foreground focus-visible:text-foreground">
+      <DialogTrigger className="hidden cursor-pointer items-center gap-1.5 sm:inline-flex font-sans text-sm font-medium text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors outline-none hover:decoration-foreground focus-visible:decoration-foreground">
         <Share2Icon className="size-4" />
         分享
       </DialogTrigger>
