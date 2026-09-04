@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SquarePenIcon } from "lucide-react";
 
 /**
  * A way into the editor from the post you're reading. Rendered only when the
@@ -11,8 +12,10 @@ import Link from "next/link";
  * the markup would survive into the production bundle. Returning early from
  * the component that owns the JSX is what lets it be eliminated entirely.
  *
- * `ml-auto` puts it at the end of the byline row without the row itself
- * needing `justify-between`, so the published layout is untouched.
+ * Styled to match `SharePost`'s trigger, deliberately by hand rather than
+ * through a shared class: the two are the only controls in the byline row and
+ * have to read as a pair, but nothing prod-side should have to import from a
+ * dev-only file to stay in step with it.
  */
 export function DevEditLink({ slug }: { slug: string }) {
   if (process.env.NODE_ENV !== "development") return null;
@@ -20,8 +23,9 @@ export function DevEditLink({ slug }: { slug: string }) {
   return (
     <Link
       href={`/editor/${slug}`}
-      className="ml-auto rounded-full border border-border px-3 py-1 font-sans text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+      className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
     >
+      <SquarePenIcon className="size-4" />
       Edit
     </Link>
   );

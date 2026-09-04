@@ -1,0 +1,248 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import Image from "next/image";
+import { CheckIcon, LinkIcon, MailIcon, MoreHorizontalIcon, Share2Icon } from "lucide-react";
+import { FacebookMark, LinkedInMark, ThreadsMark, XMark } from "@/components/icons";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { SITE_URL } from "@/lib/site";
+import { cn } from "@/lib/utils";
+
+interface SharePostProps {
+  title: string;
+  /** Absolute URL of the post — what every share target and the clipboard get. */
+  url: string;
+  /** The post's social card, already resolved to a path that exists. */
+  image: string;
+}
+
+/** How long the copy tile reports its outcome before offering the copy again. */
+const OUTCOME_FOR = 2000;
+
+/**
+ * What the copy tile is currently saying.
+ *
+ * "failed" is a real state rather than a swallowed rejection: `writeText`
+ * refuses outside a secure context and can be denied outright, and a tile that
+ * silently does nothing leaves the reader with no idea the click landed.
+ */
+type CopyState = "idle" | "copied" | "failed";
+
+const COPY_TILE: Record<CopyState, string> = {
+  idle: "複製連結",
+  copied: "已複製",
+  failed: "複製失敗",
+};
+
+/**
+ * One tile in the share grid: a round icon with its label under it.
+ *
+ * Two tiers, which is the whole reason the tiles read as a set rather than a
+ * pile of buttons. A network gets `brand`: its own logo on a white disc, the
+ * way brand assets are meant to be shown, and white rather than the brand
+ * colour so the disc survives a dark post. Everything else — the actions that
+ * belong to this page, not to a network — gets a plain outlined disc.
+ *
+ * Renders as a link when it has an `href` and a button otherwise, so copy and
+ * the OS share sheet sit in the same grid without being links to nowhere.
+ */
+function ShareTile({
+  label,
+  icon,
+  brand,
+  href,
+  newTab,
+  onClick,
+}: {
+  label: string;
+  icon: ReactNode;
+  brand?: boolean;
+  href?: string;
+  /** Off for `mailto:`, which has no page to land on. */
+  newTab?: boolean;
+  onClick?: () => void;
+}) {
+  const content = (
+    <>
+      <span
+        aria-hidden
+        className={cn(
+          "flex size-14 items-center justify-center rounded-full transition-transform group-hover:-translate-y-0.5 group-focus-visible:ring-3 group-focus-visible:ring-ring/50",
+          brand ? "bg-white" : "border border-muted-foreground/40 text-foreground",
+        )}
+      >
+        {icon}
+      </span>
+      <span className="font-sans text-xs text-muted-foreground">{label}</span>
+    </>
+  );
+  const className = "group flex w-[4.5rem] cursor-pointer flex-col items-center gap-2 outline-none";
+
+  return href ? (
+    <a
+      href={href}
+      {...(newTab && { target: "_blank", rel: "noopener noreferrer" })}
+      className={className}
+    >
+      {content}
+    </a>
+  ) : (
+    <button type="button" onClick={onClick} className={className}>
+      {content}
+    </button>
+  );
+}
+
+/**
+ * `navigator.share` is a capability, not state — it is whatever the browser
+ * supports and never changes while the page is open. `useSyncExternalStore` is
+ * how a client-only value like that is read without a mount effect: nothing to
+ * subscribe to, and a server snapshot that keeps the first render honest.
+ */
+const subscribeToNothing = () => () => {};
+const hasNativeShare = () => "share" in navigator;
+
+/**
+ * The share affordance on a post, and the panel it opens.
+ *
+ * A reader who wants to pass a post on already has the URL in the address bar,
+ * so this exists for the two cases where that is awkward: a phone, where the
+ * bar is hidden and the OS has a share sheet worth deferring to, and a network
+ * that wants a pre-filled intent rather than a pasted link.
+ *
+ * The trigger is a text link rather than a button-shaped control, so it carries
+ * the same weight as the byline it sits in. A pill there would be the heaviest
+ * thing on the line and leave the row lopsided.
+ *
+ * Every network here is reached through its documented sharer URL, which needs
+ * no SDK, script tag, or app id. That is the whole reason to prefer them over
+ * each network's embedded share button.
+ */
+export function SharePost({ title, url, image }: SharePostProps) {
+  const [copyState, setCopyState] = useState<CopyState>("idle");
+  const canShareNatively = useSyncExternalStore(
+    subscribeToNothing,
+    hasNativeShare,
+    // The server has no `navigator`, and neither does the first client render:
+    // both say "no", so the tile only appears once React is driving the DOM and
+    // the markup can never disagree with the HTML that was sent.
+    () => false,
+  );
+
+  useEffect(() => {
+    if (copyState === "idle") return;
+    const timer = setTimeout(() => setCopyState("idle"), OUTCOME_FOR);
+    return () => clearTimeout(timer);
+  }, [copyState]);
+
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+
+  return (
+    <Dialog>
+      <DialogTrigger className="inline-flex cursor-pointer items-center gap-1.5 font-sans text-sm text-muted-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors outline-none hover:text-foreground hover:decoration-foreground focus-visible:text-foreground">
+        <Share2Icon className="size-4" />
+        分享
+      </DialogTrigger>
+
+      <DialogContent className="gap-5 p-5">
+        <DialogTitle className="text-center font-sans text-lg font-bold">分享這篇文章</DialogTitle>
+
+        {/* The post as the sharer is about to send it. 1.91:1 with
+            `object-cover`, because that is the crop the receiving network
+            applies to `og:image` — showing the image at its own aspect would
+            preview something nobody will see. The band under it carries the two
+            lines every network shows: where it is from, and what it is called.
+            Bordered because the fallback social card is pale and would
+            otherwise melt into the panel on a light post. */}
+        <div className="overflow-hidden rounded-lg border border-border">
+          <div className="relative aspect-[1200/630] w-full">
+            <Image
+              src={image}
+              alt=""
+              fill
+              loading="lazy"
+              sizes="(min-width: 640px) 26rem, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="border-t border-border bg-muted/50 px-4 py-3">
+            <p className="font-sans text-xs text-muted-foreground">
+              {SITE_URL.replace(/^https?:\/\//, "")}
+            </p>
+            <p className="mt-0.5 font-sans text-base font-semibold leading-snug">{title}</p>
+          </div>
+        </div>
+
+        {/* Four fixed columns rather than a wrapping row: the tile count varies
+            — six here, seven where the OS offers a share sheet — and wrapping
+            leaves the last one centred under the others as an orphan. Columns
+            keep every row aligned at any count. */}
+        <div className="grid grid-cols-4 gap-x-1 gap-y-4">
+          <ShareTile
+            label="Facebook"
+            icon={<FacebookMark className="size-10 text-[#1877F2]" />}
+            brand
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
+            newTab
+          />
+          <ShareTile
+            label="X"
+            icon={<XMark className="size-7 text-black" />}
+            brand
+            href={`https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`}
+            newTab
+          />
+          <ShareTile
+            label="Threads"
+            icon={<ThreadsMark className="size-7 text-black" />}
+            brand
+            // Threads' intent takes only `text`, with no separate `url`
+            // parameter, so the link goes inside the text or it does not
+            // travel with the post at all.
+            href={`https://www.threads.com/intent/post?text=${encodeURIComponent(`${title} ${url}`)}`}
+            newTab
+          />
+          <ShareTile
+            label="LinkedIn"
+            icon={<LinkedInMark className="size-9 text-[#0A66C2]" />}
+            brand
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
+            newTab
+          />
+          <ShareTile
+            label={COPY_TILE[copyState]}
+            icon={
+              copyState === "copied" ? (
+                <CheckIcon className="size-6" />
+              ) : (
+                <LinkIcon className="size-6" />
+              )
+            }
+            onClick={() => {
+              navigator.clipboard.writeText(url).then(
+                () => setCopyState("copied"),
+                () => setCopyState("failed"),
+              );
+            }}
+          />
+          <ShareTile
+            label="Email"
+            icon={<MailIcon className="size-6" />}
+            href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`}
+          />
+          {canShareNatively && (
+            <ShareTile
+              label="更多"
+              icon={<MoreHorizontalIcon className="size-6" />}
+              // A reader backing out of the OS sheet rejects the promise. That
+              // is not an error worth surfacing anywhere.
+              onClick={() => void navigator.share({ title, url }).catch(() => {})}
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

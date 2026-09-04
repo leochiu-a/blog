@@ -14,6 +14,7 @@ import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
 import { DevEditLink } from "@/components/blog/DevEditLink";
+import { SharePost } from "@/components/blog/SharePost";
 import { AuthorBio } from "@/components/blog/AuthorBio";
 import { author } from "@/data/content";
 import { PERSON_ID, personJsonLd } from "@/lib/person";
@@ -163,7 +164,17 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                     </>
                   )}
                 </p>
-                <DevEditLink slug={post.slug} />
+                {/* `ms-auto` on the group rather than on either control, so
+                    the share trigger stays last whether or not the dev-only
+                    edit link is beside it. */}
+                <div className="ms-auto flex items-center gap-x-3">
+                  <DevEditLink slug={post.slug} />
+                  <SharePost
+                    title={post.title}
+                    url={postUrl}
+                    image={post.ogImage ?? "/seo/social-card.png"}
+                  />
+                </div>
               </div>
             </div>
 
