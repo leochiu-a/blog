@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   // Match the previous (Astro) URL scheme: /blog/<slug>/ with a trailing slash.
   trailingSlash: true,
   experimental: {
+    // Serve `app/global-not-found.tsx` for unmatched URLs. Needed because every
+    // route sits in a group with its own root layout, so a plain `not-found`
+    // has no layout to render inside.
+    globalNotFound: true,
     // Off to stop an unbounded prefetch loop, not for the inlining itself.
     //
     // `@opennextjs/aws` picks the segment payload only when this is falsy. Next
@@ -27,7 +31,14 @@ const nextConfig: NextConfig = {
     // Drop this once #1348 ships. To check whether it is still needed, send a
     // `Next-Router-Segment-Prefetch` request and see whether the response is
     // byte-identical to the full-page payload.
-    prefetchInlining: false,
+    //
+    // Production only — deliberately not `next dev`. The loop it prevents is in
+    // opennext's cache interception, which only exists in the deployed worker,
+    // and switching inlining off locally breaks `global-not-found`: the router
+    // asks for this URL's segment payload separately, the bypassed 404 page has
+    // none to give, the request comes back as 404 HTML, and the router reloads
+    // the page — about twelve times a second, for as long as it is open.
+    ...(process.env.NODE_ENV === "development" ? {} : { prefetchInlining: false }),
   },
   // Allow .mdx files to be imported as modules, and — in `next dev` only —
   // the `.dev.tsx` / `.dev.ts` routes the post editor is built from.

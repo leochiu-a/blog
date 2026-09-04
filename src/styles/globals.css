@@ -880,3 +880,472 @@ input:-webkit-autofill:focus {
     width: min(13rem, 100%);
   }
 }
+
+/* ===== 404: the page gets abducted (see UfoAbduction) =====
+   One 10s timeline, played once, all parts reading the same percentages so they
+   stay in step: the saucer arrives (0–16%), the beam opens (20%), the message is
+   drawn up into it a piece at a time (22–63%, plus each piece's own delay), the
+   saucer leaves with it (76–92%), and the message grows back on its way out
+   (86–98%). Percentages, not a chain of separate durations — a delay-chained
+   version drifts apart the moment one duration is edited.
+
+   Every part is `forwards` and runs once, so the page ends where it should: no
+   ship, the message standing, nothing still moving. 10s rather than the 14 it
+   was built at — a loop can afford to dawdle because there is always another
+   pass; a single performance cannot, and the stretch where the message is gone
+   has to be short enough to read as part of the joke rather than as a page that
+   failed to render. */
+/* Full width, not a centred column: this box is what clips the flight, so its
+   edges are where the saucer appears and vanishes. Constrained to a column it
+   read as a saucer materialising in mid-air a third of the way across the
+   window. The message inside is centred on its own and does not need the
+   narrower box. `overflow` is still what keeps the off-screen ends of the
+   flight from widening the document and handing the reader a horizontal
+   scrollbar.
+
+   The 4rem of headroom above the parked saucer is not spare space: clipping
+   works on both axes at once (`overflow-x: hidden` alone is not a thing), so
+   the dome needs somewhere to go. Flush against the top it lost 4px to every
+   bob and up to 48px on the way out. Everything inside is offset by the same
+   3.5rem, which is why the pull targets below did not have to be re-measured —
+   the distance from the message to the hull is unchanged. */
+.ufo-stage {
+  position: relative;
+  width: 100%;
+  height: 30rem;
+  /* Centres the state that lasts, not the one that plays.
+
+     The page centres this block vertically, and everything above the number —
+     the headroom the dome needs in flight, and the band the ship and beam work
+     in — is empty once the animation has run. Centring the block as a whole
+     therefore centres the ten seconds and leaves the page it settles into 72px
+     low, forever. Pulling the box up by the number's own offset (12.5rem)
+     centres the resting composition instead: number, sentence, button. The
+     performance then sits a little high, which nobody can see, because the ship
+     spends that time arriving from off-screen anyway. */
+  margin-top: -12.5rem;
+  overflow: hidden;
+}
+
+/* Above the message, so a piece drawn up to the hull passes behind it and is
+   simply gone — swallowed rather than faded out in mid-air. The whole point of
+   the rise is that the saucer eats it. */
+.ufo-craft {
+  position: absolute;
+  z-index: 2;
+  top: 3.5rem;
+  left: 50%;
+  width: 13.75rem;
+  margin-left: -6.875rem;
+  animation: ufo-flight 10s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.ufo-saucer {
+  display: block;
+  width: 100%;
+}
+
+/* The tractor beam, in two layers. This one owns the cone's shape, the flight
+   it shares with the craft, and the fade in and out; the fill and the stretch
+   are its child, and the dust specks are siblings of that. Splitting them is
+   what lets the specks inherit the beam's opacity — no debris without a beam —
+   without also inheriting the `scaleY` that squashes the cone open and shut,
+   and it leaves `transform` free here for the flight.
+
+   `top` is the craft's 3.5rem plus the beam's own 3.5rem below the hull: it is
+   positioned against the stage now, not against the craft. */
+.ufo-beam {
+  position: absolute;
+  top: 7rem;
+  left: 50%;
+  /* Centred with `translate`, not a negative margin, because the width is now a
+     `min()` — and `translate` is its own property, applied before the flight's
+     `transform`, so the two do not fight.
+
+     Sized to take the sentence in, not just the number: the message ink is
+     14.4rem wide and ends 24.4rem down the stage, so the cone is 20.25rem at
+     the mouth and 18.5rem deep. Before this the cone stopped just short and the line
+     sat outside the beam, which read as the light missing what it was supposed
+     to be taking.
+
+     The extra width over the bare fit is for the idle bob: the beam sways
+     ±0.75rem with the ship, so a cone that only just clears the sentence at
+     rest lets its left end poke out of the light twice a second.
+
+     The number still overshoots the cone near the top, and that is right: a
+     beam that could contain 14rem of type at the height the digits sit would
+     have to be a column as wide as the ship. */
+  width: min(20.25rem, 94vw);
+  height: 18.5rem;
+  translate: -50% 0;
+  /* 17% of the width at the mouth of the cone — 53px, near enough what it has
+     always been, so the apex still hides behind a hull nearly 200px wide. */
+  clip-path: polygon(41.5% 0, 58.5% 0, 100% 100%, 0 100%);
+  opacity: 0;
+  animation:
+    ufo-flight 10s cubic-bezier(0.4, 0, 0.2, 1) forwards,
+    ufo-beam-fade 10s ease-out forwards;
+}
+
+/* A wash, not a spotlight: with the ship reduced to line weight, a solid gold
+   cone was the loudest thing left on the page. Faint enough to sit under the
+   type, strong enough to say where the pull is coming from. */
+.ufo-beam-cone {
+  position: absolute;
+  inset: 0;
+  background: hsl(var(--gold) / 0.16);
+  transform-origin: top center;
+  animation: ufo-beam-open 10s ease-out forwards;
+}
+
+/* Debris. Each speck rises on its own short loop for as long as the beam is
+   lit; the cone's `clip-path` trims the ones that drift wide, which is what
+   makes them look funnelled rather than scattered. */
+.ufo-dust {
+  position: absolute;
+  bottom: 0;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 9999px;
+  /* Dark specks, like grit in the light — bronze on a gold cone was too close
+     in value to see. The alpha lives in the keyframes, because the element's
+     own opacity is already the dust's fade. */
+  background: var(--foreground);
+  /* Base state is invisible and the run is finite: with the animation over, an
+     element with no `forwards` snaps back to this rule, and a stray dot left
+     hanging in a beam that is no longer there would outlive the whole joke. */
+  opacity: 0;
+  animation: ufo-dust 2s linear 5;
+}
+.ufo-dust:nth-child(2) {
+  left: 22%;
+  width: 0.2rem;
+  height: 0.2rem;
+  animation-duration: 2.6s;
+}
+.ufo-dust:nth-child(3) {
+  left: 38%;
+  animation-duration: 1.7s;
+  animation-delay: 0.4s;
+}
+.ufo-dust:nth-child(4) {
+  left: 52%;
+  width: 0.25rem;
+  height: 0.25rem;
+  animation-duration: 2.3s;
+  animation-delay: 0.9s;
+}
+.ufo-dust:nth-child(5) {
+  left: 64%;
+  animation-duration: 1.9s;
+  animation-delay: 0.2s;
+}
+.ufo-dust:nth-child(6) {
+  left: 78%;
+  width: 0.2rem;
+  height: 0.2rem;
+  animation-duration: 2.4s;
+  animation-delay: 1.1s;
+}
+.ufo-dust:nth-child(7) {
+  left: 46%;
+  width: 0.35rem;
+  height: 0.35rem;
+  animation-duration: 2.8s;
+  animation-delay: 1.5s;
+}
+.ufo-dust:nth-child(8) {
+  left: 30%;
+  animation-duration: 2.1s;
+  animation-delay: 0.7s;
+}
+.ufo-dust:nth-child(9) {
+  left: 70%;
+  width: 0.25rem;
+  height: 0.25rem;
+  animation-duration: 1.6s;
+  animation-delay: 1.3s;
+}
+
+.ufo-loot {
+  position: absolute;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+}
+
+/* One digit or one word.
+
+   `--pull-x` / `--pull-y` are where this piece has to end up: the middle of
+   the hull, measured from where the piece sits at rest. Every keyframe is a
+   fraction of that pair, so the outer digits converge on the saucer as they
+   climb instead of rising in parallel columns — and the two lines, which start
+   at different heights, arrive at the same place.
+
+   `--spin` is how it tumbles: sign for direction, magnitude for how fast, so
+   neighbouring pieces turn opposite ways and the number comes apart as debris
+   rather than as a row.
+
+   `linear`, deliberately. An easing function applies between *every* pair of
+   keyframes, so a curve as steep as this rise wants ends up slowing and
+   surging seven times over — that was the stutter. The acceleration is in the
+   keyframe spacing instead: small steps at the bottom, big ones at the top. */
+.ufo-glyph {
+  --pull-x: 0rem;
+  --pull-y: -10rem;
+  --spin: 1;
+  display: inline-block;
+  /* Scale and rotation both pull toward the middle of the piece, so it
+     collapses into the beam instead of sliding out of it. */
+  transform-origin: center center;
+  animation: ufo-abduct 10s linear forwards;
+}
+
+.ufo-loot-number {
+  top: 12.5rem;
+  font-size: clamp(5rem, 22vw, 8.5rem);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  /* Raw, not `hsl(var(…))`: this is one of the four `@property` registered
+     `<color>` tokens at the top of this file, so it already holds a colour.
+     Wrapping it makes an invalid value, which for `color` silently falls back
+     to what is inherited — the copy below looked right for a while by
+     inheriting the same ink the number uses. */
+  color: var(--foreground);
+}
+/* Measured, not guessed: the middle of the hull is 9.77rem above the number's
+   middle, and the outer digits sit 0.42em either side of it. The horizontal
+   pull is in `em` because the number's own size is `clamp(…, 22vw, …)` — an
+   offset in `rem` would converge on the right spot at one window width and
+   miss at every other. */
+.ufo-loot-number .ufo-glyph {
+  --pull-y: -9.77rem;
+}
+.ufo-loot-number .ufo-glyph:nth-child(1) {
+  --pull-x: 0.42em;
+  --spin: -1.1;
+}
+.ufo-loot-number .ufo-glyph:nth-child(2) {
+  --pull-x: 0em;
+  --spin: 0.7;
+  animation-delay: 0.35s;
+}
+.ufo-loot-number .ufo-glyph:nth-child(3) {
+  --pull-x: -0.42em;
+  --spin: -0.85;
+  animation-delay: 0.7s;
+}
+
+.ufo-loot-copy {
+  top: 22.5rem;
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+}
+/* Word spacing has to be a margin: the source puts each word in its own
+   element, so the whitespace between them is not rendered. */
+.ufo-loot-copy .ufo-glyph + .ufo-glyph {
+  margin-left: 0.3em;
+}
+/* A longer climb from further down, and a wider spread to close — this line is
+   16.46rem under the hull and runs the full width of the stage. Its size is
+   fixed, so these can stay in `rem`. The stagger runs left to right and stays
+   under 1.2s, so even the last word is back before the loop restarts. */
+.ufo-loot-copy .ufo-glyph {
+  --pull-y: -16.46rem;
+}
+.ufo-loot-copy .ufo-glyph:nth-child(1) {
+  --pull-x: 6.1rem;
+  --spin: 1.4;
+  animation-delay: 0.8s;
+}
+.ufo-loot-copy .ufo-glyph:nth-child(2) {
+  --pull-x: 3.55rem;
+  --spin: -1.6;
+  animation-delay: 0.9s;
+}
+.ufo-loot-copy .ufo-glyph:nth-child(3) {
+  --pull-x: 1.35rem;
+  --spin: 1.8;
+  animation-delay: 1s;
+}
+.ufo-loot-copy .ufo-glyph:nth-child(4) {
+  --pull-x: -0.95rem;
+  --spin: -1.3;
+  animation-delay: 1.1s;
+}
+.ufo-loot-copy .ufo-glyph:nth-child(5) {
+  --pull-x: -4.85rem;
+  --spin: 1.5;
+  animation-delay: 1.2s;
+}
+
+.ufo-home {
+  animation: fadeInDown 0.6s ease-out both;
+  animation-delay: 0.3s;
+}
+
+/* `50vw + 7rem` is half the window plus half the saucer: exactly off the edge,
+   whatever the window is. Measuring the ends this way rather than with a round
+   `62vw` is what makes the 16% arrival mean something — the whole of the flight
+   is on screen, so none of the budget is spent travelling through nothing. No
+   opacity here for the same reason: it enters and leaves past the edge, where
+   there is nothing to fade. */
+@keyframes ufo-flight {
+  0% {
+    transform: translate(calc(50vw + 7rem), -2rem);
+  }
+  16% {
+    transform: translate(0, 0);
+  }
+  /* Idle bob while the beam works. */
+  32% {
+    transform: translate(0.75rem, 0.5rem);
+  }
+  50% {
+    transform: translate(-0.75rem, -0.25rem);
+  }
+  64% {
+    transform: translate(0.5rem, 0.375rem);
+  }
+  76% {
+    transform: translate(0, 0);
+  }
+  92%,
+  100% {
+    transform: translate(calc(-50vw - 7rem), -3rem);
+  }
+}
+
+@keyframes ufo-beam-fade {
+  0%,
+  16% {
+    opacity: 0;
+  }
+  20%,
+  72% {
+    opacity: 1;
+  }
+  76%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ufo-beam-open {
+  0%,
+  16% {
+    transform: scaleY(0.1);
+  }
+  20%,
+  72% {
+    transform: scaleY(1);
+  }
+  76%,
+  100% {
+    transform: scaleY(0.1);
+  }
+}
+
+/* The rise, and the regrowth. Reluctant at the bottom, quick near the hull —
+   the fractions of `--pull-x` / `--pull-y` do the accelerating.
+
+   Nothing here touches `opacity`, on purpose. A piece disappears because the
+   hull is drawn over it and because it shrinks to nothing behind it; it comes
+   back by growing out of the empty stage, with an overshoot and a last twitch
+   of the tumble to settle. `scale(0)` renders nothing at all, so it is the
+   whole of both the vanishing and the arrival — a crossfade was doing the work
+   of neither, which is why the reset read as a page loading rather than as the
+   message growing back. Each piece regrows on its own delay, so the message
+   comes up left to right, in the order it was taken. */
+@keyframes ufo-abduct {
+  0%,
+  22% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  /* Caught: it rocks in place before it leaves the ground. */
+  25% {
+    transform: translate(0, -0.15rem) scale(1.02) rotate(calc(var(--spin) * -5deg));
+  }
+  29% {
+    transform: translate(0, -0.35rem) scale(1.01) rotate(calc(var(--spin) * 6deg));
+  }
+  36% {
+    transform: translate(calc(var(--pull-x) * 0.08), calc(var(--pull-y) * 0.1)) scale(0.92)
+      rotate(calc(var(--spin) * 22deg));
+  }
+  44% {
+    transform: translate(calc(var(--pull-x) * 0.24), calc(var(--pull-y) * 0.28)) scale(0.78)
+      rotate(calc(var(--spin) * 46deg));
+  }
+  52% {
+    transform: translate(calc(var(--pull-x) * 0.5), calc(var(--pull-y) * 0.54)) scale(0.58)
+      rotate(calc(var(--spin) * 78deg));
+  }
+  58% {
+    transform: translate(calc(var(--pull-x) * 0.78), calc(var(--pull-y) * 0.8)) scale(0.36)
+      rotate(calc(var(--spin) * 116deg));
+  }
+  /* At the hull, behind it. */
+  63% {
+    transform: translate(var(--pull-x), var(--pull-y)) scale(0.12)
+      rotate(calc(var(--spin) * 150deg));
+  }
+  /* Eaten. `scale(0)` draws nothing, so there is nothing left to hide. */
+  66%,
+  84% {
+    transform: translate(var(--pull-x), var(--pull-y)) scale(0) rotate(calc(var(--spin) * 155deg));
+  }
+  /* Grows back out of its own place, overshooting a little. */
+  86% {
+    transform: translate(0, 0) scale(0) rotate(calc(var(--spin) * 8deg));
+  }
+  91% {
+    transform: translate(0, 0) scale(1.14) rotate(calc(var(--spin) * 3deg));
+  }
+  95% {
+    transform: translate(0, 0) scale(0.95) rotate(calc(var(--spin) * -1.5deg));
+  }
+  98%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes ufo-dust {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.45;
+  }
+  80% {
+    opacity: 0.28;
+  }
+  100% {
+    transform: translateY(-15rem) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Kept with the 404 rather than in the reduced-motion section above, because
+   what it restores is this page's static composition: a parked saucer, no
+   beam, and the message readable on arrival. The whole point of the animation
+   is motion nobody asked for, so here it does go away entirely. */
+@media (prefers-reduced-motion: reduce) {
+  .ufo-craft,
+  .ufo-glyph,
+  .ufo-home {
+    animation: none;
+  }
+  .ufo-beam {
+    display: none;
+  }
+  /* Only the link still needs its end state restated — `fadeInDown` leaves it
+     transparent without its animation. The message never animated opacity. */
+  .ufo-home {
+    opacity: 1;
+  }
+}
