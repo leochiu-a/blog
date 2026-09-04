@@ -11,15 +11,10 @@ const POST = {
 };
 
 /**
- * happy-dom has neither of the two browser capabilities this component reaches
- * for. `writeText` is a spy so a test can read what was put on the clipboard;
- * `share` is deleted by default so the OS-sheet tile is absent unless a test
- * asks for it, which is what a desktop browser looks like.
+ * happy-dom has no clipboard. `writeText` is a spy so a test can read what was
+ * put on it, and reject when a test is standing in for a browser that refuses.
  */
-function stubNavigator({
-  nativeShare,
-  clipboardDenied,
-}: { nativeShare?: () => Promise<void>; clipboardDenied?: boolean } = {}) {
+function stubNavigator({ clipboardDenied }: { clipboardDenied?: boolean } = {}) {
   const writeText = vi.fn(() =>
     clipboardDenied ? Promise.reject(new Error("NotAllowedError")) : Promise.resolve(),
   );
@@ -28,16 +23,6 @@ function stubNavigator({
     configurable: true,
     value: { writeText },
   });
-  if (nativeShare) {
-    Object.defineProperty(navigator, "share", {
-      writable: true,
-      configurable: true,
-      value: nativeShare,
-    });
-  } else {
-    // @ts-expect-error — removing an optional capability the type assumes.
-    delete navigator.share;
-  }
   return { writeText };
 }
 
@@ -110,31 +95,5 @@ describe("SharePost", () => {
     // fetches, so it is the one network here that is not handed the title.
     expect(hrefFor("X")).toContain(encodeURIComponent(POST.title));
     expect(hrefFor("Facebook")).not.toContain(encodeURIComponent(POST.title));
-  });
-
-  it("offers the OS share sheet only where the browser has one", async () => {
-    stubNavigator();
-    render(<SharePost {...POST} />);
-    expect(within(await openPanel()).queryByRole("button", { name: "更多" })).toBeNull();
-
-    cleanup();
-
-    const share = vi.fn(() => Promise.resolve());
-    stubNavigator({ nativeShare: share });
-    render(<SharePost {...POST} />);
-    const panel = await openPanel();
-
-    await userEvent.click(within(panel).getByRole("button", { name: "更多" }));
-    expect(share).toHaveBeenCalledWith({ title: POST.title, url: POST.url });
-  });
-
-  it("does not surface a reader backing out of the OS share sheet as an error", async () => {
-    stubNavigator({ nativeShare: () => Promise.reject(new Error("AbortError")) });
-    render(<SharePost {...POST} />);
-    const panel = await openPanel();
-
-    await expect(
-      userEvent.click(within(panel).getByRole("button", { name: "更多" })),
-    ).resolves.toBeUndefined();
   });
 });

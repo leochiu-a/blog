@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { CheckIcon, LinkIcon, MoreHorizontalIcon, Share2Icon } from "lucide-react";
+import { CheckIcon, LinkIcon, Share2Icon } from "lucide-react";
 import { FacebookMark, ThreadsMark, XMark } from "@/components/icons";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SITE_URL } from "@/lib/site";
@@ -42,8 +42,8 @@ const COPY_TILE: Record<CopyState, string> = {
  * actions read as three designs sharing a row — and a brand palette cannot be
  * held to one contrast across a light post and a dark one anyway.
  *
- * Renders as a link when it has an `href` and a button otherwise, so copy and
- * the OS share sheet sit in the same row without being links to nowhere.
+ * Renders as a link when it has an `href` and a button otherwise, so the copy
+ * action sits in the same row as the networks without being a link to nowhere.
  */
 function ShareTile({
   label,
@@ -68,8 +68,8 @@ function ShareTile({
     </>
   );
   // `min-w-0` is what lets `flex-1` actually shrink: without it each column's
-  // `min-width: auto` floors at its own content, and five fixed-width tiles
-  // overflow the panel on a phone instead of dividing it.
+  // `min-width: auto` floors at its own content, and fixed-width tiles overflow
+  // the panel on a phone instead of dividing it.
   const className =
     "group flex min-w-0 flex-1 basis-0 cursor-pointer flex-col items-center gap-2 outline-none";
 
@@ -85,21 +85,12 @@ function ShareTile({
 }
 
 /**
- * `navigator.share` is a capability, not state — it is whatever the browser
- * supports and never changes while the page is open. `useSyncExternalStore` is
- * how a client-only value like that is read without a mount effect: nothing to
- * subscribe to, and a server snapshot that keeps the first render honest.
- */
-const subscribeToNothing = () => () => {};
-const hasNativeShare = () => "share" in navigator;
-
-/**
  * The share affordance on a post, and the panel it opens.
  *
  * A reader who wants to pass a post on already has the URL in the address bar,
- * so this exists for the two cases where that is awkward: a phone, where the
- * bar is hidden and the OS has a share sheet worth deferring to, and a network
- * that wants a pre-filled intent rather than a pasted link.
+ * so this exists for what that does not cover: a network that wants a
+ * pre-filled intent rather than a pasted link, and a phone, where the address
+ * bar is hidden and there is nothing to copy from.
  *
  * The trigger is a text link rather than a button-shaped control, so it carries
  * the same weight as the byline it sits in. A pill there would be the heaviest
@@ -111,14 +102,6 @@ const hasNativeShare = () => "share" in navigator;
  */
 export function SharePost({ title, url, image }: SharePostProps) {
   const [copyState, setCopyState] = useState<CopyState>("idle");
-  const canShareNatively = useSyncExternalStore(
-    subscribeToNothing,
-    hasNativeShare,
-    // The server has no `navigator`, and neither does the first client render:
-    // both say "no", so the tile only appears once React is driving the DOM and
-    // the markup can never disagree with the HTML that was sent.
-    () => false,
-  );
 
   useEffect(() => {
     if (copyState === "idle") return;
@@ -165,15 +148,10 @@ export function SharePost({ title, url, image }: SharePostProps) {
           </div>
         </div>
 
-        {/* Equal, non-wrapping columns. The count varies — four here, five
-            where the OS offers a share sheet — and a wrapping row strands the
-            last tile centred under the others. */}
+        {/* Equal, non-wrapping columns, so the four divide one row at any
+            width. Copy leads: it is the one destination that works no matter
+            where the reader is taking the post. */}
         <div className="flex gap-x-1 sm:gap-x-3">
-          <ShareTile
-            label="Facebook"
-            icon={<FacebookMark className="size-5 sm:size-6" />}
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-          />
           <ShareTile
             label={COPY_TILE[copyState]}
             icon={
@@ -191,6 +169,11 @@ export function SharePost({ title, url, image }: SharePostProps) {
             }}
           />
           <ShareTile
+            label="Facebook"
+            icon={<FacebookMark className="size-5 sm:size-6" />}
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
+          />
+          <ShareTile
             label="Threads"
             icon={<ThreadsMark className="size-5 sm:size-6" />}
             // Threads' intent takes only `text`, with no separate `url`
@@ -203,15 +186,6 @@ export function SharePost({ title, url, image }: SharePostProps) {
             icon={<XMark className="size-5 sm:size-6" />}
             href={`https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`}
           />
-          {canShareNatively && (
-            <ShareTile
-              label="更多"
-              icon={<MoreHorizontalIcon className="size-5 sm:size-6" />}
-              // A reader backing out of the OS sheet rejects the promise. That
-              // is not an error worth surfacing anywhere.
-              onClick={() => void navigator.share({ title, url }).catch(() => {})}
-            />
-          )}
         </div>
       </DialogContent>
     </Dialog>
