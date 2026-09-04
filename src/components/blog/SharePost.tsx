@@ -118,7 +118,7 @@ export function SharePost({ title, url, image }: SharePostProps) {
 
   return (
     <Dialog>
-      <DialogTrigger className="hidden cursor-pointer items-center gap-1.5 sm:inline-flex font-sans text-sm font-medium text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors outline-none hover:decoration-foreground focus-visible:decoration-foreground">
+      <DialogTrigger className="hidden cursor-pointer items-center gap-1.5 font-sans text-sm text-muted-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors outline-none hover:text-foreground hover:decoration-foreground focus-visible:text-foreground sm:inline-flex">
         <Share2Icon className="size-4" />
         分享
       </DialogTrigger>
