@@ -43,6 +43,14 @@ const nextConfig: NextConfig = {
   // Allow .mdx files to be imported as modules, and — in `next dev` only —
   // the `.dev.tsx` / `.dev.ts` routes the post editor is built from.
   pageExtensions: pageExtensionsFor(process.env.NODE_ENV),
+  // `wrangler` is `require`d at runtime rather than bundled. The dev-only
+  // subscriber dashboard imports `getPlatformProxy` from it to read the
+  // deployed D1, and bundling drags in the platform-specific workerd package,
+  // whose files Turbopack cannot parse — the dev server 500s on a README.
+  //
+  // Inert in a production build: nothing outside a `.dev.tsx` file imports
+  // wrangler, and those are not routes there.
+  serverExternalPackages: ["wrangler"],
   images: {
     remotePatterns: [
       {

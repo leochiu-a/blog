@@ -9,6 +9,7 @@ import {
   markUnsubscribedInBulk,
   prunePending,
   recordConfirmationSent,
+  subscriberCounts,
   unsubscribeSubscriber,
 } from "./subscribers.ts";
 
@@ -185,5 +186,34 @@ describe("what pulling Resend's unsubscribes reports", () => {
 
     expect(await markUnsubscribedInBulk(db, goneRemotely, NOW)).toBe(predicted);
     expect(predicted).toBe(1);
+  });
+});
+
+describe("the dashboard figures", () => {
+  it("reports every status, including the ones nobody is in", async () => {
+    // A status with no rows is absent from a `GROUP BY`, and a dashboard that
+    // dropped it would render a hole rather than a zero.
+    await recordConfirmationSent(db, { email: "a@example.com", now: NOW, day: DAY, source: null });
+    await recordConfirmationSent(db, { email: "b@example.com", now: NOW, day: DAY, source: null });
+    await confirmSubscriber(db, "b@example.com", NOW);
+    await recordConfirmationSent(db, { email: "c@example.com", now: NOW, day: DAY, source: null });
+    await confirmSubscriber(db, "c@example.com", NOW);
+    await unsubscribeSubscriber(db, "c@example.com", NOW);
+
+    expect(await subscriberCounts(db)).toEqual({
+      pending: 1,
+      confirmed: 1,
+      unsubscribed: 1,
+      bounced: 0,
+    });
+  });
+
+  it("is all zeroes on an empty list", async () => {
+    expect(await subscriberCounts(db)).toEqual({
+      pending: 0,
+      confirmed: 0,
+      unsubscribed: 0,
+      bounced: 0,
+    });
   });
 });

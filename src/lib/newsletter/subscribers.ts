@@ -222,3 +222,23 @@ export async function recordIssueSend(
     .bind(issueSlug, resendBroadcastId, recipientCount, now)
     .run();
 }
+
+/**
+ * How many addresses sit in each state, for the dev-only dashboard.
+ *
+ * Every status is returned, including the ones with no rows, so the caller
+ * renders a stable set of figures rather than a list that changes shape as the
+ * list grows. `GROUP BY` over an indexed column, and the whole table is one
+ * row per address, so this stays a single cheap read.
+ */
+export type SubscriberCounts = Record<SubscriberStatus, number>;
+
+export async function subscriberCounts(db: D1Database): Promise<SubscriberCounts> {
+  const { results } = await db
+    .prepare("SELECT status, COUNT(*) AS count FROM subscribers GROUP BY status")
+    .all<{ status: SubscriberStatus; count: number }>();
+
+  const counts: SubscriberCounts = { pending: 0, confirmed: 0, unsubscribed: 0, bounced: 0 };
+  for (const row of results) counts[row.status] = row.count;
+  return counts;
+}

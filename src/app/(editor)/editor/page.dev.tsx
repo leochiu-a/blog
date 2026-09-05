@@ -163,6 +163,16 @@ export default async function EditorIndex() {
         <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/" />}>
           ← Home
         </Button>
+        {/* The other editor surface: what is written lives here, who it goes
+            to lives there. */}
+        <Button
+          variant="ghost"
+          size="sm"
+          nativeButton={false}
+          render={<Link href="/editor/subscribers" />}
+        >
+          Subscribers
+        </Button>
       </header>
 
       <main className="mx-auto w-full max-w-[45.5rem] px-6 pb-16 pt-10">
