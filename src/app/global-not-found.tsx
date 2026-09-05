@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { UfoAbduction } from "@/components/UfoAbduction";
 import { fontVariables } from "@/lib/fonts";
+import { NOT_FOUND_TITLE } from "@/lib/site";
 
 /* `global-not-found` rather than `not-found`: every route here lives in a group
    with its own root layout ((home), (blog), (editor)), so there is no single
@@ -10,7 +11,7 @@ import { fontVariables } from "@/lib/fonts";
    Next skips rendering the app for an unmatched URL — which is why it imports
    the stylesheet and fonts itself. */
 export const metadata: Metadata = {
-  title: "404 — Leo Chiu",
+  title: NOT_FOUND_TITLE,
   description: "This page has been abducted.",
 };
 

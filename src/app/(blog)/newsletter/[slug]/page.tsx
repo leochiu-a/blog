@@ -18,6 +18,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const issue = issues.find((candidate) => candidate.slug === slug);
+  // Same as the post page: the 404 that follows takes its metadata from the
+  // boundary in `(blog)/not-found.tsx`.
   if (!issue) return {};
 
   const title = seoTitle(issue.title);

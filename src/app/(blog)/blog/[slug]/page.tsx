@@ -36,6 +36,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = reachablePosts.find((p) => p.slug === slug);
+  // No post behind the slug: the page below calls `notFound()`, and the 404's
+  // metadata comes from the boundary in `(blog)/not-found.tsx`, not from here.
   if (!post) return {};
 
   const title = seoTitle(post.title);

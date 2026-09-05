@@ -19,3 +19,11 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://leochiu.co
 export function seoTitle(title: string): string {
   return `${title} • ${author.name}`;
 }
+
+/**
+ * The `<title>` of every 404, wherever it is served from: `global-not-found`
+ * for a URL that matches no route, `(blog)/not-found` for one that matches a
+ * dynamic segment and then turns out to have nothing behind it. Shared so the
+ * two cannot drift into looking like two different sites.
+ */
+export const NOT_FOUND_TITLE = `404 — ${author.name}`;
