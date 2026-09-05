@@ -1,4 +1,4 @@
-import { profile } from "@/data/content";
+import { seoTitle } from "@/lib/site";
 import type { Mode } from "@/types/content";
 
 /**
@@ -14,7 +14,7 @@ export function pathForMode(mode: Mode): string {
 }
 
 export function titleForMode(mode: Mode): string {
-  return `${mode === "personal" ? "Personal" : "Home"} • ${profile.name}`;
+  return seoTitle(mode === "personal" ? "Personal" : "Home");
 }
 
 export function otherMode(mode: Mode): Mode {

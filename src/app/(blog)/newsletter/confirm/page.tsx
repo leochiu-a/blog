@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { TokenActionForm } from "@/components/newsletter/TokenActionForm";
+import { seoTitle } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "確認訂閱 • Leo Chiu",
+  title: seoTitle("確認訂閱"),
   // A page that only ever holds somebody's signed token has no business in an index.
   robots: { index: false, follow: false },
 };

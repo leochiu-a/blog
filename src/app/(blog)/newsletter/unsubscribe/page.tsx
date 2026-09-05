@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { TokenActionForm } from "@/components/newsletter/TokenActionForm";
+import { seoTitle } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "退訂 • Leo Chiu",
+  title: seoTitle("退訂"),
   robots: { index: false, follow: false },
 };
 

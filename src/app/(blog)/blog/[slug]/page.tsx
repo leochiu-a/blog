@@ -60,7 +60,7 @@ export async function generateMetadata({
       title,
       description,
       url: `${SITE_URL}${post.href}`,
-      siteName: `${author.name} • Blog`,
+      siteName: `${author.name} | Blog`,
       locale: detectPostLanguage(post.title) === "zh-Hant" ? "zh_TW" : "en_US",
       publishedTime: post.datetime,
       modifiedTime: post.updated ?? post.datetime,

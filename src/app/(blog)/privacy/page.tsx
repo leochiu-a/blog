@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { DarkPageShell } from "@/components/blog/DarkPageShell";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, seoTitle } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "隱私說明 • Leo Chiu",
+  title: seoTitle("隱私說明"),
   description: "這個網站與電子報收集什麼資料、為什麼收、怎麼刪掉。",
   alternates: { canonical: `${SITE_URL}/privacy/` },
 };

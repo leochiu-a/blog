@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 import { SubscribeForm } from "@/components/newsletter/SubscribeForm";
 import { newsletter } from "@/data/content";
 import { issues } from "@/lib/issues";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, seoTitle } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "電子報 • Leo Chiu",
+  title: seoTitle("電子報"),
   description: newsletter.pitch[0],
   alternates: { canonical: `${SITE_URL}/newsletter/` },
 };
