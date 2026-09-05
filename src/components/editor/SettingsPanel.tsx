@@ -30,6 +30,7 @@ import {
   type FrontmatterValues,
 } from "@/lib/editor/frontmatter-fields";
 import { DateField } from "./DateField";
+import { DraftLinkField } from "./DraftLinkField";
 import { TagInput } from "./TagInput";
 
 type Props = {
@@ -128,6 +129,10 @@ export function SettingsPanel({
         </SheetHeader>
 
         <FieldGroup className="px-4 pb-6">
+          {/* First, because it is the one thing here you open the panel to
+              fetch rather than to edit — and it is gone once published. */}
+          <DraftLinkField collection={collection} slug={slug} frontmatter={frontmatter} />
+
           <Field>
             <FieldLabel htmlFor="description">description</FieldLabel>
             <Textarea

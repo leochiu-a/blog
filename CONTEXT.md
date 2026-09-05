@@ -30,3 +30,11 @@ with, by acting on a link sent to it. A Subscriber only receives Issues after
 Confirmation.
 _Avoid_: Verification, activation, double opt-in (that names the practice, not
 the step)
+
+**Draft Link**:
+The URL of a Post that has not been published. It is the Post's ordinary URL,
+serving an unlisted page — no token, and no separate preview address. Sending
+it is how a draft gets read before it goes live. See
+docs/adr/0004-a-draft-link-is-unlisted-not-secret.md.
+_Avoid_: Preview link, share link, secret link (it is none of those — see the
+ADR)

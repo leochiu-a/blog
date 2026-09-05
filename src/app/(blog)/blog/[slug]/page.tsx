@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
-import { posts } from "@/lib/posts";
+import { reachablePosts } from "@/lib/posts";
 import { SITE_URL } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
@@ -14,13 +14,19 @@ import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
 import { detectPostLanguage } from "@/lib/language";
 import { DevEditLink } from "@/components/blog/DevEditLink";
+import { DraftNotice } from "@/components/blog/DraftNotice";
 import { SharePost } from "@/components/blog/SharePost";
 import { AuthorBio } from "@/components/blog/AuthorBio";
 import { author } from "@/data/content";
 import { PERSON_ID, personJsonLd } from "@/lib/person";
 
+/**
+ * Drafts get a page too, so a Draft Link resolves on the deployed site rather
+ * than 404ing (see lib/posts.ts). Nothing links to one, and `generateMetadata`
+ * keeps it out of search.
+ */
 export function generateStaticParams() {
-  return posts.map((post) => ({ slug: post.slug }));
+  return reachablePosts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -29,7 +35,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = posts.find((p) => p.slug === slug);
+  const post = reachablePosts.find((p) => p.slug === slug);
   if (!post) return {};
 
   const title = `${post.title} • Leo Chiu`;
@@ -44,6 +50,9 @@ export async function generateMetadata({
     alternates: {
       canonical: `${SITE_URL}${post.href}`,
     },
+    // A draft is reachable by its link and by nothing else — an index entry
+    // would publish it on the day the crawler happened to pass.
+    ...(post.draft && { robots: { index: false, follow: false } }),
     openGraph: {
       type: "article",
       title,
@@ -69,7 +78,7 @@ export async function generateMetadata({
 
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = posts.find((p) => p.slug === slug);
+  const post = reachablePosts.find((p) => p.slug === slug);
   if (!post) notFound();
 
   const Post = post.mdx;
@@ -131,6 +140,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           <article className="wrap-break-word">
             <div id="blog-hero">
+              {post.draft && <DraftNotice />}
               <h1 className="mt-2 font-sans text-3xl font-extrabold leading-[1.15] tracking-tight sm:mb-1 sm:text-4xl sm:leading-tight md:text-5xl">
                 {post.title}
               </h1>
