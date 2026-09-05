@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SquarePenIcon } from "lucide-react";
+import { editorPath } from "@/lib/editor/collections";
 
 /**
  * A way into the editor from the post you're reading. Rendered only when the
@@ -22,7 +23,7 @@ export function DevEditLink({ slug }: { slug: string }) {
 
   return (
     <Link
-      href={`/editor/${slug}`}
+      href={editorPath("posts", slug)}
       className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
     >
       <SquarePenIcon className="size-4" />
