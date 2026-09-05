@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Project } from "@/types/content";
 import { CardCorner, GitHubMark } from "@/components/icons";
 import { ProjectMedia } from "@/components/ProjectMedia";
@@ -15,13 +15,27 @@ export function ProjectCard({ project }: { project: Project }) {
   // Owned here rather than in ProjectMedia so the whole card is the hover
   // target — reaching the demo should not mean finding the image.
   const [active, setActive] = useState(false);
+  // The pointer lands on a CSS variable rather than in state: the rim light
+  // repaints on every mousemove, and a re-render per pixel is not worth it.
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const trackPointer = (event: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
+    card.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
+  };
 
   return (
     <div
+      ref={cardRef}
       className="w-full relative flex flex-col gap-y-3 rounded-lg border-2 border-bronze/20 bg-card warm-shadow transition-all duration-300 hover:border-gold/40 hover:warm-shadow-lg hover:-translate-y-1"
       onMouseEnter={() => setActive(true)}
       onMouseLeave={() => setActive(false)}
+      onMouseMove={trackPointer}
     >
+      <div className="spotlight-glow" data-lit={active} aria-hidden="true" />
       {/* Corner ornaments */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-2 top-2">
@@ -43,7 +57,7 @@ export function ProjectCard({ project }: { project: Project }) {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex flex-col gap-y-3 no-underline"
+        className="relative flex flex-col gap-y-3 no-underline"
       >
         <ProjectMedia
           image={project.image}
@@ -68,7 +82,7 @@ export function ProjectCard({ project }: { project: Project }) {
 
       {/* Credentials — sibling anchors, since these can't nest inside the one above.
           Every project shows whatever it can claim, so no card reads as missing a badge. */}
-      <div className="flex flex-col gap-y-2 px-5 pb-4">
+      <div className="relative flex flex-col gap-y-2 px-5 pb-4">
         <div className="flex flex-row flex-wrap items-center gap-2">
           {project.github && (
             <a

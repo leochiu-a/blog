@@ -465,6 +465,47 @@ input:-webkit-autofill:focus {
     0 4px 16px -4px hsl(var(--gold) / 0.15);
 }
 
+/* ===== Spotlight — a rim light that follows the pointer around a card =====
+   The light rides the card's own 2px border (masked so only the border ring
+   survives) and never spills inward — a lit patch under the cursor reads as
+   a smudge on the content, not as an edge catching the light. Dark until the
+   card is hovered, so a grid at rest reads as flat cards, not a light show. */
+.spotlight-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.spotlight-glow[data-lit="true"] {
+  opacity: 1;
+}
+
+.spotlight-glow::before {
+  content: "";
+  position: absolute;
+  /* Negative inset reaches back over the card's border, which the padding
+     box this element is positioned against excludes. */
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: radial-gradient(
+    16rem circle at var(--spot-x, 50%) var(--spot-y, 0%),
+    hsl(var(--gold) / 0.8),
+    hsl(var(--gold) / 0.25) 40%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
 /* ===== Illuminated link (post titles) ===== */
 .illuminated-link {
   position: relative;
