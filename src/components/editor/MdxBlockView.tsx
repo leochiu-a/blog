@@ -119,7 +119,7 @@ export function MdxBlockView({
             <img
               src={value("src")}
               alt={value("alt")}
-              className="mx-auto h-auto w-full rounded-sm"
+              className="mx-auto h-auto max-h-[70svh] w-auto max-w-full rounded-sm"
             />
             {value("caption") !== "" && (
               <figcaption className="mt-3 text-center font-sans text-sm text-muted-foreground">
