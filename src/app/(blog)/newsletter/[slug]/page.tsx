@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { issues } from "@/lib/issues";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, seoTitle } from "@/lib/site";
 import { AuthorBio } from "@/components/blog/AuthorBio";
 import { RecentIssues } from "@/components/newsletter/RecentIssues";
 import { SubscribeCta } from "@/components/newsletter/SubscribeCta";
@@ -20,7 +20,7 @@ export async function generateMetadata({
   const issue = issues.find((candidate) => candidate.slug === slug);
   if (!issue) return {};
 
-  const title = `${issue.title} • Leo Chiu`;
+  const title = seoTitle(issue.title);
   const description = issue.description ?? issue.subtitle;
 
   return {

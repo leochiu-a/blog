@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
 import { reachablePosts } from "@/lib/posts";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, seoTitle } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { PostToc } from "@/components/blog/PostToc";
@@ -38,7 +38,7 @@ export async function generateMetadata({
   const post = reachablePosts.find((p) => p.slug === slug);
   if (!post) return {};
 
-  const title = `${post.title} • Leo Chiu`;
+  const title = seoTitle(post.title);
   const description = post.description ?? post.subtitle;
   const image = post.ogImage ?? "/seo/social-card.png";
 

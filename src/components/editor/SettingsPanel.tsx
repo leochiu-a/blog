@@ -1,6 +1,6 @@
 "use client";
 
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -20,6 +20,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { CATEGORIES } from "@/lib/post-frontmatter";
+import { seoTitle } from "@/lib/site";
 import { collectionOf, type CollectionName } from "@/lib/editor/collections";
 import {
   readFlag,
@@ -133,8 +134,22 @@ export function SettingsPanel({
               fetch rather than to edit — and it is gone once published. */}
           <DraftLinkField collection={collection} slug={slug} frontmatter={frontmatter} />
 
+          {/* Read-only: the title is written in the document itself, and the
+              suffix is derived (see `seoTitle`). Shown here because this line
+              — not the bare title — is what a search result and an OG card
+              actually display, and it is otherwise invisible until publish. */}
           <Field>
-            <FieldLabel htmlFor="description">description</FieldLabel>
+            <FieldLabel>SEO title</FieldLabel>
+            <p className="rounded-md border border-input bg-muted/40 px-3 py-2 text-sm wrap-break-word">
+              {seoTitle(readText(frontmatter, "title"))}
+            </p>
+            <FieldDescription>
+              搜尋結果與 OG 卡片顯示的標題，接在文件標題後自動補上站名。
+            </FieldDescription>
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="description">SEO description</FieldLabel>
             <Textarea
               id="description"
               rows={4}
