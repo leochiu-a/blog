@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ZoomableImage } from "./ZoomableImage";
 
 interface FigureProps {
   src: string;
@@ -38,18 +38,13 @@ interface FigureProps {
 export function Figure({ src, alt, width, height, caption, hero }: FigureProps) {
   return (
     <figure className="my-6 not-prose">
-      <Image
+      <ZoomableImage
         src={src}
         alt={alt}
         width={width}
         height={height}
-        loading={hero ? "eager" : undefined}
-        fetchPriority={hero ? "high" : undefined}
-        sizes="(min-width: 768px) 42rem, 100vw"
-        // Intrinsic size capped on both axes rather than stretched to the column:
-        // a portrait phone screenshot filling 42rem of width is unreadably huge,
-        // so the height ceiling reins it in while landscape shots still fill the column.
-        className="mx-auto h-auto max-h-[70svh] w-auto max-w-full rounded-sm"
+        caption={caption}
+        hero={hero}
       />
       {caption && (
         <figcaption className="mt-3 text-center font-sans text-sm text-muted-foreground">
