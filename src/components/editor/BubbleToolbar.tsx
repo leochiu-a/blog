@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { NodeSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { Button } from "@/components/ui/button";
@@ -90,8 +91,14 @@ export function BubbleToolbar({ editor }: { editor: Editor }) {
     <BubbleMenu
       editor={editor}
       className={surface}
-      shouldShow={({ editor: instance, from, to }) =>
-        from !== to && !instance.isActive("codeBlock") && !instance.isActive("unknownBlock")
+      // A selected image or clip is a node selection, which spans a position
+      // and so reads as a range — but bold and H2 have nothing to say about a
+      // picture, and the toolbar only covered it up.
+      shouldShow={({ editor: instance, state, from, to }) =>
+        from !== to &&
+        !(state.selection instanceof NodeSelection) &&
+        !instance.isActive("codeBlock") &&
+        !instance.isActive("unknownBlock")
       }
     >
       {action("bold", BoldIcon, editor.isActive("bold"), () =>

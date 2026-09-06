@@ -49,6 +49,11 @@ const STATUS_LABEL = {
   error: "Save failed",
 } as const;
 
+/** Whether an event happened inside a block's own caption field. */
+function insideCaption(event: Event): boolean {
+  return event.target instanceof HTMLElement && event.target.closest("[data-caption]") !== null;
+}
+
 /** The images and clips a paste or a drop carries, if any. */
 function mediaFiles(data: DataTransfer | null) {
   return Array.from(data?.files ?? []).filter(
@@ -177,6 +182,17 @@ export function DocumentEditor({
     immediatelyRender: false,
     editorProps: {
       attributes: { class: "outline-none" },
+      // A caption is a real form field living inside the document. ProseMirror
+      // listens on the editor element, below the root React listens on, so it
+      // sees every one of these events first: the click would move the
+      // document's selection and pull focus straight back out of the field,
+      // and Backspace on an empty caption would delete the very block being
+      // captioned. This is the hook that hands those events over.
+      handleDOMEvents: {
+        mousedown: (_view, event) => insideCaption(event),
+        keydown: (_view, event) => insideCaption(event),
+        paste: (_view, event) => insideCaption(event),
+      },
       handlePaste: (_view, event) => {
         const files = mediaFiles(event.clipboardData);
         if (files.length === 0) return false;
