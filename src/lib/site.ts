@@ -27,3 +27,10 @@ export function seoTitle(title: string): string {
  * two cannot drift into looking like two different sites.
  */
 export const NOT_FOUND_TITLE = seoTitle("404");
+
+/**
+ * The card a page falls back to when it has no image of its own — the site's
+ * own social card. Shared so the editor's preview shows the picture a post
+ * without an `ogImage` will actually be shared with, rather than a guess.
+ */
+export const DEFAULT_OG_IMAGE = "/seo/social-card.png";

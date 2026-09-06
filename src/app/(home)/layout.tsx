@@ -2,7 +2,7 @@
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { fontVariables } from "@/lib/fonts";
-import { SITE_URL } from "@/lib/site";
+import { DEFAULT_OG_IMAGE, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     description: "Senior Software Engineer at KKday.",
     url: SITE_URL,
     siteName: "Leo Chiu",
-    images: ["/seo/social-card.png"],
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: "Leo Chiu",
     description: "Senior Software Engineer at KKday.",
-    images: ["/seo/social-card.png"],
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 

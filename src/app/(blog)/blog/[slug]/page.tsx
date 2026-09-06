@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
 import { reachablePosts } from "@/lib/posts";
-import { SITE_URL, seoTitle } from "@/lib/site";
+import { DEFAULT_OG_IMAGE, SITE_URL, seoTitle } from "@/lib/site";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { PostToc } from "@/components/blog/PostToc";
@@ -42,7 +42,7 @@ export async function generateMetadata({
 
   const title = seoTitle(post.title);
   const description = post.description ?? post.subtitle;
-  const image = post.ogImage ?? "/seo/social-card.png";
+  const image = post.ogImage ?? DEFAULT_OG_IMAGE;
 
   return {
     title,
@@ -103,7 +103,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         "@type": "BlogPosting",
         headline: post.title,
         description: post.description ?? post.subtitle,
-        image: `${SITE_URL}${post.ogImage ?? "/seo/social-card.png"}`,
+        image: `${SITE_URL}${post.ogImage ?? DEFAULT_OG_IMAGE}`,
         datePublished: post.datetime,
         dateModified: post.updated ?? post.datetime,
         inLanguage: detectPostLanguage(post.title),
@@ -170,7 +170,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   <SharePost
                     title={post.title}
                     url={postUrl}
-                    image={post.ogImage ?? "/seo/social-card.png"}
+                    image={post.ogImage ?? DEFAULT_OG_IMAGE}
                   />
                 </div>
               </div>
