@@ -1,249 +1,318 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PostToc } from "./PostToc";
 
 /**
- * `PostToc` reads the article out of the live DOM, so these tests build one.
+ * `PostToc` measures the article out of the live DOM, so these tests build one.
  *
  * The article is planted on `document.body` before rendering, exactly as it is
- * on a real post: the server sends `.prose` and the component finds it on mount.
+ * on a real post: the server sends `.prose` and the component measures it on
+ * mount.
+ *
+ * happy-dom lays nothing out — every rect is zero — so each heading is given
+ * the one it would have had. `top` is where the heading sits with the page
+ * unscrolled, which is what the component converts to a document position.
  */
-function plantArticle(headings: Array<{ level: 2 | 3; id: string; text: string }>) {
+function plantArticle(
+  headings: Array<{ level: 2 | 3; id?: string; text: string; top: number }>,
+  articleEnd = 4000,
+) {
   const article = document.createElement("div");
   article.className = "prose";
-  for (const { level, id, text } of headings) {
+  stubRect(article, articleEnd);
+
+  for (const { level, id, text, top } of headings) {
     const node = document.createElement(`h${level}`);
-    node.id = id;
+    if (id) node.id = id;
     node.textContent = text;
+    stubRect(node, top);
     article.appendChild(node);
   }
   document.body.appendChild(article);
 }
 
-/**
- * happy-dom has no IntersectionObserver, and even in a browser it would need a
- * real scroll to fire. Standing in for it lets a test say "the reader has just
- * reached this heading" directly, which is the only input the active state has.
- */
-let reachHeading: ((id: string) => void) | null = null;
+/** Only the two edges the component reads; the rest would be invented numbers. */
+function stubRect(element: Element, top: number) {
+  element.getBoundingClientRect = () => ({ top, bottom: top }) as DOMRect;
+}
+
+/** Put the reader `y` pixels down the page and let the rail catch up. */
+async function scrollTo(y: number) {
+  Object.defineProperty(window, "scrollY", { value: y, writable: true, configurable: true });
+  await act(async () => {
+    window.dispatchEvent(new Event("scroll"));
+    // The listener defers its state change to the next frame, so the test has
+    // to reach that frame before reading the rail.
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  });
+}
 
 beforeEach(() => {
-  class StubObserver {
-    constructor(private callback: IntersectionObserverCallback) {
-      reachHeading = (id: string) => {
-        const target = document.getElementById(id);
-        if (!target) throw new Error(`no heading #${id} to reach`);
-        // Only the three fields the component reads; the rest of the entry
-        // (intersectionRatio, rootBounds, time) would be invented numbers
-        // standing in for a layout no test here has.
-        const entry = {
-          isIntersecting: true,
-          target,
-          boundingClientRect: { top: 0 },
-        } as unknown as IntersectionObserverEntry;
-        act(() => {
-          this.callback([entry], this as unknown as IntersectionObserver);
-        });
-      };
-    }
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-    takeRecords() {
-      return [];
-    }
-  }
-  Object.defineProperty(window, "IntersectionObserver", {
-    writable: true,
-    configurable: true,
-    value: StubObserver,
-  });
+  // happy-dom has no ResizeObserver. The component uses it to re-measure after
+  // late layout shifts; nothing here shifts, so observing is enough.
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  Object.defineProperty(window, "scrollY", { value: 0, writable: true, configurable: true });
 });
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   document.body.innerHTML = "";
-  reachHeading = null;
   window.location.hash = "";
 });
 
 const rail = () => screen.getByRole("navigation", { name: "目錄" });
+/** The row holding the two columns: labels on the left, the bar on the right. */
+const columns = () => rail().lastElementChild!;
+const labels = () => [...columns().firstElementChild!.children] as HTMLElement[];
+/** One element per section, each holding its own fill. */
+const track = () => [...columns().lastElementChild!.firstElementChild!.children] as HTMLElement[];
 /**
- * The rail's own list, not the panel's — both are `<ul>`s of `<li>`s inside the
- * same `<nav>`, and a query by role would sweep up all of them.
+ * How full a section's bar is, 0 to 1. The fill is a full-height element the
+ * component squashes with `scaleY` rather than one it resizes, so that a scroll
+ * frame costs the compositor a transform and not the page a re-flow.
  */
-const ticks = () => [...rail().querySelector(":scope > ul")!.querySelectorAll("li > span")];
-const panelEntries = () => within(rail()).getAllByRole("link");
+const fill = (i: number) => {
+  const scaled = (track()[i].firstElementChild as HTMLElement).style.transform;
+  return Number.parseFloat(scaled.replace(/[^\d.]/g, ""));
+};
+const entries = () => screen.getAllByRole("link");
 
 describe("PostToc", () => {
-  it("renders nothing when the article has no headings", () => {
-    plantArticle([]);
+  it("renders nothing when the article has no sections", () => {
+    plantArticle([{ level: 3, text: "A subheading on its own", top: 100 }]);
     const { container } = render(<PostToc />);
     expect(container.firstChild).toBeNull();
   });
 
   it("ignores headings outside .prose, so the bio and read-more list stay out", () => {
-    plantArticle([{ level: 2, id: "real", text: "In the article" }]);
+    plantArticle([{ level: 2, id: "real", text: "In the article", top: 100 }]);
     const outside = document.createElement("h2");
     outside.id = "read-more";
     outside.textContent = "Read more";
     document.body.appendChild(outside);
 
     render(<PostToc />);
-    expect(panelEntries()).toHaveLength(1);
-    expect(panelEntries()[0]).toHaveProperty("hash", "#real");
+    expect(entries()).toHaveLength(1);
+    expect(entries()[0]).toHaveProperty("hash", "#real");
   });
 
   it("skips headings that have no id, since there is nothing to link to", () => {
-    plantArticle([{ level: 2, id: "kept", text: "Linkable" }]);
-    const anonymous = document.createElement("h2");
-    anonymous.textContent = "No id";
-    document.querySelector(".prose")!.appendChild(anonymous);
-
+    plantArticle([
+      { level: 2, id: "kept", text: "Linkable", top: 100 },
+      { level: 2, text: "No id", top: 200 },
+    ]);
     render(<PostToc />);
-    expect(panelEntries()).toHaveLength(1);
+    expect(entries()).toHaveLength(1);
   });
 
-  describe("the collapsed rail", () => {
-    it("draws one tick per h2 and none for h3", () => {
-      plantArticle([
-        { level: 2, id: "one", text: "First section" },
-        { level: 3, id: "one-a", text: "A subheading" },
-        { level: 3, id: "one-b", text: "Another subheading" },
-        { level: 2, id: "two", text: "Second section" },
-      ]);
-      render(<PostToc />);
+  it("names sections and never subheadings", () => {
+    plantArticle([
+      { level: 2, id: "one", text: "First section", top: 100 },
+      { level: 3, id: "one-a", text: "A subheading", top: 300 },
+      { level: 2, id: "two", text: "Second section", top: 500 },
+    ]);
+    render(<PostToc />);
 
-      expect(ticks()).toHaveLength(2);
-      expect(panelEntries()).toHaveLength(4);
-    });
-
-    it("scales tick width to title length, longest full and shortest shortest", () => {
-      plantArticle([
-        { level: 2, id: "s", text: "Short" },
-        { level: 2, id: "m", text: "A middling heading" },
-        { level: 2, id: "l", text: "The considerably longer heading of the two" },
-      ]);
-      render(<PostToc />);
-
-      const widths = ticks().map((t) => Number.parseFloat((t as HTMLElement).style.width));
-      expect(widths[0]).toBe(40);
-      expect(widths[2]).toBe(100);
-      expect(widths[1]).toBeGreaterThan(widths[0]);
-      expect(widths[1]).toBeLessThan(widths[2]);
-    });
-
-    it("counts a CJK character as twice a Latin one", () => {
-      // Four CJK characters weigh 8; eight Latin letters weigh 8. Ties, because
-      // they occupy the same width on screen — which is what the tick draws.
-      plantArticle([
-        { level: 2, id: "cjk", text: "認知卸載" },
-        { level: 2, id: "latin", text: "offloads" },
-      ]);
-      render(<PostToc />);
-
-      const [a, b] = ticks().map((t) => (t as HTMLElement).style.width);
-      expect(a).toBe(b);
-    });
-
-    it("draws even ticks when every section title is the same length", () => {
-      plantArticle([
-        { level: 2, id: "a", text: "Alpha" },
-        { level: 2, id: "b", text: "Bravo" },
-      ]);
-      render(<PostToc />);
-
-      // Not NaN% — the shortest-to-longest spread has no range to divide by.
-      for (const tick of ticks()) {
-        expect((tick as HTMLElement).style.width).toBe("70%");
-      }
-    });
+    expect(entries().map((entry) => entry.textContent)).toEqual([
+      "First section",
+      "Second section",
+    ]);
   });
 
-  describe("the expanded panel", () => {
-    it("links every heading by its own fragment", () => {
-      plantArticle([
-        { level: 2, id: "前言", text: "前言" },
-        { level: 3, id: "核心問題", text: "核心問題" },
-      ]);
-      render(<PostToc />);
-
-      expect(panelEntries().map((a) => (a as HTMLAnchorElement).getAttribute("href"))).toEqual([
-        "#前言",
-        "#核心問題",
-      ]);
-    });
-
-    it("indents subheadings and leaves sections flush", () => {
-      plantArticle([
-        { level: 2, id: "sec", text: "Section" },
-        { level: 3, id: "sub", text: "Subsection" },
-      ]);
-      render(<PostToc />);
-
-      const [section, sub] = panelEntries().map((a) => a.parentElement!);
-      expect(section.className).not.toContain("ps-3");
-      expect(sub.className).toContain("ps-3");
-    });
-  });
-
-  describe("tracking where the reader is", () => {
+  describe("the bar", () => {
+    /** 100px, 300px and 600px of article: an eighth, three eighths, a half. */
     const article = [
-      { level: 2, id: "one", text: "First section" },
-      { level: 3, id: "one-a", text: "A subheading" },
-      { level: 2, id: "two", text: "Second section" },
-    ] as const;
+      { level: 2 as const, id: "a", text: "Short one", top: 100 },
+      { level: 2 as const, id: "b", text: "Middling one", top: 200 },
+      { level: 2 as const, id: "c", text: "Long one", top: 500 },
+    ];
 
-    it("lights nothing before the reader has reached a heading", () => {
-      plantArticle([...article]);
+    it("gives each section a share of the bar proportional to its length", () => {
+      plantArticle(article, 1100);
       render(<PostToc />);
-      expect(ticks().filter((t) => t.className.includes("bg-blog-accent"))).toHaveLength(0);
+
+      expect(track().map((segment) => segment.style.top)).toEqual(["0%", "10%", "40%"]);
+      expect(track().map((segment) => segment.style.height)).toEqual([
+        "calc(10% - 3px)",
+        "calc(30% - 3px)",
+        "calc(60% - 3px)",
+      ]);
     });
 
-    it("lights the tick of the section being read", () => {
-      plantArticle([...article]);
+    it("ends the last section at the article, not at the foot of the page", () => {
+      // The subscribe box and the bio come after `.prose`. Counting them would
+      // leave the bar short of full with the article finished.
+      plantArticle(article, 1100);
       render(<PostToc />);
 
-      reachHeading!("two");
-      const lit = ticks().map((t) => t.className.includes("bg-blog-accent"));
-      expect(lit).toEqual([false, true]);
+      const [, , last] = track();
+      expect(last.style.top).toBe("40%");
+      expect(last.style.height).toBe("calc(60% - 3px)");
     });
 
-    it("keeps a section lit while the reader is inside its subheadings", () => {
-      plantArticle([...article]);
+    it("fills nothing before the reader has reached the first section", () => {
+      plantArticle(article, 1100);
       render(<PostToc />);
 
-      // The reader is at "A subheading", which has no tick of its own — the
-      // section above it is the one still being read.
-      reachHeading!("one-a");
-      const lit = ticks().map((t) => t.className.includes("bg-blog-accent"));
-      expect(lit).toEqual([true, false]);
+      expect(track().map((_, i) => fill(i))).toEqual([0, 0, 0]);
     });
 
-    it("marks the current heading itself in the panel, subheading included", () => {
-      plantArticle([...article]);
+    it("fills a section as the reader moves through it, and the ones behind it whole", async () => {
+      plantArticle(article, 1100);
       render(<PostToc />);
 
-      reachHeading!("one-a");
-      const current = panelEntries().filter((a) => a.className.includes("font-semibold"));
-      expect(current).toHaveLength(1);
-      expect(current[0].textContent).toBe("A subheading");
+      // The reading line — 96px below the top of the viewport — is halfway
+      // through the second section, which runs from 200 to 500.
+      await scrollTo(254);
+
+      expect(fill(0)).toBe(1);
+      expect(fill(1)).toBe(0.5);
+      expect(fill(2)).toBe(0);
+    });
+
+    it("fills to the end once the reader is past the article", async () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+
+      await scrollTo(2000);
+      expect(track().map((_, i) => fill(i))).toEqual([1, 1, 1]);
+    });
+
+    it("leaves once the reader is past the article, before the foot of the page", async () => {
+      // 1100 is where `.prose` ends; the subscribe box, the bio and the
+      // read-more list come after it and are none of the rail's business.
+      plantArticle(article, 1100);
+      render(<PostToc />);
+      expect(rail().className).not.toContain("opacity-0");
+
+      await scrollTo(1100);
+      expect(rail().className).toContain("opacity-0");
+
+      // And comes back if the reader scrolls up into the writing again.
+      await scrollTo(500);
+      expect(rail().className).not.toContain("opacity-0");
+    });
+
+    it("stops taking the pointer once it has left, so nothing invisible opens", async () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+      // The hover pad is the only part of the rail that takes input.
+      const pad = () => rail().children[1];
+      expect(pad().className).toContain("pointer-events-auto");
+
+      await scrollTo(1100);
+      expect(pad().className).toContain("pointer-events-none");
+    });
+
+    it("stays hidden until something moves, then shows itself and settles back", async () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+      const bar = () => columns().lastElementChild!.firstElementChild!;
+
+      // Nothing has scrolled yet: a bar with no progress to report is a mark
+      // on the page that has not earned its place.
+      expect(bar().className).toContain("opacity-0");
+
+      await scrollTo(300);
+      expect(bar().className).toContain("opacity-100");
+
+      // And fades out again once the reader settles.
+      await waitFor(() => expect(bar().className).toContain("opacity-0"), { timeout: 3000 });
     });
   });
 
-  describe("marking the heading an entry points at", () => {
+  describe("the labels", () => {
     const article = [
-      { level: 2, id: "one", text: "First section" },
-      { level: 2, id: "two", text: "Second section" },
-    ] as const;
+      { level: 2 as const, id: "one", text: "First section", top: 100 },
+      { level: 2 as const, id: "two", text: "Second section", top: 600 },
+    ];
 
+    it("stands each label level with the section it names", () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+
+      // The second section starts halfway down a 1000px article, so its label
+      // stands halfway down the rail.
+      expect(labels().map((label) => label.style.top)).toEqual(["0%", "50%"]);
+    });
+
+    it("lights nothing before the reader has reached a section", () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+      expect(entries().filter((e) => e.className.includes("text-foreground"))).toHaveLength(0);
+    });
+
+    it("lights the section being read, and only that one", async () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+
+      await scrollTo(600);
+      expect(entries().map((e) => e.className.includes("text-foreground"))).toEqual([false, true]);
+    });
+
+    it("keeps a section lit while the reader is inside its subheadings", async () => {
+      plantArticle(
+        [
+          ...article.slice(0, 1),
+          { level: 3, id: "one-a", text: "A subheading", top: 300 },
+          ...article.slice(1),
+        ],
+        1100,
+      );
+      render(<PostToc />);
+
+      // At the subheading, which has no section of its own — the section above
+      // it is the one still being read.
+      await scrollTo(300);
+      expect(entries().map((e) => e.className.includes("text-foreground"))).toEqual([true, false]);
+    });
+  });
+
+  describe("going to a section", () => {
+    const article = [
+      { level: 2 as const, id: "one", text: "First section", top: 100 },
+      { level: 2 as const, id: "two", text: "Second section", top: 600 },
+    ];
     const heading = (id: string) => document.querySelector(`.prose #${id}`)!;
     const entry = (text: string) => screen.getByRole("link", { name: text });
 
+    it("links every section by its own fragment", () => {
+      plantArticle(
+        [
+          { level: 2, id: "前言", text: "前言", top: 100 },
+          { level: 2, id: "收尾", text: "收尾", top: 600 },
+        ],
+        1100,
+      );
+      render(<PostToc />);
+
+      expect(entries().map((a) => a.getAttribute("href"))).toEqual(["#前言", "#收尾"]);
+    });
+
+    it("glides to the section rather than jumping, and names it in the URL", async () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+      const scrollIntoView = vi.fn();
+      heading("two").scrollIntoView = scrollIntoView;
+
+      await userEvent.click(entry("Second section"));
+
+      expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+      expect(window.location.hash).toBe("#two");
+    });
+
     it("marks the heading an entry points at when that entry is clicked", async () => {
-      plantArticle([...article]);
+      plantArticle(article, 1100);
       render(<PostToc />);
 
       expect(heading("two").className).not.toContain("heading-arrival");
@@ -255,7 +324,7 @@ describe("PostToc", () => {
       // The regression this guards: `:target` cannot see this click, because the
       // URL it would key on is already what the click asks for. A reader who has
       // scrolled away and wants showing back to their place clicks exactly here.
-      plantArticle([...article]);
+      plantArticle(article, 1100);
       render(<PostToc />);
 
       await userEvent.click(entry("First section"));
@@ -268,18 +337,34 @@ describe("PostToc", () => {
     });
   });
 
+  it("does not hold itself open after a click, once the pointer has gone", () => {
+    // The regression this guards: an entry keeps focus after being clicked, and
+    // a plain `:focus-within` on the rail read that as "still in use" — so the
+    // labels stayed out over the article until the reader clicked elsewhere.
+    plantArticle([
+      { level: 2, id: "one", text: "First section", top: 100 },
+      { level: 2, id: "two", text: "Second section", top: 600 },
+    ]);
+    render(<PostToc />);
+
+    for (const entry of entries()) {
+      expect(entry.className).not.toContain("group-focus-within:opacity-100");
+      expect(entry.className).toContain("group-has-[:focus-visible]:opacity-100");
+    }
+  });
+
   it("stays off touch screens entirely, rather than folding into the page", () => {
     plantArticle([
-      { level: 2, id: "one", text: "First section" },
-      { level: 3, id: "one-a", text: "A subheading" },
+      { level: 2, id: "one", text: "First section", top: 100 },
+      { level: 2, id: "two", text: "Second section", top: 600 },
     ]);
     const { container } = render(<PostToc />);
 
     // No second, stacked copy of the contents for narrow screens: the rail is
-    // the whole feature, and it is hidden below lg by class.
+    // the whole feature, and it is hidden below xl by class.
     expect(container.querySelector("details")).toBeNull();
     expect(container.querySelectorAll("nav")).toHaveLength(1);
     expect(rail().className).toContain("hidden");
-    expect(rail().className).toContain("lg:block");
+    expect(rail().className).toContain("xl:block");
   });
 });

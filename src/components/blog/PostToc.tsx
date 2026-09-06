@@ -1,91 +1,77 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { TocRail } from "@/components/TocRail";
+import type { MouseEvent } from "react";
+import { TocRail, type TocSection } from "@/components/TocRail";
+import { documentTop, useScrollProgress } from "@/components/useScrollProgress";
 import { markArrival } from "./SectionArrival";
 
-interface Heading {
-  id: string;
-  text: string;
-  level: 2 | 3;
-}
-
 /**
- * Headings as rendered, read from the DOM rather than from the source.
+ * The article's sections, measured off the page as rendered.
  *
  * `content-collections` parses frontmatter only, so the body never reaches JS —
- * and even if it did, a heading emitted by an MDX component wouldn't be in it.
- * The rendered article is the one place the real list exists.
+ * and even if it did, a heading emitted by an MDX component wouldn't be in it,
+ * and neither would its position on the page. The rendered article is the one
+ * place both the list and the geometry exist.
  *
  * Scoped to `.prose`: `RecentPosts` and `AuthorBio` also carry headings, and
- * those belong to the page, not to the piece being read.
+ * those belong to the page, not to the piece being read. The article's own
+ * bottom ends the last section for the same reason — a bar that ran to the
+ * foot of the document would count the subscribe box as reading left to do.
  */
-function readHeadings(): Heading[] {
-  const nodes = document.querySelectorAll<HTMLHeadingElement>(".prose h2, .prose h3");
-  return [...nodes]
-    .filter((node) => node.id)
-    .map((node) => ({
-      id: node.id,
-      text: node.textContent?.trim() ?? "",
-      level: node.tagName === "H2" ? 2 : 3,
-    }));
+function measureSections(): TocSection[] {
+  const article = document.querySelector(".prose");
+  if (!article) return [];
+
+  const headings = [...article.querySelectorAll<HTMLHeadingElement>("h2")].filter(
+    (node) => node.id,
+  );
+  const articleEnd = article.getBoundingClientRect().bottom + window.scrollY;
+
+  return headings.map((node, i) => ({
+    key: node.id,
+    text: node.textContent?.trim() ?? "",
+    start: documentTop(node),
+    end: i + 1 < headings.length ? documentTop(headings[i + 1]) : articleEnd,
+  }));
+}
+
+function prefersReducedMotion(): boolean {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
 export function PostToc() {
-  const [headings, setHeadings] = useState<Heading[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const found = readHeadings();
-    // The rendered article *is* the external system this effect synchronises
-    // with — the headings do not exist during render, on the server or on the
-    // client's first pass, so there is nothing to derive them from. This is the
-    // case the rule's own guidance carves out; it just cannot see it from here.
-    // eslint-disable-next-line react/set-state-in-effect
-    setHeadings(found);
-    if (found.length === 0) return;
-
-    // A band across the top of the viewport: a heading counts as current once it
-    // reaches it and stops counting once the next one arrives. Nothing in the
-    // band (a long section mid-scroll) leaves the last one standing, which is
-    // the honest answer — the reader is still inside it.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const arrived = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (arrived) setActiveId(arrived.target.id);
-      },
-      { rootMargin: "-80px 0px -70% 0px" },
-    );
-
-    for (const { id } of found) {
-      const node = document.getElementById(id);
-      if (node) observer.observe(node);
-    }
-    return () => observer.disconnect();
-  }, []);
+  const { sections, position } = useScrollProgress(measureSections);
 
   return (
     <TocRail
       label="目錄"
-      items={headings.map((h) => ({ key: h.id, text: h.text, level: h.level }))}
-      activeKey={activeId}
-      renderEntry={(item, props) => (
+      sections={sections}
+      position={position}
+      renderEntry={(section, props) => (
         <a
-          href={`#${item.key}`}
-          // A real fragment link, not a scroll handler: it survives no-JS, it
-          // is copyable from the context menu, and it puts the section in the
-          // URL so a reader can hand someone else the exact passage.
-          //
-          // The link still navigates; `onClick` only re-fires the mark.
-          // Clicking the entry for the section already in the URL fires no
-          // hashchange at all, so the click is the only signal that a reader
-          // asked to be shown where they are a second time.
-          onClick={() => markArrival(item.key)}
+          href={`#${section.key}`}
+          // A real fragment link, not a bare handler: it survives no-JS, it is
+          // copyable from the context menu, and it puts the section in the URL
+          // so a reader can hand someone else the exact passage. The click
+          // takes over only to glide there instead of jumping — and only for a
+          // plain click, so open-in-new-tab and the rest still behave as links.
+          onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+            markArrival(section.key);
+            const heading = document.getElementById(section.key);
+            if (!heading || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+              return;
+            event.preventDefault();
+            // The URL still changes, so the address bar names the section a
+            // reader has been taken to and Back returns them to where they were.
+            history.pushState(null, "", `#${encodeURIComponent(section.key)}`);
+            heading.scrollIntoView?.({
+              behavior: prefersReducedMotion() ? "auto" : "smooth",
+              block: "start",
+            });
+          }}
           {...props}
         >
-          {item.text}
+          {section.text}
         </a>
       )}
     />
