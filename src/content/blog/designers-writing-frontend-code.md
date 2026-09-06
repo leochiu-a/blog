@@ -3,7 +3,7 @@ title: "設計師參與開發，真的能加速前端專案嗎？"
 subtitle: "聊聊我們公司的跨職能開發實驗，以及 Figma 規範帶來的真正效益"
 description: "我們讓三位設計師各自獨立開發一個前端專案，由工程師 Code Review。三個專案都卡在同一件事：設計師大量時間花在非設計的工程問題上。這篇談我們發現的界線，以及 Figma MCP 成熟後更有效率的協作方式。"
 ogImage: "/blog-images/designers-writing-frontend-code-hero.webp"
-datetime: "2026-09-05"
+datetime: "2026-09-06"
 readTime: "9 min"
 category: "professional"
 tags: ["Figma MCP", "設計師寫 code", "Design System", "前端協作", "Code Connect", "Figma"]
