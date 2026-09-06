@@ -152,7 +152,10 @@ export function SettingsPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="overflow-y-auto font-sans data-[side=right]:w-[28rem] data-[side=right]:sm:max-w-none">
+      <SheetContent
+        side="right"
+        className="overflow-y-auto font-sans data-[side=right]:w-[28rem] data-[side=right]:sm:max-w-none"
+      >
         <SheetHeader>
           <SheetTitle>{itemLabel} settings</SheetTitle>
           <SheetDescription>
