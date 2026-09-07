@@ -179,11 +179,21 @@ export function TocRail({
       {/* The hover target, and the only part of the rail that takes the
           pointer. Far wider than the 2px bar it opens: a hairline at the screen
           edge is a thing you can see but not reliably hit, and a reader
-          reaching for it should not have to aim. */}
+          reaching for it should not have to aim.
+
+          Narrow while closed, the rail's full width once open. The labels run
+          most of the way across the strip, and while the pad stopped short of
+          them the space they sit in caught nothing: a reader tracing from the
+          bar to the label they wanted crossed dead ground, lost the hover, and
+          watched the rail fade out from under the pointer. Widening it on hover
+          keeps the closed strip off the article's right margin — where a
+          permanent 280px column would swallow text selection — while giving the
+          open rail one continuous surface to move around in. */}
       <div
         aria-hidden="true"
         className={cn(
           "absolute inset-y-0 right-0 w-36",
+          "group-hover:w-full group-has-[:focus-visible]:w-full",
           // Gone with the rail: an invisible strip that still opened the labels
           // would be worse than leaving them, since nothing on screen would
           // explain what the reader had just hovered.
