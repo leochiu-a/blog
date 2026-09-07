@@ -50,7 +50,11 @@ async function frame() {
   });
 }
 
+/** Whether the window is wide enough for the rail the hook feeds. */
+let wide = true;
+
 beforeEach(() => {
+  wide = true;
   // happy-dom has neither of these, and the hook needs both to mount.
   vi.stubGlobal(
     "ResizeObserver",
@@ -63,7 +67,13 @@ beforeEach(() => {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
     configurable: true,
-    value: () => ({ matches: true, addEventListener() {}, removeEventListener() {} }),
+    value: () => ({
+      get matches() {
+        return wide;
+      },
+      addEventListener() {},
+      removeEventListener() {},
+    }),
   });
   Object.defineProperty(window, "scrollY", { value: 0, writable: true, configurable: true });
 });
@@ -120,6 +130,21 @@ describe("useScrollProgress", () => {
     await frame();
 
     expect(measure).toHaveBeenCalledTimes(1);
+  });
+
+  it("measures nothing at all on a window with no gutter for the rail", async () => {
+    // The editor asks on every keystroke, and asking walks the whole document
+    // to place every heading. Below the breakpoint there is no rail to draw
+    // from the answer, so the question is not worth putting — and this is the
+    // one hot path where the gate was still letting it through.
+    wide = false;
+    const measure = vi.fn(() => [section("a", 0, 100)]);
+    const { remeasure } = mount(measure);
+
+    remeasure();
+    await frame();
+
+    expect(measure).not.toHaveBeenCalled();
   });
 
   it("still measures on mount without waiting for a frame", async () => {

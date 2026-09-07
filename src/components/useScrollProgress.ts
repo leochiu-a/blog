@@ -77,16 +77,18 @@ export function useScrollProgress(measure: () => TocSection[]) {
   // lay the page out there and then. The editor asks on every keystroke, so
   // asked-for measurements wait for a frame and the ones that pile up inside it
   // collapse into that one — the rail cannot show more than a frame's worth
-  // anyway. The mount measurement below does not go through here: it has no
-  // frame to spare, since the rail is drawn from the first render.
+  // anyway. With no gutter they are not taken at all: asking walks the whole
+  // document to answer a question nothing on screen is putting. The mount
+  // measurement below does not go through here — it has no frame to spare,
+  // since the rail is drawn from the first render.
   const pending = useRef(0);
   const remeasure = useCallback(() => {
-    if (pending.current) return;
+    if (!wide || pending.current) return;
     pending.current = requestAnimationFrame(() => {
       pending.current = 0;
       measureNow();
     });
-  }, [measureNow]);
+  }, [wide, measureNow]);
 
   useEffect(() => {
     if (!wide) return;
