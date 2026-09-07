@@ -49,17 +49,61 @@ async function scrollTo(y: number) {
   });
 }
 
+/**
+ * Whether the window is wide enough for the gutter the rail hangs in.
+ *
+ * The rail is a pointer-and-gutter thing, absent below `xl` rather than
+ * restyled, so every test has to say which side of that it is on. Tests default
+ * to a wide window, since that is where the rail is the feature.
+ */
+let wide = true;
+/** What the component asked to watch, so a test can see it asked nothing. */
+let observed: Element[] = [];
+/** The component's own re-measure hook, for standing in as a layout shift. */
+let layoutShifts: Array<() => void> = [];
+const queryListeners = new Set<() => void>();
+
+/** Resize across the breakpoint, as a reader dragging the window would. */
+function resizeTo(value: boolean) {
+  wide = value;
+  for (const notify of [...queryListeners]) notify();
+}
+
 beforeEach(() => {
+  wide = true;
+  observed = [];
+  layoutShifts = [];
+  queryListeners.clear();
+
   // happy-dom has no ResizeObserver. The component uses it to re-measure after
-  // late layout shifts; nothing here shifts, so observing is enough.
+  // late layout shifts; nothing here shifts, so recording the target is enough.
   vi.stubGlobal(
     "ResizeObserver",
     class {
-      observe() {}
+      constructor(onResize: () => void) {
+        layoutShifts.push(onResize);
+      }
+      observe(target: Element) {
+        observed.push(target);
+      }
       unobserve() {}
       disconnect() {}
     },
   );
+  // happy-dom answers width queries from a window size no test has set, so the
+  // breakpoint is stubbed rather than inherited. Only width queries answer
+  // `wide`; the reduced-motion check is a separate question and answers no.
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: (query: string) => ({
+      get matches() {
+        return query.includes("min-width") ? wide : false;
+      },
+      addEventListener: (_: string, notify: () => void) => void queryListeners.add(notify),
+      removeEventListener: (_: string, notify: () => void) => void queryListeners.delete(notify),
+    }),
+  });
   Object.defineProperty(window, "scrollY", { value: 0, writable: true, configurable: true });
 });
 
@@ -351,6 +395,68 @@ describe("PostToc", () => {
       expect(entry.className).not.toContain("group-focus-within:opacity-100");
       expect(entry.className).toContain("group-has-[:focus-visible]:opacity-100");
     }
+  });
+
+  describe("on a screen with no gutter to hang in", () => {
+    const article = [
+      { level: 2 as const, id: "one", text: "First section", top: 100 },
+      { level: 2 as const, id: "two", text: "Second section", top: 600 },
+    ];
+
+    it("measures nothing and watches nothing, since it has nothing to draw", () => {
+      // The rail is hidden below `xl` by class, so a phone used to pay for all
+      // of it anyway: a scroll listener, a state change every frame, and the
+      // geometry of every heading read back — to position a `display: none`
+      // nav.
+      resizeTo(false);
+      const listen = vi.spyOn(window, "addEventListener");
+      plantArticle(article, 1100);
+
+      const { container } = render(<PostToc />);
+
+      expect(container.firstChild).toBeNull();
+      expect(listen.mock.calls.map(([event]) => event)).not.toContain("scroll");
+      expect(observed).toHaveLength(0);
+    });
+
+    it("still follows the page after the window has been narrowed and widened", async () => {
+      // The regression this guards: re-measurements are held to one a frame, and
+      // tearing down mid-frame used to leave that frame's slot occupied for
+      // good — so the rail came back on the next resize and then never moved
+      // again, however far the page shifted under it.
+      plantArticle(article, 1100);
+      render(<PostToc />);
+
+      layoutShifts.at(-1)!();
+      await act(async () => resizeTo(false));
+      await act(async () => resizeTo(true));
+
+      // The second section starts halfway down the article as planted.
+      expect(labels()[1].style.top).toBe("50%");
+
+      // A code block in the last section has hydrated a thousand pixels taller,
+      // so the same heading is now a quarter of the way down.
+      stubRect(document.querySelector(".prose")!, 2100);
+      await act(async () => {
+        layoutShifts.at(-1)!();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      });
+
+      expect(labels()[1].style.top).toBe("25%");
+    });
+
+    it("arrives if the window is widened into one", async () => {
+      // Dragging a window past the breakpoint is the one case a mount-time
+      // check gets wrong, and it gets it wrong until the reader reloads.
+      resizeTo(false);
+      plantArticle(article, 1100);
+      render(<PostToc />);
+      expect(screen.queryByRole("navigation", { name: "目錄" })).toBeNull();
+
+      await act(async () => resizeTo(true));
+
+      expect(entries()).toHaveLength(2);
+    });
   });
 
   it("stays off touch screens entirely, rather than folding into the page", () => {
