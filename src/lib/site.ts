@@ -1,4 +1,7 @@
-import { author } from "@/data/content";
+// Relative, and with the extension, because the send script loads this file
+// under plain `node`, which resolves neither the `@/*` alias nor a bare
+// specifier for a `.ts` file.
+import { author } from "../data/content.ts";
 
 // Override with NEXT_PUBLIC_SITE_URL in the deploy environment if the
 // domain ever changes — no code change needed.

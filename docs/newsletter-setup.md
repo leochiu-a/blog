@@ -85,7 +85,37 @@ from the title). Writing the file by hand works just as well; use
 `hello-newsletter.md` as the shape.
 
 Keep `draft: true` until the Issue is finished: a draft is hidden from the
-archive and the send script refuses to mail it. Then:
+archive and the send script refuses to mail it to the list.
+
+While it is still a draft, mail it to yourself as often as you like. In the
+editor, **Send test** sits next to Preview: type an address, press Enter, and
+that address gets the Issue. It saves the document first, so what lands in the
+inbox is the paragraph you were just looking at. The same thing from a
+terminal:
+
+```bash
+pnpm newsletter:send hello-newsletter --test you@example.com
+```
+
+Either way it is one ordinary email to one address — not a broadcast — so the
+subscriber list is neither read nor written, no contact is created in Resend,
+and nothing is recorded as sent. The subject arrives prefixed with `[測試]` so a
+test can never be mistaken for the real Issue in an inbox, and the unsubscribe
+link points at the bare `/newsletter/unsubscribe/` page, because a test
+recipient has no per-subscriber token. This is the only path that will read a
+draft, and `--test` cannot be combined with `--dry-run`.
+
+The button is a `.dev.ts` route, so it exists only while `pnpm dev` is running
+and the deployed app has no endpoint that sends mail on request. It reads
+`RESEND_API_KEY` from `.dev.vars` like everything else here; a Resend refusal —
+an invalid key, an unverified domain — comes back into the dialog in its own
+words.
+
+Use it on the providers that matter — a Gmail address, an Outlook one, your
+phone — because how an Issue renders and where it lands is the one thing no
+amount of local rehearsal answers.
+
+When the Issue is finished, drop `draft: true` and preview the real send:
 
 ```bash
 pnpm newsletter:send hello-newsletter --dry-run

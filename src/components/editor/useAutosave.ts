@@ -56,5 +56,11 @@ export function useAutosave(save: (document: EditorDocument) => Promise<void>) {
     };
   }, [flush]);
 
-  return { status, schedule };
+  /**
+   * `flush` is returned as well as scheduled internally, for the actions that
+   * must not run against a stale file — the test send reads what is on disk,
+   * so the beat of debounce would be the difference between the Issue you are
+   * looking at and the one that lands in the inbox.
+   */
+  return { status, schedule, flush };
 }
