@@ -23,6 +23,19 @@ const CONTAINER_STYLE =
 const FOOTER_STYLE =
   "margin:32px 0 0;padding-top:20px;border-top:1px solid #e5e5e5;color:#737373;font-size:13px;line-height:1.7;";
 const FOOTER_LINK_STYLE = "color:#737373;text-decoration:underline;";
+/**
+ * The "read this online" line, which belongs to the Issue rather than to the
+ * footer: it is the last thing the reader is offered about *this* edition, and
+ * sitting it next to the unsubscribe link put the way out and the way further
+ * in on the same line — one click apart, in the same grey. Right-aligned and
+ * above the rule, the way Programming Digest does it, so what is left below the
+ * rule is only the housekeeping.
+ */
+const READ_ONLINE_STYLE =
+  "margin:32px 0 0;text-align:right;font-size:14px;line-height:1.7;color:#525252;";
+const READ_ONLINE_LINK_STYLE = "color:#525252;";
+/** Set apart from the line above it: leaving is a decision of its own. */
+const UNSUBSCRIBE_STYLE = "margin:20px 0 0;";
 
 function shell({ preheader, contentHtml, footerHtml }: ShellOptions): string {
   return `<!doctype html>
@@ -103,19 +116,22 @@ export function issueEmail({
 
   const contentHtml = `<h1 style="margin:0 0 8px;font-size:24px;font-weight:700;line-height:1.3;">${escapeHtml(title)}</h1>
 ${subtitle ? `<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#525252;">${escapeHtml(subtitle)}</p>` : ""}
-${body.html}`;
+${body.html}
+<p style="${READ_ONLINE_STYLE}"><a href="${issueUrl}" style="${READ_ONLINE_LINK_STYLE}">在瀏覽器閱讀這一期</a>。</p>`;
 
-  const footerHtml = `你收到這封信，是因為你訂閱了 Leo Chiu 的電子報。<br />
-<a href="${issueUrl}" style="${FOOTER_LINK_STYLE}">在瀏覽器閱讀這一期</a> · <a href="${unsubscribeUrl}" style="${FOOTER_LINK_STYLE}">退訂</a>`;
+  const footerHtml = `你收到這封信，是因為你訂閱了 Leo Chiu 的電子報。
+<p style="${UNSUBSCRIBE_STYLE}">不想再收到的話，<a href="${unsubscribeUrl}" style="${FOOTER_LINK_STYLE}">點這裡退訂</a>。</p>`;
 
   const text = `${title}
 ${subtitle ? `${subtitle}\n` : ""}
 ${body.text}
 
+在瀏覽器閱讀這一期：${issueUrl}
+
 ---
 你收到這封信，是因為你訂閱了 Leo Chiu 的電子報。
-在瀏覽器閱讀這一期：${issueUrl}
-退訂：${unsubscribeUrl}`;
+
+不想再收到的話，從這裡退訂：${unsubscribeUrl}`;
 
   return {
     subject: subject ?? title,
