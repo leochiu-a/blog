@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Mode, Post } from "@/types/content";
+import type { IssueSummary, Mode, Post } from "@/types/content";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Hero } from "@/components/Hero";
 import { AboutSection } from "@/components/AboutSection";
 import { PostsSection } from "@/components/PostsSection";
+import { NewsletterSection } from "@/components/NewsletterSection";
 import { StuffSection } from "@/components/StuffSection";
 import { Divider } from "@/components/Divider";
 import { Footer } from "@/components/Footer";
@@ -17,9 +18,16 @@ interface PortfolioAppProps {
   initialMode: Mode;
   professionalPosts: Post[];
   personalPosts: Post[];
+  /** Newest Issues, listed in professional mode only. */
+  recentIssues: IssueSummary[];
 }
 
-export function PortfolioApp({ initialMode, professionalPosts, personalPosts }: PortfolioAppProps) {
+export function PortfolioApp({
+  initialMode,
+  professionalPosts,
+  personalPosts,
+  recentIssues,
+}: PortfolioAppProps) {
   const [mode, setMode] = useState<Mode>(initialMode);
 
   /**
@@ -88,8 +96,13 @@ export function PortfolioApp({ initialMode, professionalPosts, personalPosts }: 
         <AboutSection mode={mode} />
         <Divider />
         <PostsSection posts={mode === "professional" ? professionalPosts : personalPosts} />
+        {/* Professional mode only, like Stuff below it: the letter is written
+            about the same work this side of the toggle is about, and personal
+            mode is deliberately the sparser of the two. */}
         {mode === "professional" && (
           <>
+            <Divider />
+            <NewsletterSection issues={recentIssues} />
             <Divider />
             <StuffSection />
           </>

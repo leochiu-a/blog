@@ -38,3 +38,21 @@ export interface SocialLink {
   label: string;
   href: string;
 }
+
+/**
+ * One newsletter Issue as the home page lists it.
+ *
+ * A subset of the `issues` collection entry: the listing shows a title, the
+ * one-line subtitle and a date, and nothing else crosses into the client
+ * bundle — the Issue's compiled MDX least of all.
+ */
+export interface IssueSummary {
+  title: string;
+  href: string;
+  subtitle?: string;
+  date: string; // display string, e.g. "8 Sep 2026"
+  datetime: string; // ISO
+  /** Gold ✦ marker. Derived from the date, unlike a post's hand-set flag. */
+  featured?: boolean;
+  draft?: boolean;
+}
