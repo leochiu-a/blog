@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { issues } from "@/lib/issues";
 import { SITE_URL, seoTitle } from "@/lib/site";
 import { AuthorBio } from "@/components/blog/AuthorBio";
+import { DevEditLink } from "@/components/blog/DevEditLink";
 import { RecentIssues } from "@/components/newsletter/RecentIssues";
 import { SubscribeCta } from "@/components/newsletter/SubscribeCta";
 
@@ -62,12 +63,16 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
             {issue.subtitle}
           </p>
         )}
-        <time
-          dateTime={issue.datetime}
-          className="mt-4 block font-sans text-sm text-muted-foreground"
-        >
-          {issue.date}
-        </time>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <time dateTime={issue.datetime} className="font-sans text-sm text-muted-foreground">
+            {issue.date}
+          </time>
+          {/* Same place a post keeps it — the end of the byline row — so the
+              two pages have the way into the editor in the same spot. */}
+          <div className="ms-auto flex items-center">
+            <DevEditLink collection="issues" slug={issue.slug} />
+          </div>
+        </div>
 
         <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
           <Issue />

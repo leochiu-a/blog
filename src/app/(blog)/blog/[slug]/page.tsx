@@ -166,7 +166,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                     the share trigger stays last whether or not the dev-only
                     edit link is beside it. */}
                 <div className="ms-auto flex items-center gap-x-3">
-                  <DevEditLink slug={post.slug} />
+                  <DevEditLink collection="posts" slug={post.slug} />
                   <SharePost
                     title={post.title}
                     url={postUrl}
