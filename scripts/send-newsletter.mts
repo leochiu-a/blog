@@ -8,6 +8,11 @@
  * more than any automation it replaces. See
  * docs/adr/0003-issues-are-sent-by-hand.md.
  *
+ * `--test <email>` is the exception, and only because it is not a send to the
+ * list: it mails the Issue to one address you named, reads nothing, writes
+ * nothing, and asks nothing. Use it as often as you like before the one send
+ * that counts.
+ *
  * The database is reached through `getPlatformProxy()`, which hands a real D1
  * binding to plain Node using the Wrangler login already on this machine. That
  * is what lets this script call the same queries the Worker calls, with the
@@ -18,10 +23,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
-import { parse as parseYaml } from "yaml";
 import { getPlatformProxy } from "wrangler";
 import { FROM_ADDRESS, REPLY_TO_ADDRESS } from "../src/lib/newsletter/constants.ts";
-import { issueFrontmatterSchema } from "../src/lib/newsletter/issue-frontmatter.ts";
+import type { IssueFrontmatter } from "../src/lib/newsletter/issue-frontmatter.ts";
+import { parseIssueSource } from "../src/lib/newsletter/issue-source.ts";
 import {
   createBroadcast,
   createContact,
@@ -35,17 +40,16 @@ import {
   recordIssueSend,
 } from "../src/lib/newsletter/subscribers.ts";
 import { parseEmail } from "../src/lib/newsletter/subscription.ts";
+import { sendTestIssue } from "../src/lib/newsletter/test-send.ts";
 import { issueEmail } from "../src/lib/newsletter/templates.ts";
 import { SITE_URL } from "../src/lib/site.ts";
-
-const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/;
 
 function fail(message: string): never {
   console.error(`\n${message}\n`);
   process.exit(1);
 }
 
-function loadIssue(slug: string) {
+function loadIssue(slug: string, { allowDraft }: { allowDraft: boolean }) {
   const path = resolve("src/content/newsletter", `${slug}.md`);
   let source: string;
   try {
@@ -54,14 +58,13 @@ function loadIssue(slug: string) {
     return fail(`找不到 ${path}`);
   }
 
-  const match = FRONTMATTER.exec(source);
-  if (!match) return fail(`${slug}.md 沒有 frontmatter`);
+  const issue = parseIssueSource(slug, source);
+  if (!issue.ok) return fail(issue.error);
+  if (issue.frontmatter.draft && !allowDraft) {
+    return fail(`${slug} 還是草稿（draft: true），不會寄出。要先看看長什麼樣子的話用 --test。`);
+  }
 
-  const parsed = issueFrontmatterSchema.safeParse(parseYaml(match[1]!));
-  if (!parsed.success) return fail(`${slug}.md 的 frontmatter 有問題：${parsed.error.message}`);
-  if (parsed.data.draft) return fail(`${slug} 還是草稿（draft: true），不會寄出。`);
-
-  return { frontmatter: parsed.data, markdown: source.slice(match[0].length).trimStart() };
+  return { frontmatter: issue.frontmatter, markdown: issue.markdown };
 }
 
 /**
@@ -112,27 +115,98 @@ async function reconcile(
   };
 }
 
-async function main() {
-  const [slug, ...flags] = process.argv.slice(2);
-  if (!slug) return fail("用法：pnpm newsletter:send <slug> [--dry-run] [--local]");
-  const dryRun = flags.includes("--dry-run");
-  const local = flags.includes("--local");
+const USAGE = "用法：pnpm newsletter:send <slug> [--test <email>] [--dry-run] [--local]";
 
-  const { frontmatter, markdown } = loadIssue(slug);
+function parseArgs(argv: string[]) {
+  const [slug, ...rest] = argv;
+  if (!slug || slug.startsWith("--")) return fail(USAGE);
+
+  let dryRun = false;
+  let local = false;
+  let testEmail: string | null = null;
+
+  for (let i = 0; i < rest.length; i++) {
+    const flag = rest[i]!;
+    if (flag === "--dry-run") {
+      dryRun = true;
+    } else if (flag === "--local") {
+      local = true;
+    } else if (flag === "--test" || flag.startsWith("--test=")) {
+      const raw = flag.startsWith("--test=") ? flag.slice("--test=".length) : rest[++i];
+      const parsed = raw === undefined ? null : parseEmail(raw);
+      if (parsed === null) return fail(`--test 後面要接一個收件地址，例如 --test you@example.com`);
+      testEmail = parsed;
+    } else {
+      return fail(`不認識的參數 ${flag}\n\n${USAGE}`);
+    }
+  }
+
+  // Both are ways of not sending to the list, but they answer different
+  // questions — one prints numbers, the other puts the Issue in an inbox — and
+  // a run that quietly did only the first would be read as having done both.
+  if (testEmail !== null && dryRun) {
+    return fail("--test 和 --dry-run 不能一起用：一個是真的寄一封給你，一個是什麼都不寄。");
+  }
+
+  return { slug, dryRun, local, testEmail };
+}
+
+/**
+ * Prints what `sendTestIssue` did. The sending itself lives in
+ * `src/lib/newsletter/test-send.ts`, which the editor's Send test button calls
+ * too — one code path, so the button and the flag cannot render an Issue
+ * differently.
+ */
+async function sendTest(
+  apiKey: string,
+  {
+    slug,
+    frontmatter,
+    markdown,
+    to,
+  }: {
+    slug: string;
+    frontmatter: IssueFrontmatter;
+    markdown: string;
+    to: string;
+  },
+) {
+  const { id, subject } = await sendTestIssue(apiKey, { slug, frontmatter, markdown, to });
+
+  console.log(`
+測試信寄給 ${to}
+主旨      ${subject}
+草稿      ${frontmatter.draft ? "是（draft: true，還不會出現在網站上）" : "否"}
+Resend id ${id}
+
+沒有碰到訂閱名單，也沒有記成已寄出。
+`);
+}
+
+async function main() {
+  const { slug, dryRun, local, testEmail } = parseArgs(process.argv.slice(2));
+
+  const { frontmatter, markdown } = loadIssue(slug, { allowDraft: testEmail !== null });
 
   // wrangler.send.jsonc marks the D1 binding `remote`, so this reads the
   // deployed subscriber list rather than the local one. wrangler.jsonc — the
   // config `next dev` uses — deliberately does not, which is what keeps local
-  // development off the real list. `--local` overrides back for a rehearsal.
+  // development off the real list. `--local` overrides back for a rehearsal,
+  // and a test send never opens the remote binding at all because it reads no
+  // list.
   const platform = await getPlatformProxy<CloudflareEnv>({
     configPath: "wrangler.send.jsonc",
-    remoteBindings: !local,
+    remoteBindings: !local && testEmail === null,
   });
   try {
     const { NEWSLETTER_DB: db, RESEND_API_KEY: apiKey, RESEND_SEGMENT_ID: segmentId } = platform.env;
-    if (!apiKey || !segmentId) {
-      return fail("`.dev.vars` 需要 RESEND_API_KEY 和 RESEND_SEGMENT_ID。");
+    if (!apiKey) return fail("`.dev.vars` 需要 RESEND_API_KEY。");
+
+    if (testEmail !== null) {
+      return await sendTest(apiKey, { slug, frontmatter, markdown, to: testEmail });
     }
+
+    if (!segmentId) return fail("`.dev.vars` 需要 RESEND_SEGMENT_ID。");
 
     const sentAt = await issueSentAt(db, slug);
     if (sentAt !== null) {

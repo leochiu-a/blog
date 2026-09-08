@@ -38,6 +38,7 @@ import { acceptsUploads } from "./insert-options";
 import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
 import { SettingsPanel } from "./SettingsPanel";
+import { TestSendButton } from "./TestSendButton";
 import { UnknownBlockView } from "./UnknownBlockView";
 import { UploadProgress } from "./UploadProgress";
 import { useAutosave } from "./useAutosave";
@@ -157,7 +158,7 @@ export function DocumentEditor({
   // meantime looks exactly like one that swallowed the file.
   const [upload, setUpload] = useState<Upload | null>(null);
 
-  const { status, schedule } = useAutosave((document) => save(collection, slug, document));
+  const { status, schedule, flush } = useAutosave((document) => save(collection, slug, document));
 
   const extensions = useMemo(
     () => [
@@ -385,6 +386,10 @@ export function DocumentEditor({
         >
           Preview
         </Button>
+        {/* Issues only: a Post has no inbox to be checked in. Beside Preview,
+            because it is the same act — looking at the thing before anyone
+            else does — in the medium this document is actually for. */}
+        {collection === "issues" && <TestSendButton slug={slug} onBeforeSend={flush} />}
         <PublishButton
           collection={collection}
           frontmatter={frontmatter}
