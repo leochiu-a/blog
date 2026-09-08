@@ -15,10 +15,12 @@ import { SectionRow } from "@/components/SectionRow";
  * Three of them: enough to show this is a running thing rather than a one-off,
  * short enough that it stays a section of the home page instead of becoming a
  * second listing competing with Posts.
+ *
+ * Never rendered with an empty list — the caller drops this section and its
+ * divider together, because a rule with nothing under it is the visible half of
+ * the bug.
  */
 export function NewsletterSection({ issues }: { issues: IssueSummary[] }) {
-  if (issues.length === 0) return null;
-
   return (
     <SectionRow label="Newsletter">
       <ul className="flex flex-col gap-y-4">

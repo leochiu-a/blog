@@ -101,8 +101,15 @@ export function PortfolioApp({
             mode is deliberately the sparser of the two. */}
         {mode === "professional" && (
           <>
-            <Divider />
-            <NewsletterSection issues={recentIssues} />
+            {/* The rule belongs to the section, not to the gap: with every
+                Issue still in draft there is nothing to list, and a divider
+                rendered anyway leaves two rules around an empty band. */}
+            {recentIssues.length > 0 && (
+              <>
+                <Divider />
+                <NewsletterSection issues={recentIssues} />
+              </>
+            )}
             <Divider />
             <StuffSection />
           </>
