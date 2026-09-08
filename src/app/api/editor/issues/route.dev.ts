@@ -4,4 +4,4 @@ import { issueStore } from "@/lib/editor/store";
 // `.dev.ts` — registered as a route only while `next dev` is running.
 // See src/lib/editor/dev-routes.ts.
 
-export const POST = () => createDocument(issueStore);
+export const POST = (request: Request) => createDocument(issueStore, request);

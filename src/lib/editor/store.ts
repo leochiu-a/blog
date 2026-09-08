@@ -142,19 +142,37 @@ export function createContentStore(root: string, collection: Collection) {
   }
 
   /**
+   * The category a new draft is filed under, checked against the ones this
+   * collection has. A collection with categories has no default, so leaving it
+   * out is an error rather than a quiet vote for the first one.
+   */
+  function assertCategory(category: string | undefined): string | undefined {
+    const { categories } = collection;
+    if (!categories) return undefined;
+    if (category === undefined || !categories.includes(category)) {
+      throw new EditorError(`Expected a category, one of: ${categories.join(", ")}`, 400);
+    }
+    return category;
+  }
+
+  /**
    * New documents are created empty and unnamed: the title is typed in place at
    * the top of the editor, so asking for one up front only got in the way. That
    * makes the slug ours to pick — dated, with a suffix when a day gets a second
    * draft — and it is what the document lives at, since nothing renames it.
+   *
+   * The category is the exception to "ask for nothing": it is picked by which
+   * list the draft was started from, so it arrives already decided.
    */
-  async function createDraft(): Promise<string> {
+  async function createDraft(category?: string): Promise<string> {
+    const filedUnder = assertCategory(category);
     const today = new Date().toISOString().slice(0, 10);
     let slug = `untitled-${today}`;
     for (let suffix = 2; await exists(documentPath(slug)); suffix += 1) {
       slug = `untitled-${today}-${suffix}`;
     }
 
-    const yaml = stringifyYaml(collection.newDraft(today), {
+    const yaml = stringifyYaml(collection.newDraft(today, filedUnder), {
       defaultStringType: "QUOTE_DOUBLE",
       defaultKeyType: "PLAIN",
       lineWidth: 0,

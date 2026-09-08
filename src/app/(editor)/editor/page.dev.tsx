@@ -143,9 +143,30 @@ function DocumentList({
   );
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+/**
+ * One category's posts, with the button that adds to them.
+ *
+ * A category with nothing in it is still drawn, because this is the only place
+ * that says a category exists at all — hiding the empty one would hide the way
+ * to write its first post.
+ */
+function CategorySection({ category, posts }: { category: string; posts: DocumentSummary[] }) {
   return (
-    <h2 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">{children}</h2>
+    <section className="mt-10">
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
+          {category} · {posts.length}
+        </h2>
+        {/* The category is not asked for anywhere: starting a draft from this
+            list is what files it under this list. */}
+        <NewDocumentButton collection="posts" category={category} label="New post" />
+      </div>
+      {posts.length === 0 ? (
+        <p className="border-t py-6 text-sm text-muted-foreground">Nothing here yet.</p>
+      ) : (
+        <DocumentList collection="posts" documents={posts} />
+      )}
+    </section>
   );
 }
 
@@ -176,31 +197,22 @@ export default async function EditorIndex() {
       </header>
 
       <main className="mx-auto w-full max-w-[45.5rem] px-6 pb-16 pt-10">
-        <div className="flex items-baseline justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Posts</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Dev-only editor · {posts.length} posts
-            </p>
-          </div>
-          {/* The action sits with the list it adds to, not in the shared bar —
-              the bar is navigation between editor surfaces. */}
-          <NewDocumentButton collection="posts" label="New post" />
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight">Posts</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Dev-only editor · {posts.length} posts
+          </p>
         </div>
 
-        {CATEGORIES.map((category) => {
-          const inCategory = posts.filter((post) => post.category === category);
-          if (inCategory.length === 0) return null;
-
-          return (
-            <section key={category} className="mt-10">
-              <SectionHeading>
-                {category} · {inCategory.length}
-              </SectionHeading>
-              <DocumentList collection="posts" documents={inCategory} />
-            </section>
-          );
-        })}
+        {/* No "New post" up here: a post has to be filed under a category, and
+            only the per-category buttons below know which one. */}
+        {CATEGORIES.map((category) => (
+          <CategorySection
+            key={category}
+            category={category}
+            posts={posts.filter((post) => post.category === category)}
+          />
+        ))}
 
         {/* Issues live on the same page as Posts rather than behind their own
             route: there are a handful of them, they are written in the same

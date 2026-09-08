@@ -114,21 +114,38 @@ describe("saving a post", () => {
   });
 });
 
+const newPost = (category?: unknown) =>
+  createDocument(
+    store,
+    new Request("http://editor.test/api/editor/posts/", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ category }),
+    }),
+  );
+
 describe("creating a post", () => {
-  it("creates a dated draft and returns its slug", async () => {
-    const response = await createDocument(store);
+  it("creates a dated draft under the category it was asked for", async () => {
+    const response = await newPost("personal");
 
     expect(response.status).toBe(201);
     const { slug } = (await response.json()) as { slug: string };
     expect(slug).toMatch(/^untitled-\d{4}-\d{2}-\d{2}$/);
     expect(await store.listSlugs()).toContain(slug);
+    expect(await store.read(slug)).toContain(`category: "personal"`);
   });
 
   it("gives a second draft on the same day its own slug", async () => {
-    const first = (await (await createDocument(store)).json()) as { slug: string };
-    const second = (await (await createDocument(store)).json()) as { slug: string };
+    const first = (await (await newPost("professional")).json()) as { slug: string };
+    const second = (await (await newPost("professional")).json()) as { slug: string };
 
     expect(second.slug).toBe(`${first.slug}-2`);
+  });
+
+  it("answers 400 when the category is missing or not one of the collection's", async () => {
+    await expect(newPost()).resolves.toMatchObject({ status: 400 });
+    await expect(newPost("sideline")).resolves.toMatchObject({ status: 400 });
+    expect(await store.listSlugs()).toEqual(["hello"]);
   });
 });
 

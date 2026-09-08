@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { issueFrontmatterSchema } from "@/lib/newsletter/issue-frontmatter";
-import { postFrontmatterSchema } from "@/lib/post-frontmatter";
+import { CATEGORIES, postFrontmatterSchema } from "@/lib/post-frontmatter";
 
 /**
  * The two kinds of document the editor writes: Posts under `src/content/blog`
@@ -44,8 +44,21 @@ export interface Collection {
    * the editor does not offer them, and does not take a dropped image either.
    */
   mdxBlocks: boolean;
-  /** The frontmatter a new draft is created with, given today's date. */
-  newDraft: (today: string) => Record<string, unknown>;
+  /**
+   * The categories a document of this collection is filed under, or undefined
+   * when it has none.
+   *
+   * A collection that has them has no default one. An empty title reads as
+   * unfilled and gets typed in, but a defaulted category reads as chosen and
+   * gets left alone — so the category is named when the draft is created,
+   * never guessed.
+   */
+  categories?: readonly string[];
+  /**
+   * The frontmatter a new draft is created with, given today's date and the
+   * category it was filed under — undefined for a collection with none.
+   */
+  newDraft: (today: string, category: string | undefined) => Record<string, unknown>;
 }
 
 function requiredKeys(shape: Record<string, z.ZodType>): string[] {
@@ -63,13 +76,14 @@ export const COLLECTIONS: Record<CollectionName, Collection> = {
     requiredKeys: requiredKeys(postFrontmatterSchema.shape),
     previewBase: "/blog",
     mdxBlocks: true,
+    categories: CATEGORIES,
     // Every field content-collections requires, so a new post compiles the
     // moment it lands on disk. `draft` keeps it out of production until ready.
-    newDraft: (today) => ({
+    newDraft: (today, category) => ({
       title: "",
       datetime: today,
       readTime: "1 min",
-      category: "professional",
+      category,
       draft: true,
     }),
   },

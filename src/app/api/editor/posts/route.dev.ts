@@ -4,4 +4,4 @@ import { postStore } from "@/lib/editor/store";
 // `.dev.ts` — registered as a route only while `next dev` is running.
 // See src/lib/editor/dev-routes.ts.
 
-export const POST = () => createDocument(postStore);
+export const POST = (request: Request) => createDocument(postStore, request);

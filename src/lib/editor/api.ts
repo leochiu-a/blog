@@ -75,9 +75,20 @@ export function deleteDocument(slug: string, store: ContentStore): Promise<Respo
   });
 }
 
-export function createDocument(store: ContentStore): Promise<Response> {
+/**
+ * The category the draft should be filed under, when the request named one.
+ * A collection that has categories rejects a request that does not — the
+ * store is what knows which those are.
+ */
+async function requestedCategory(request: Request): Promise<string | undefined> {
+  const body: unknown = await request.json().catch(() => null);
+  const category = (body as { category?: unknown } | null)?.category;
+  return typeof category === "string" ? category : undefined;
+}
+
+export function createDocument(store: ContentStore, request: Request): Promise<Response> {
   return respond(async () => {
-    const slug = await store.createDraft();
+    const slug = await store.createDraft(await requestedCategory(request));
     return Response.json({ slug }, { status: 201 });
   });
 }

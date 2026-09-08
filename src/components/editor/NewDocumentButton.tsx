@@ -9,12 +9,19 @@ import { Button } from "@/components/ui/button";
  * One click, one draft. The title is typed in place at the top of the editor,
  * so there is nothing to ask for here — the server names the file and we go
  * straight to it.
+ *
+ * The one thing that cannot be left for later is the category, because a
+ * defaulted one reads as chosen and stays wrong. So a button belongs to the
+ * list it adds to, and files the draft under that list's category: the choice
+ * is made by where you clicked, without a question being asked.
  */
 export function NewDocumentButton({
   collection,
+  category,
   label,
 }: {
   collection: CollectionName;
+  category?: string;
   label: string;
 }) {
   const router = useRouter();
@@ -22,7 +29,11 @@ export function NewDocumentButton({
 
   const create = async () => {
     setBusy(true);
-    const response = await fetch(apiPath(collection), { method: "POST" });
+    const response = await fetch(apiPath(collection), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ category }),
+    });
 
     if (!response.ok) {
       setBusy(false);

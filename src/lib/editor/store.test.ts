@@ -94,14 +94,21 @@ describe("deleting posts", () => {
 
 describe("creating posts", () => {
   it("writes a dated, untitled file with valid frontmatter", async () => {
-    const slug = await store.createDraft();
+    const slug = await store.createDraft("personal");
 
     expect(slug).toMatch(/^untitled-\d{4}-\d{2}-\d{2}$/);
     const created = readFileSync(join(root, `src/content/blog/${slug}.md`), "utf8");
     expect(created).toMatch(/^---\n/);
     expect(created).toContain(`title: ""`);
     expect(created).toContain(`draft: true`);
+    expect(created).toContain(`category: "personal"`);
     expect(await store.listSlugs()).toContain(slug);
+  });
+
+  it("refuses a Post with no category rather than filing it under a default", async () => {
+    await expect(store.createDraft()).rejects.toMatchObject({ status: 400 });
+    await expect(store.createDraft("sideline")).rejects.toMatchObject({ status: 400 });
+    await expect(store.listSlugs()).resolves.toEqual(["hello"]);
   });
 
   it("creates an Issue draft in the newsletter directory, without a Post's fields", async () => {
@@ -119,8 +126,8 @@ describe("creating posts", () => {
   });
 
   it("suffixes the slug rather than overwriting an existing draft", async () => {
-    const first = await store.createDraft();
-    const second = await store.createDraft();
+    const first = await store.createDraft("professional");
+    const second = await store.createDraft("professional");
 
     expect(second).toBe(`${first}-2`);
     expect(await store.listSlugs()).toEqual(expect.arrayContaining([first, second]));
