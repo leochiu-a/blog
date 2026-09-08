@@ -54,7 +54,15 @@ export function ProjectMedia({
     // a few percent off its generous side margins here, which is the cheaper
     // trade: at 2:1 the reel lost its title bar to object-cover instead.
     <div className="relative aspect-75/41 w-full overflow-hidden rounded-t-md">
-      <Image src={image} alt="" fill className="object-cover" />
+      {/* Two cards to a row inside the section's md:w-2/3 column, capped by the
+          page's max-w-300 — so the card stops growing at 376px. */}
+      <Image
+        src={image}
+        alt=""
+        fill
+        sizes="(min-width: 1200px) 376px, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
+        className="object-cover"
+      />
       {video && (
         <video
           ref={ref}

@@ -29,7 +29,13 @@ export default function FlipPhoto({ flipped, onFlip, frontSrc, backSrc }: FlipPh
               <WhirlRings className="absolute h-full w-full" />
             </div>
             <div className="absolute inset-[14px] overflow-hidden rounded-full">
-              <Image src={frontSrc} alt="Professional profile" fill className="object-cover" />
+              <Image
+                src={frontSrc}
+                alt="Professional profile"
+                fill
+                sizes="164px"
+                className="object-cover"
+              />
             </div>
           </div>
         </div>
@@ -39,7 +45,13 @@ export default function FlipPhoto({ flipped, onFlip, frontSrc, backSrc }: FlipPh
               <WhirlRings className="absolute h-full w-full" />
             </div>
             <div className="absolute inset-[14px] overflow-hidden rounded-full">
-              <Image src={backSrc} alt="Personal profile" fill className="object-cover" />
+              <Image
+                src={backSrc}
+                alt="Personal profile"
+                fill
+                sizes="164px"
+                className="object-cover"
+              />
             </div>
           </div>
         </div>
