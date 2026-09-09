@@ -19,6 +19,7 @@ import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collect
 import { createExtensions } from "@/lib/editor/extensions";
 import type { Clip, PmNode, EditorDocument } from "@/lib/editor/types";
 import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/NavLink";
 import { Separator } from "@/components/ui/separator";
 import { readText, withField } from "@/lib/editor/frontmatter-fields";
 import { type UploadProgress as Progress, uploadFile } from "@/lib/editor/upload";
@@ -352,10 +353,8 @@ export function DocumentEditor({
 
   return (
     <div className={cn("min-h-screen", isDark && "dark")}>
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/90 px-6 py-2 font-sans text-sm backdrop-blur">
-        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/editor" />}>
-          ← {collectionOf(collection).label}
-        </Button>
+      <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background/90 px-6 py-3 font-sans text-sm backdrop-blur">
+        <NavLink href="/editor">← {collectionOf(collection).label}</NavLink>
         <Separator orientation="vertical" className="h-5" />
         <span className="flex-1 truncate text-muted-foreground">{slug}</span>
         <span

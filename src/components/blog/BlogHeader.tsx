@@ -1,7 +1,13 @@
-import Link from "next/link";
+import { NavLink } from "@/components/NavLink";
 
-/** Blog page header — same shell as the homepage nav but without the mode toggle. */
-export function BlogHeader() {
+/**
+ * Blog page header — same shell as the homepage nav but without the mode
+ * toggle.
+ *
+ * `children` land at the end of the row, for the odd page that has one control
+ * of its own to put up here. The header itself stays unaware of what that is.
+ */
+export function BlogHeader({ children }: { children?: React.ReactNode }) {
   return (
     <header className="mb-8 flex w-full flex-wrap text-sm sm:flex-nowrap">
       <nav
@@ -9,14 +15,9 @@ export function BlogHeader() {
         aria-label="global"
       >
         <div className="z-10 flex flex-1 items-center justify-start">
-          <Link
-            href="/"
-            className="flex-none font-garamond text-[1.25rem] font-medium transition-colors hover:text-gold"
-            aria-label="Nav Menu Item"
-          >
-            Home
-          </Link>
+          <NavLink href="/">Home</NavLink>
         </div>
+        {children}
       </nav>
     </header>
   );

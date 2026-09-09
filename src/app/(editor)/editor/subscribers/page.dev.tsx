@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { getPlatformProxy } from "wrangler";
 import { subscriberCounts, type SubscriberCounts } from "@/lib/newsletter/subscribers";
-import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/NavLink";
 
 // `.dev.tsx` — a route only while `next dev` is running, so the deployed app has
 // no dashboard to protect. See src/lib/editor/dev-routes.ts.
@@ -102,10 +101,8 @@ export default async function SubscribersDashboard() {
     // Dark, like the editor index: this is chrome rather than a post, and
     // `html:has(.dark)` in globals.css carries the tokens up to the document.
     <div className="dark min-h-screen font-sans">
-      <header className="sticky top-0 z-10 flex items-center gap-4 border-b border-border bg-background/90 px-6 py-3 text-sm backdrop-blur">
-        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/editor" />}>
-          ← Editor
-        </Button>
+      <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background/90 px-6 py-3 font-sans text-sm backdrop-blur">
+        <NavLink href="/editor">← Editor</NavLink>
       </header>
 
       <main className="mx-auto w-full max-w-[45.5rem] px-6 pb-16 pt-10">

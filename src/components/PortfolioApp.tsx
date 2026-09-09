@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { IssueSummary, Mode, Post } from "@/types/content";
+import { NavLink } from "@/components/NavLink";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Hero } from "@/components/Hero";
 import { AboutSection } from "@/components/AboutSection";
@@ -73,13 +73,7 @@ export function PortfolioApp({
           aria-label="global"
         >
           <div className="z-10 hidden flex-1 items-center justify-start pb-8 sm:flex">
-            <Link
-              href={pathForMode(mode)}
-              className="flex-none font-garamond text-[1.25rem] font-medium transition-colors hover:text-gold"
-              aria-label="Nav Menu Item"
-            >
-              Home
-            </Link>
+            <NavLink href={pathForMode(mode)}>Home</NavLink>
           </div>
           <div className="z-0 flex w-full justify-center">
             <ModeToggle mode={mode} onChange={switchTo} />

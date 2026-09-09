@@ -9,7 +9,8 @@ import { issueStore, postStore } from "@/lib/editor/store";
 import { NewDocumentButton } from "@/components/editor/NewDocumentButton";
 import { DocumentActions } from "@/components/editor/DocumentActions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/NavLink";
+import { DevSubscribersLink } from "@/components/newsletter/DevSubscribersLink";
 
 export const dynamic = "force-dynamic";
 
@@ -180,20 +181,14 @@ export default async function EditorIndex() {
     <div className="dark min-h-screen font-sans">
       {/* Same bar as the editing page, so moving between the two feels like
           one surface rather than two pages that happen to be adjacent. */}
-      <header className="sticky top-0 z-10 flex items-center gap-4 border-b border-border bg-background/90 px-6 py-3 text-sm backdrop-blur">
-        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/" />}>
-          ← Home
-        </Button>
+      <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background/90 px-6 py-3 font-sans text-sm backdrop-blur">
+        <NavLink href="/">← Home</NavLink>
         {/* The other editor surface: what is written lives here, who it goes
-            to lives there. */}
-        <Button
-          variant="ghost"
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/editor/subscribers" />}
-        >
-          Subscribers
-        </Button>
+            to lives there. Same control as the one in the newsletter pages'
+            header, and pushed to the same end of the bar — it is the one thing
+            up here that leaves the writing behind, rather than one more item of
+            editor navigation. */}
+        <DevSubscribersLink className="ms-auto" />
       </header>
 
       <main className="mx-auto w-full max-w-[45.5rem] px-6 pb-16 pt-10">

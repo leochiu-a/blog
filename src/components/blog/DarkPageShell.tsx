@@ -14,7 +14,14 @@ import { BlogHeader } from "@/components/blog/BlogHeader";
  * above `(blog)`, and `html:has(.dark)` in globals.css pulls the document
  * element into the same tokens. Same mechanism a professional post uses.
  */
-export function DarkPageShell({ children }: { children: React.ReactNode }) {
+export function DarkPageShell({
+  children,
+  headerActions,
+}: {
+  children: React.ReactNode;
+  /** Passed straight to `BlogHeader` — see there for where it lands. */
+  headerActions?: React.ReactNode;
+}) {
   return (
     <main className="dark flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10">
       {/* `flex-1` plus `mt-auto` on the footer is the sticky-footer idiom: the
@@ -23,7 +30,7 @@ export function DarkPageShell({ children }: { children: React.ReactNode }) {
           subscribe page with no archive, a confirm landing — leaves the footer
           stranded in the middle of a tall viewport. */}
       <div className="flex w-full min-w-0 max-w-[45.5rem] flex-1 flex-col">
-        <BlogHeader />
+        <BlogHeader>{headerActions}</BlogHeader>
         {children}
         <div className="mt-auto">
           <Footer variant="minimal" />
