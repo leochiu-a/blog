@@ -14,7 +14,7 @@ export const issueFrontmatterSchema = z.object({
   datetime: z.string(),
   /** Subject line, when it should read differently from the title. */
   subject: z.string().optional(),
-  /** Keeps an unfinished Issue out of the archive and out of the send script. */
+  /** Keeps an unfinished Issue out of the archive, and out of any send. */
   draft: z.boolean().optional(),
 });
 

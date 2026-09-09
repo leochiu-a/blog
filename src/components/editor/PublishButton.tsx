@@ -30,7 +30,7 @@ type Props = {
 
 /**
  * What publishing means, per collection. A Post goes live on the site; an
- * Issue only becomes something the send script is willing to mail. Two
+ * Issue only becomes something the send is willing to mail. Two
  * different promises, told in one sentence shape — what appears where, and
  * what stops appearing — so the dialog reads the same whichever you are in.
  *
@@ -52,11 +52,11 @@ const COPY = {
   issues: {
     publish: {
       title: "Publish this Issue?",
-      body: "It joins the newsletter archive, and the send script will mail it.",
+      body: "It joins the newsletter archive, and Send will mail it to the list.",
     },
     retract: {
       title: "Unpublish this Issue?",
-      body: "It leaves the archive, and the send script will refuse to send it.",
+      body: "It leaves the archive, and Send will refuse to mail it.",
     },
   },
 } as const;

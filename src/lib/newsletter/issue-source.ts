@@ -8,12 +8,12 @@ import { type IssueFrontmatter, issueFrontmatterSchema } from "./issue-frontmatt
  * Separate from the editor's own parser, which turns the same file into a
  * ProseMirror document and keeps the YAML text around for lossless saves. This
  * one answers a narrower question — is this Issue mailable, and what would be
- * in the mail — and it answers it identically for the send script and for the
- * editor's test-send button, which is the point: two paths that render the same
- * file must not disagree about what is in it.
+ * in the mail — and it answers it identically for the real send and for the
+ * test send, which is the point: two paths that render the same file must not
+ * disagree about what is in it.
  *
  * Failure comes back as a message rather than an exception because both callers
- * have a good place to put one: the script prints it, the route answers with
+ * have a good place to put one: the route answers with it, and the dialog shows
  * it. Neither wants a stack trace.
  */
 export type IssueSource =

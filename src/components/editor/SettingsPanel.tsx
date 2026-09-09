@@ -172,7 +172,7 @@ export function SettingsPanel({
             {legend("發佈")}
             {date("datetime", "datetime")}
             {/* Only when it should read differently from the title — empty means
-                the subject is the title, which is what the send script does. */}
+                the subject is the title, which is what the send does. */}
             {collection === "issues" && text("subject", "subject", "留空就用標題")}
           </FieldSet>
 

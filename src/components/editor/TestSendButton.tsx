@@ -47,10 +47,15 @@ type State =
  * Sends the Issue in front of you to one address, the way Substack's "Send
  * test email" does.
  *
- * The command line can already do this (`pnpm newsletter:send <slug> --test`),
- * but a button in the toolbar is what gets used: checking a draft in a real
- * inbox is worth doing several times while writing, and it competes with
- * whatever else is on the desk. Both call the same `sendTestIssue`.
+ * Next to Preview rather than next to Send: checking a draft in a real inbox is
+ * worth doing several times while writing, and it costs one email to yourself.
+ * `SendIssueButton` is the other kind of send — the list, once, and no way
+ * back.
+ *
+ * Which is why the label is a noun. "Send test" and "Send" sit a click apart
+ * and differ by one word, so the only thing between your own inbox and five
+ * thousand of them was reading carefully; **Test email** names a thing you
+ * make, against an act you perform, and shares no word with it.
  *
  * It saves first. The editor autosaves a beat after typing stops, so without a
  * flush the paragraph you just wrote is the one thing missing from the email —
@@ -113,7 +118,7 @@ export function TestSendButton({
   return (
     <>
       <Button variant="ghost" size="sm" onClick={openDialog}>
-        Send test
+        Test email
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -20,7 +20,7 @@ the contact-based free tier would have been cheaper than what we will pay, and
 we write the confirmation flow, the unsubscribe endpoint and the reconciliation
 ourselves.
 
-Reconciliation is a pull, not a webhook: the send script lists contacts and
+Reconciliation is a pull, not a webhook: the send lists contacts and
 writes any Resend-side unsubscribes back to D1 before sending. At one or two
 Issues a month that is often enough, and a pull is idempotent — a missed run
 corrects itself next time, where a missed webhook is silent and permanent.

@@ -33,8 +33,8 @@ MX record, so without this a subscriber who hits Reply gets a bounce.
 ## 3. Resend
 
 Create a Segment for the confirmed addresses and note its id. Local secrets go
-in `.dev.vars` (gitignored), which is where both `next dev` and the send script
-read them from — Wrangler hands the same values to each:
+in `.dev.vars` (gitignored), which is where `next dev` reads them from — the
+editor's test send and real send included:
 
 ```
 NEWSLETTER_TOKEN_SECRET=any-long-random-string
@@ -85,46 +85,49 @@ from the title). Writing the file by hand works just as well; use
 `hello-newsletter.md` as the shape.
 
 Keep `draft: true` until the Issue is finished: a draft is hidden from the
-archive and the send script refuses to mail it to the list.
+archive, and the send refuses to mail it to the list.
 
 While it is still a draft, mail it to yourself as often as you like. In the
-editor, **Send test** sits next to Preview: type an address, press Enter, and
+editor, **Test email** sits next to Preview: type an address, press Enter, and
 that address gets the Issue. It saves the document first, so what lands in the
-inbox is the paragraph you were just looking at. The same thing from a
-terminal:
+inbox is the paragraph you were just looking at.
 
-```bash
-pnpm newsletter:send hello-newsletter --test you@example.com
-```
-
-Either way it is one ordinary email to one address — not a broadcast — so the
-subscriber list is neither read nor written, no contact is created in Resend,
-and nothing is recorded as sent. The subject arrives prefixed with `[測試]` so a
-test can never be mistaken for the real Issue in an inbox, and the unsubscribe
-link points at the bare `/newsletter/unsubscribe/` page, because a test
-recipient has no per-subscriber token. This is the only path that will read a
-draft, and `--test` cannot be combined with `--dry-run`.
-
-The button is a `.dev.ts` route, so it exists only while `pnpm dev` is running
-and the deployed app has no endpoint that sends mail on request. It reads
-`RESEND_API_KEY` from `.dev.vars` like everything else here; a Resend refusal —
-an invalid key, an unverified domain — comes back into the dialog in its own
-words.
+It is one ordinary email to one address — not a broadcast — so the subscriber
+list is neither read nor written, no contact is created in Resend, and nothing
+is recorded as sent. The subject arrives prefixed with `[測試]` so a test can
+never be mistaken for the real Issue in an inbox, and the unsubscribe link
+points at the bare `/newsletter/unsubscribe/` page, because a test recipient has
+no per-subscriber token. This is also the only path that will mail a draft.
 
 Use it on the providers that matter — a Gmail address, an Outlook one, your
 phone — because how an Issue renders and where it lands is the one thing no
 amount of local rehearsal answers.
 
-When the Issue is finished, drop `draft: true` and preview the real send:
+When the Issue is finished, **Publish** it and then press **Send**, one along in
+the same toolbar. The dialog is a review before an act, not a yes/no: the
+subject line that will land in an inbox, and how many confirmed subscribers are
+on the deployed list. Typing the slug arms the button; nothing before that goes
+anywhere.
+
+Both buttons are `.dev.ts` routes, so they exist only while `pnpm dev` is
+running and the deployed app has no endpoint that sends mail on request. They
+read `RESEND_API_KEY` and `RESEND_SEGMENT_ID` from `.dev.vars` like everything
+else here; a Resend refusal — an invalid key, an unverified domain — comes back
+into the dialog in its own words.
+
+The send reconciles both stores first (unsubscribes at Resend written back to
+D1, confirmed addresses missing from the segment pushed up), sends the
+broadcast, and records the Issue in `issue_sends`. After that the toolbar shows
+a **Sent** badge with the date instead of a button, and the route refuses a
+second send even if you get to it by hand. To deliberately re-send, delete that
+row:
 
 ```bash
-pnpm newsletter:send hello-newsletter --dry-run
+pnpm db:remote "DELETE FROM issue_sends WHERE issue_slug = 'hello-newsletter'"
 ```
 
-which prints the subject, the recipient count, what reconciliation would do,
-and the first lines of the plain text version. `--dry-run` writes nothing to
-either store — not to D1 and not to the Resend segment — so it is safe to run
-against the deployed list. Drop it and type `yes` to send.
+See docs/adr/0003-issues-are-sent-by-hand.md for why the trigger is a person in
+the editor rather than a workflow.
 
 ## Rehearsing the whole thing
 
@@ -182,24 +185,18 @@ the send:
 pnpm wrangler d1 execute blog-newsletter --local   --command "UPDATE subscribers SET status = 'confirmed' WHERE email LIKE 'delivered%'"
 ```
 
-Then rehearse the send against the local list:
+That rehearses everything up to the send. The send itself has no local mode:
+the editor's **Send** reads and writes the deployed list, because that is the
+list it is about — `src/lib/newsletter/remote-env.ts` loads
+`wrangler.send.jsonc` instead of `wrangler.jsonc`, and only that file marks the
+D1 binding `remote`. The main config is deliberately left local, since it is
+the one the subscribe and confirm routes run on and development must never write
+to the real list.
 
-```bash
-pnpm newsletter:send hello-newsletter --local --dry-run
-```
-
-Drop `--dry-run` when you want to watch a real Issue go out to the
-simulator addresses. `--local` only redirects the database — it passes
-`remoteBindings: false` to Wrangler's platform proxy — while Resend is always
-the real Resend, which is the point: the parts worth rehearsing are its
-responses.
-
-Without `--local` the script reads the deployed database. That works because it
-loads `wrangler.send.jsonc` instead of `wrangler.jsonc`, and only that file
-marks the D1 binding `remote`. The main config is deliberately left local — it
-is the one `next dev` uses, and development must never write to the real list.
-The script prints which database it is on before anything is sent; check that
-line.
+So a real broadcast is rehearsed the way it is reviewed: **Test email** to your
+own inboxes, then the dialog's own figures — the subject and the recipient
+count — before the one send that counts. Resend is always the real Resend
+either way, which is the point: the parts worth rehearsing are its responses.
 
 The two configs mean the database id is written twice. That is the cost of the
 split, and it was chosen over a named environment: a named environment inherits
@@ -215,6 +212,7 @@ providers and look at where it lands and what the headers say.
 Things worth deliberately breaking once, because each has a code path you are
 trusting: subscribe twice inside fifteen minutes (the second must send nothing),
 subscribe with an address that already confirmed (identical response, no mail),
-run the same send twice (the second must refuse on `issue_sends`), and submit
+delete an `issue_sends` row and re-send the same Issue (the toolbar offers the
+button again, which is the only way back to one), and submit
 the form with the always-failing Turnstile keys (400, and nothing written to the
 list).

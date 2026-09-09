@@ -1,4 +1,4 @@
-// Relative, and with the extension, because the send script loads this file
+// Relative, and with the extension, like the rest of the newsletter library
 // under plain `node`, which resolves neither the `@/*` alias nor a bare
 // specifier for a `.ts` file.
 import { author } from "../data/content.ts";

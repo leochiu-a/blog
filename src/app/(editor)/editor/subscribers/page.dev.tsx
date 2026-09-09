@@ -1,4 +1,4 @@
-import { getPlatformProxy } from "wrangler";
+import { remoteEnv } from "@/lib/newsletter/remote-env";
 import { subscriberCounts, type SubscriberCounts } from "@/lib/newsletter/subscribers";
 import { NavLink } from "@/components/NavLink";
 
@@ -8,51 +8,9 @@ import { NavLink } from "@/components/NavLink";
 // The figures are the point, so they are read per request rather than at build.
 export const dynamic = "force-dynamic";
 
-/**
- * One connection to the deployed subscriber list, shared by every render.
- *
- * `getPlatformProxy` stands up a local workerd and opens a session against
- * Cloudflare, which is measured at ~2.3s — against ~0.6s for the query itself.
- * Paying that per request made opening the page take three seconds every time,
- * so the proxy is built once and kept.
- *
- * On `globalThis` rather than in a module variable because Next replaces this
- * module on every edit; a module variable would leave the previous workerd
- * running and start another, and after a few saves the laptop is hosting a
- * dozen of them. Nothing disposes of it — one connection for as long as
- * `next dev` runs is the point, and the process exiting takes it down.
- */
-const PROXY = Symbol.for("blog.subscribers.platformProxy");
-type ProxyHolder = {
-  [PROXY]?: Promise<{ env: CloudflareEnv }>;
-};
-
-function platformProxy(): Promise<{ env: CloudflareEnv }> {
-  const holder = globalThis as ProxyHolder;
-  // `wrangler.send.jsonc`, the same file `pnpm newsletter:send` reads: it marks
-  // the D1 binding `remote`, and Wrangler uses the login already on this
-  // machine. The binding in `wrangler.jsonc` — the config the rest of
-  // `next dev` runs on — deliberately omits it, which keeps the subscribe and
-  // confirm routes writing to the local database while this page reads the
-  // real one. A dashboard reporting the empty local table would answer the
-  // question wrongly rather than not answer it.
-  holder[PROXY] ??= getPlatformProxy<CloudflareEnv>({
-    configPath: "wrangler.send.jsonc",
-    remoteBindings: true,
-  });
-  return holder[PROXY];
-}
-
 async function loadCounts(): Promise<SubscriberCounts> {
-  try {
-    const { env } = await platformProxy();
-    return await subscriberCounts(env.NEWSLETTER_DB);
-  } catch (cause) {
-    // A failed connection must not be cached, or every later render replays
-    // this error and the page stays broken until the dev server restarts.
-    delete (globalThis as ProxyHolder)[PROXY];
-    throw cause;
-  }
+  const env = await remoteEnv();
+  return await subscriberCounts(env.NEWSLETTER_DB);
 }
 
 /**

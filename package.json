@@ -9,7 +9,6 @@
     "postinstall": "wrangler types",
     "build": "wrangler types && opennextjs-cloudflare build",
     "start": "next start",
-    "newsletter:send": "node scripts/send-newsletter.mts",
     "db:local": "wrangler d1 execute blog-newsletter --local --command",
     "db:remote": "wrangler d1 execute blog-newsletter --remote --command",
     "preview": "pnpm build && opennextjs-cloudflare preview",

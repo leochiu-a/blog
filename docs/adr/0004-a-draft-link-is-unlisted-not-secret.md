@@ -22,5 +22,5 @@ reviewed is the page that ships.
 
 Issues are deliberately not included. An Issue is written to be mailed, what is
 worth reviewing before a send is the email rather than the web copy of it, and
-`draft: true` is what the send script refuses on — see
+`draft: true` is what the send refuses on — see
 docs/adr/0003-issues-are-sent-by-hand.md.

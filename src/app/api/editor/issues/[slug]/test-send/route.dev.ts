@@ -16,7 +16,7 @@ import { sendTestIssue } from "@/lib/newsletter/test-send";
  * src/lib/editor/dev-routes.ts.
  *
  * It reads the file rather than taking a document in the body, so what arrives
- * in the inbox is what is saved on disk — the same bytes the send script would
+ * in the inbox is what is saved on disk — the same bytes the real send would
  * mail. The editor flushes its autosave before asking, which is what makes
  * those the bytes you were just looking at.
  */

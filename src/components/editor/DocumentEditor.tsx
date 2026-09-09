@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Separator } from "@/components/ui/separator";
-import { readText, withField } from "@/lib/editor/frontmatter-fields";
+import { readFlag, readText, withField } from "@/lib/editor/frontmatter-fields";
 import { type UploadProgress as Progress, uploadFile } from "@/lib/editor/upload";
 import {
   addPlaceholder,
@@ -48,6 +48,7 @@ import { acceptsUploads } from "./insert-options";
 import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
 import { SettingsPanel } from "./SettingsPanel";
+import { SendIssueButton, type SendState } from "./SendIssueButton";
 import { TestSendButton } from "./TestSendButton";
 import { UnknownBlockView } from "./UnknownBlockView";
 import { UploadProgress } from "./UploadProgress";
@@ -161,10 +162,18 @@ export function DocumentEditor({
   collection,
   slug,
   initialDocument,
+  sendState,
 }: {
   collection: CollectionName;
   slug: string;
   initialDocument: EditorDocument;
+  /**
+   * Issues only, read from the deployed subscriber list by the page: whether
+   * this Issue has gone out, and how many people the next send would reach.
+   * A Post has no list to be sent to, so it arrives undefined and the toolbar
+   * shows nothing.
+   */
+  sendState?: SendState;
 }) {
   const takesUploads = acceptsUploads(collection);
   const [frontmatter, setFrontmatter] = useState(initialDocument.frontmatter);
@@ -410,11 +419,32 @@ export function DocumentEditor({
             because it is the same act — looking at the thing before anyone
             else does — in the medium this document is actually for. */}
         {collection === "issues" && <TestSendButton slug={slug} onBeforeSend={flush} />}
+        {/* The bar has two halves, and this is the seam: looking at the
+            document on the left, changing what the world can see of it on the
+            right. It earns its keep on an Issue, where Test email and Send are
+            a click apart and differ by everything — one lands in your own
+            inbox, the other in everyone's, once. A label is a thin way to carry
+            that difference; being in a different group is not. */}
+        <Separator orientation="vertical" className="h-5" />
         <PublishButton
           collection={collection}
           frontmatter={frontmatter}
           onChange={updateFrontmatter}
         />
+        {/* After Publish, because that is the order the two happen in: an
+            Issue is published and then mailed, and a draft cannot be mailed at
+            all. The subject and the draft flag come from the document in front
+            of you rather than from what the page read off disk, so publishing
+            arms this button without a reload. */}
+        {collection === "issues" && sendState !== undefined && (
+          <SendIssueButton
+            slug={slug}
+            subject={readText(frontmatter, "subject") || readText(frontmatter, "title")}
+            draft={readFlag(frontmatter, "draft")}
+            state={sendState}
+            onBeforeSend={flush}
+          />
+        )}
         <Button variant="ghost" size="sm" onClick={() => setShowSettings((open) => !open)}>
           Settings
         </Button>

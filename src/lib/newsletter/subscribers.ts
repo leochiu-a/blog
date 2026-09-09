@@ -160,10 +160,10 @@ export async function prunePending(db: D1Database, olderThan: number): Promise<v
 }
 
 /**
- * Everything below is used by the send script as well as by the Worker. Both
- * reach the same database through the same binding — the script gets one from
- * `getPlatformProxy()` — so there is one set of queries rather than a second
- * copy written against a command line.
+ * Everything below is used by the editor's send as well as by the Worker. Both
+ * reach the same database through the same binding — the editor gets one from
+ * `getPlatformProxy()`, see src/lib/newsletter/remote-env.ts — so there is one
+ * set of queries rather than a second copy written for a dashboard.
  */
 
 export async function confirmedEmails(db: D1Database): Promise<string[]> {

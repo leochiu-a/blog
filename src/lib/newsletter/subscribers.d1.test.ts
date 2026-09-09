@@ -161,7 +161,7 @@ describe("pruning abandoned signups", () => {
 
 describe("what pulling Resend's unsubscribes reports", () => {
   it("counts exactly the confirmed addresses that left", async () => {
-    // The send script's `--dry-run` reports this number without performing the
+    // The editor's send dialog reports this number without performing the
     // write, by taking the difference between the confirmed list and the part
     // of it that is staying. That only holds because the UPDATE is restricted
     // to rows at `confirmed`: the two addresses below that are also gone

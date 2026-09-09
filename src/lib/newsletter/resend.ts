@@ -7,7 +7,7 @@ import type { ErrorResponse } from "resend";
  * A thin layer over the official SDK rather than raw calls to it, for two
  * reasons. Resend's nouns are not ours — it has contacts and segments, we have
  * Subscribers and a list — and letting its words spread into the routes and the
- * send script would blur a boundary CONTEXT.md draws deliberately. And the SDK
+ * send would blur a boundary CONTEXT.md draws deliberately. And the SDK
  * reports failure by returning `{ data, error }` instead of throwing, which is
  * easy to forget at a call site; every function here throws on error so a
  * mistake is loud.
@@ -19,12 +19,6 @@ import type { ErrorResponse } from "resend";
  */
 
 export class ResendError extends Error {
-  /**
-   * Spelled out rather than written as a constructor parameter property: those
-   * emit code instead of erasing, which is the one thing Node's type stripping
-   * cannot do — and this file has to load under plain `node`, in the send
-   * script.
-   */
   readonly response: ErrorResponse;
 
   constructor(response: ErrorResponse) {

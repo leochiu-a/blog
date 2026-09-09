@@ -28,7 +28,7 @@ function ok(body: unknown) {
 
 async function openAndSend(to: string) {
   const user = userEvent.setup();
-  await user.click(screen.getByRole("button", { name: "Send test" }));
+  await user.click(screen.getByRole("button", { name: "Test email" }));
   await user.type(screen.getByLabelText("收件地址"), to);
   await user.click(screen.getByRole("button", { name: "寄出測試信" }));
   return user;
@@ -82,7 +82,7 @@ describe("the test send button", () => {
     unmount();
 
     render(<TestSendButton slug="first" onBeforeSend={async () => {}} />);
-    await userEvent.setup().click(screen.getByRole("button", { name: "Send test" }));
+    await userEvent.setup().click(screen.getByRole("button", { name: "Test email" }));
 
     expect(screen.getByLabelText("收件地址")).toHaveProperty("value", "me@example.com");
   });
