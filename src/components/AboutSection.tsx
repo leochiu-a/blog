@@ -5,7 +5,7 @@ const linkClass = "illuminated-link font-medium text-foreground";
 
 export function AboutSection({ mode }: { mode: Mode }) {
   return (
-    <SectionRow label="About">
+    <SectionRow label="About" labelHref="/about/">
       <div className="flex flex-col gap-y-5 font-garamond text-xl leading-loose">
         {mode === "professional" ? (
           <>

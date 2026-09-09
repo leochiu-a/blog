@@ -27,9 +27,10 @@ export function AuthorBio() {
       />
       <div className="min-w-0">
         <p className="font-sans text-lg font-bold leading-snug">
-          {/* The home page is where the fuller bio and the work live — a reader
-              who arrived from search has no other route to it. */}
-          <Link href="/" className="transition-colors hover:text-blog-accent">
+          {/* `/about/` rather than the home page: a reader who arrived from
+              search is asking who wrote this, and the home page answers with a
+              mode toggle and a list of posts. */}
+          <Link href="/about/" className="transition-colors hover:text-blog-accent">
             {author.name}
           </Link>
           <span className="ms-2 font-normal text-muted-foreground">
