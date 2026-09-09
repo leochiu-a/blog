@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRightIcon } from "lucide-react";
 import type { IssueSummary } from "@/types/content";
 import { SectionRow } from "@/components/SectionRow";
 
@@ -60,9 +61,19 @@ export function NewsletterSection({ issues }: { issues: IssueSummary[] }) {
           it happens in — nobody hands over an address before reading one. */}
       <Link
         href="/newsletter/"
-        className="mt-3 self-start text-muted-foreground transition-colors hover:text-blog-accent"
+        className="group mt-3 inline-flex items-center gap-1.5 self-start text-muted-foreground transition-colors hover:text-blog-accent"
       >
-        查看歷期與訂閱 →
+        查看歷期與訂閱
+        {/* The arrow leans the way the link goes when the pointer arrives —
+            an icon rather than the literal "→" it replaces, because a glyph
+            in the text run cannot be moved without moving the label with it.
+            Focus counts as arrival too, so the keyboard sees the same nudge.
+            `motion-reduce` leaves the arrow where it is instead of removing
+            it, so the affordance survives even when the movement doesn't. */}
+        <ArrowRightIcon
+          aria-hidden
+          className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-focus-visible:translate-x-0"
+        />
       </Link>
     </SectionRow>
   );
