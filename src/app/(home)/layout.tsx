@@ -11,17 +11,25 @@ export const metadata: Metadata = {
     icon: "/seo/icon.svg",
     apple: "/seo/apple-touch-icon.png",
   },
+  // Neither block states a title or a description. Next replaces a metadata
+  // block rather than merging into it, so a literal here is not a default — it
+  // is what every page that does not spell out its own `openGraph`/`twitter`
+  // ships instead of its title. That is how the Issue pages came to unfurl as
+  // "Leo Chiu — Senior Software Engineer at KKday.". Left unset, both derive
+  // from each page's own `title` and `description`, and fall back to this
+  // file's when a page states none.
   openGraph: {
-    title: "Leo Chiu",
-    description: "Senior Software Engineer at KKday.",
-    url: SITE_URL,
+    // No `url` either, and for the same reason: as a shared default it told
+    // every page that states no `openGraph` of its own that it was the
+    // homepage. The pages that need one already carry the right value in
+    // `alternates.canonical`, and they cannot lift it into an `openGraph`
+    // block here without that block replacing this one — image included. An
+    // absent og:url resolves to the URL the crawler fetched, which is right.
     siteName: "Leo Chiu",
     images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Leo Chiu",
-    description: "Senior Software Engineer at KKday.",
     images: [DEFAULT_OG_IMAGE],
   },
 };
