@@ -37,3 +37,17 @@ export const NOT_FOUND_TITLE = seoTitle("404");
  * without an `ogImage` will actually be shared with, rather than a guess.
  */
 export const DEFAULT_OG_IMAGE = "/seo/social-card.png";
+
+/**
+ * The newsletter's own card, used by the subscribe page and every Issue.
+ *
+ * The site card introduces a person; a shared Issue is an offer to subscribe to
+ * a publication, and the two want different pictures. This one carries the
+ * newsletter's name and its promise — the same words `data/content.ts` gives
+ * the subscribe form, so the page and its unfurl make one offer rather than two.
+ *
+ * Drawn once, by hand, and committed. Generating a card per Issue means a route
+ * that pulls satori's renderer into the worker bundle — 820KB of it, for
+ * pictures that are all built ahead of time and never rendered on a request.
+ */
+export const NEWSLETTER_OG_IMAGE = "/seo/newsletter-card.png";

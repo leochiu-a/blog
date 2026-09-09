@@ -3,12 +3,33 @@ import type { Metadata } from "next";
 import { SubscribeForm } from "@/components/newsletter/SubscribeForm";
 import { newsletter } from "@/data/content";
 import { issues } from "@/lib/issues";
-import { SITE_URL, seoTitle } from "@/lib/site";
+import { NEWSLETTER_OG_IMAGE, SITE_URL, seoTitle } from "@/lib/site";
+import { author } from "@/data/content";
+
+const title = seoTitle("電子報");
 
 export const metadata: Metadata = {
-  title: seoTitle("電子報"),
+  title,
   description: newsletter.pitch[0],
   alternates: { canonical: `${SITE_URL}/newsletter/` },
+  // Spelled out in full, both blocks. Next replaces a metadata block rather
+  // than merging into it, so naming only `images` here would drop the rest of
+  // the layout's — see the comment on its `openGraph`.
+  openGraph: {
+    type: "website",
+    title,
+    description: newsletter.pitch[0],
+    url: `${SITE_URL}/newsletter/`,
+    siteName: author.name,
+    images: [NEWSLETTER_OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description: newsletter.pitch[0],
+    creator: "@leo_web_dev",
+    images: [NEWSLETTER_OG_IMAGE],
+  },
 };
 
 /**
