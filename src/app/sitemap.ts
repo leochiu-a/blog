@@ -27,6 +27,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      // Every post's byline points here, so it is the page a reader arriving
+      // from search is most likely to open second.
+      url: `${SITE_URL}/about/`,
+      lastModified: new Date(posts[0]?.updated ?? posts[0]?.datetime ?? Date.now()),
+      changeFrequency: "yearly",
+      priority: 0.8,
+    },
+    {
       // The subscribe page is worth indexing; the confirm and unsubscribe pages
       // hold nothing but somebody's signed token, and say so with `noindex`.
       url: `${SITE_URL}/newsletter/`,
