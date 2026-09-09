@@ -182,7 +182,9 @@ export default async function EditorIndex() {
       {/* Same bar as the editing page, so moving between the two feels like
           one surface rather than two pages that happen to be adjacent. */}
       <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background/90 px-6 py-3 font-sans text-sm backdrop-blur">
-        <NavLink href="/">← Home</NavLink>
+        <NavLink href="/" back>
+          Home
+        </NavLink>
         {/* The other editor surface: what is written lives here, who it goes
             to lives there. Same control as the one in the newsletter pages'
             header, and pushed to the same end of the bar — it is the one thing

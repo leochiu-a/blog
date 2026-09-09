@@ -21,8 +21,9 @@ export interface Collection {
   /**
    * What one document out of the collection is called. Distinct from `label`,
    * because the plural names a place you navigate to and the singular names
-   * the thing in front of you: "← Issues" is the archive, "Issue settings" is
-   * this one edition. A Newsletter is the publication, never one of these.
+   * the thing in front of you: the "Issues" back link is the archive, "Issue
+   * settings" is this one edition. A Newsletter is the publication, never one
+   * of these.
    */
   itemLabel: string;
   /** Where the files live, relative to the project root. */

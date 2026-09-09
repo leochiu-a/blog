@@ -394,7 +394,9 @@ export function DocumentEditor({
   return (
     <div className={cn("min-h-screen", isDark && "dark")}>
       <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background/90 px-6 py-3 font-sans text-sm backdrop-blur">
-        <NavLink href="/editor">← {collectionOf(collection).label}</NavLink>
+        <NavLink href="/editor" back>
+          {collectionOf(collection).label}
+        </NavLink>
         <Separator orientation="vertical" className="h-5" />
         <span className="flex-1 truncate text-muted-foreground">{slug}</span>
         <span

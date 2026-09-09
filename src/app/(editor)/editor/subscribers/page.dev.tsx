@@ -60,7 +60,9 @@ export default async function SubscribersDashboard() {
     // `html:has(.dark)` in globals.css carries the tokens up to the document.
     <div className="dark min-h-screen font-sans">
       <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background/90 px-6 py-3 font-sans text-sm backdrop-blur">
-        <NavLink href="/editor">← Editor</NavLink>
+        <NavLink href="/editor" back>
+          Editor
+        </NavLink>
       </header>
 
       <main className="mx-auto w-full max-w-[45.5rem] px-6 pb-16 pt-10">
