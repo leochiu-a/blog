@@ -54,11 +54,15 @@ export function NewsletterSection({ issues }: { issues: IssueSummary[] }) {
           </li>
         ))}
       </ul>
+      {/* Both halves of what is at the other end: /newsletter/ opens with the
+          subscribe form and lists every past Issue under it. The reading comes
+          first in the label as it does on the page, because that is the order
+          it happens in — nobody hands over an address before reading one. */}
       <Link
         href="/newsletter/"
         className="mt-3 self-start text-muted-foreground transition-colors hover:text-blog-accent"
       >
-        看全部並訂閱 →
+        查看歷期與訂閱 →
       </Link>
     </SectionRow>
   );

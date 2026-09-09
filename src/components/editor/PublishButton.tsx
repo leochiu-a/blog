@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { collectionOf, type CollectionName } from "@/lib/editor/collections";
 import {
   readFlag,
@@ -32,15 +33,31 @@ type Props = {
  * Issue only becomes something the send script is willing to mail. Two
  * different promises, told in one sentence shape — what appears where, and
  * what stops appearing — so the dialog reads the same whichever you are in.
+ *
+ * English, like the rest of the editor's chrome: the buttons around it say
+ * Preview, Publish, Settings, and the delete confirmation in `DocumentActions`
+ * asks in English too. Only the writing inside a document is Chinese.
  */
 const COPY = {
   posts: {
-    publish: { title: "發佈這篇文章？", body: "它會出現在首頁、文章頁與 RSS。" },
-    retract: { title: "收回成草稿？", body: "線上就看不到它了，只剩 next dev 看得到。" },
+    publish: {
+      title: "Publish this post?",
+      body: "It appears on the home page, in the listing, and in the RSS feed.",
+    },
+    retract: {
+      title: "Unpublish this post?",
+      body: "It leaves the live site — only `next dev` can still see it.",
+    },
   },
   issues: {
-    publish: { title: "發佈這一期？", body: "它會出現在電子報封存頁，也才寄得出去。" },
-    retract: { title: "收回成草稿？", body: "封存頁就看不到它了，送信腳本也會拒絕寄出。" },
+    publish: {
+      title: "Publish this Issue?",
+      body: "It joins the newsletter archive, and the send script will mail it.",
+    },
+    retract: {
+      title: "Unpublish this Issue?",
+      body: "It leaves the archive, and the send script will refuse to send it.",
+    },
   },
 } as const;
 
@@ -50,6 +67,11 @@ const COPY = {
  * when the writing is done — the same place Medium and Substack put it.
  */
 export function PublishButton({ collection, frontmatter, onChange }: Props) {
+  // Controlled, because the confirm button has to close what it answered.
+  // `AlertDialogAction` is a plain button rather than a Close, so an
+  // uncontrolled dialog stayed open over a document it had already changed —
+  // and the question it was still asking now had the wrong answer in it.
+  const [confirming, setConfirming] = useState(false);
   const isDraft = readFlag(frontmatter, "draft");
   const copy = isDraft ? COPY[collection].publish : COPY[collection].retract;
 
@@ -65,19 +87,28 @@ export function PublishButton({ collection, frontmatter, onChange }: Props) {
     <>
       {isDraft && <Badge variant="secondary">Draft</Badge>}
 
-      <AlertDialog>
+      <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogTrigger render={<Button variant={isDraft ? "default" : "outline"} size="sm" />}>
           {isDraft ? "Publish" : "Unpublish"}
         </AlertDialogTrigger>
-        <AlertDialogContent>
+        {/* `font-sans`, like the delete confirmation and the upload notice:
+            the dialog is portalled to <body>, which is set in garamond for
+            reading, and chrome asking a question there came out in the same
+            face as the prose behind it. */}
+        <AlertDialogContent className="font-sans">
           <AlertDialogHeader>
             <AlertDialogTitle>{copy.title}</AlertDialogTitle>
             <AlertDialogDescription>{copy.body}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={() => setDraft(!isDraft)}>
-              {isDraft ? "發佈" : "收回"}
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setDraft(!isDraft);
+                setConfirming(false);
+              }}
+            >
+              {isDraft ? "Publish" : "Unpublish"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
