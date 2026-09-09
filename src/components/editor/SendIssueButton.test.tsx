@@ -25,11 +25,15 @@ function stubFetch(response: { ok: boolean; status: number; body: unknown }) {
   return fetch;
 }
 
+/** What the route answers a successful send with. */
 const RECEIPT = {
   subject: "第一期",
   recipients: 3,
   sentAt: Date.UTC(2026, 8, 1, 4, 0, 0),
   broadcastId: "bc_1",
+  pulledUnsubscribes: 0,
+  pushedToResend: 0,
+  recovered: false,
 };
 
 function renderButton({
@@ -103,7 +107,7 @@ describe("the send button", () => {
     expect(order).toEqual(["save", "fetch"]);
   });
 
-  it("shows the send it just performed, so the button cannot come back", async () => {
+  it("answers the send it just performed, and offers no way to repeat it", async () => {
     const user = userEvent.setup();
     stubFetch({ ok: true, status: 200, body: RECEIPT });
     renderButton();
@@ -112,8 +116,11 @@ describe("the send button", () => {
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
     await user.click(sendButton());
 
-    await waitFor(() => expect(screen.getByText(/^Sent · 2026-09-01$/)).toBeTruthy());
+    // The receipt takes the dialog over; the badge is behind it, and arrives
+    // when it is dismissed — see "the receipt" below.
+    await waitFor(() => expect(screen.getByText("寄出了")).toBeTruthy());
     expect(screen.queryByRole("button", { name: "Send" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "寄給訂閱者" })).toBeNull();
   });
 
   /**
@@ -162,5 +169,75 @@ describe("the send button", () => {
 
     expect(screen.getByText(/D1 unreachable/)).toBeTruthy();
     expect(sendButton().hasAttribute("disabled")).toBe(true);
+  });
+});
+
+/**
+ * What the send says it did.
+ *
+ * The receipt exists because the badge that replaces this button can only say
+ * a date, while the send itself knows the count, the broadcast id and what
+ * reconciliation moved — and this is the only moment those are in one place.
+ * Losing them meant the only way to answer "did that work?" was to go and read
+ * two dashboards.
+ */
+describe("the receipt", () => {
+  // One unsubscribe pulled back from Resend, so the reconciliation line has
+  // something to say.
+  const receipt = { ...RECEIPT, pulledUnsubscribes: 1 };
+
+  it("reports the count, the broadcast and what reconciliation moved", async () => {
+    const user = userEvent.setup();
+    stubFetch({ ok: true, status: 200, body: receipt });
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
+    await user.click(sendButton());
+
+    await waitFor(() => expect(screen.getByText("寄出了")).toBeTruthy());
+    expect(screen.getByText("3 位")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "bc_1" }).getAttribute("href")).toBe(
+      "https://resend.com/broadcasts/bc_1",
+    );
+    expect(screen.getByText(/回寫退訂 1 筆/)).toBeTruthy();
+    // Not offering to do it again, either.
+    expect(screen.queryByRole("button", { name: "寄給訂閱者" })).toBeNull();
+  });
+
+  it("leaves the Sent badge behind once the receipt is dismissed", async () => {
+    const user = userEvent.setup();
+    stubFetch({ ok: true, status: 200, body: receipt });
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
+    await user.click(sendButton());
+    await waitFor(() => expect(screen.getByText("寄出了")).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "好" }));
+
+    await waitFor(() => expect(screen.getByText(/^Sent · 2026-09-01$/)).toBeTruthy());
+  });
+
+  /**
+   * A send that mailed nobody: Resend had already sent this Issue and the row
+   * was what was missing. Reporting it as "3 位" would claim an send that did
+   * not happen here.
+   */
+  it("says so when it only wrote down a send Resend had already made", async () => {
+    const user = userEvent.setup();
+    stubFetch({
+      ok: true,
+      status: 200,
+      body: { ...receipt, recipients: 0, pulledUnsubscribes: 0, recovered: true },
+    });
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
+    await user.click(sendButton());
+
+    await waitFor(() => expect(screen.getByText("Resend 已經寄過了")).toBeTruthy());
+    expect(screen.getByText(/沒有再寄給任何人/)).toBeTruthy();
   });
 });

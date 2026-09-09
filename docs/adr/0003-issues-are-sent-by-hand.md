@@ -38,6 +38,16 @@ this?" is answered by looking rather than by pressing. The constraint stays
 underneath that as the guard it always was, because the human step will
 occasionally be run twice.
 
+What that row cannot guard is the moment it does not exist yet: mail accepted
+by Resend, and then a dropped write. So Resend is asked first, by the name the
+send derives rather than one a person types — `<date> <slug>`, which makes its
+own broadcast list an idempotency key. A broadcast already sent under this
+Issue's name turns the second press into the repair of a missing row instead of
+a duplicate send. That check is the only reason a person can press Send twice
+in good faith and not regret it, which is the same reason the typed slug is
+there: this path has to survive being run by someone who is not sure what
+happened.
+
 A test send is not an exception to any of this — neither the **Test email**
 button in the toolbar nor `sendTestIssue` behind it. It mails the Issue to one
 address a person just typed, through `emails.send` rather than a broadcast, and

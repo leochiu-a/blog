@@ -115,19 +115,61 @@ read `RESEND_API_KEY` and `RESEND_SEGMENT_ID` from `.dev.vars` like everything
 else here; a Resend refusal — an invalid key, an unverified domain — comes back
 into the dialog in its own words.
 
-The send reconciles both stores first (unsubscribes at Resend written back to
-D1, confirmed addresses missing from the segment pushed up), sends the
-broadcast, and records the Issue in `issue_sends`. After that the toolbar shows
-a **Sent** badge with the date instead of a button, and the route refuses a
-second send even if you get to it by hand. To deliberately re-send, delete that
-row:
+The send asks Resend whether it already holds a broadcast for this Issue,
+reconciles both stores (unsubscribes at Resend written back to D1, confirmed
+addresses missing from the segment pushed up), creates the broadcast, sends it,
+and records it in `issue_sends`. Then the dialog turns into a receipt — the
+count that went out, the Resend broadcast id, and what reconciliation moved —
+and once dismissed the toolbar shows a **Sent** badge with the date instead of
+a button.
+
+To deliberately re-send, delete the row and the broadcast:
 
 ```bash
 pnpm db:remote "DELETE FROM issue_sends WHERE issue_slug = 'hello-newsletter'"
 ```
 
+The row alone is not enough, because the broadcast Resend still holds under the
+same name is the second guard — see "Did it actually go out" below.
+
 See docs/adr/0003-issues-are-sent-by-hand.md for why the trigger is a person in
 the editor rather than a workflow.
+
+## Did it actually go out
+
+Three places, answering different questions.
+
+**The receipt**, in the dialog, right after the send. Everything this system
+knows: the subject that went out, how many addresses, the broadcast id as a
+link, and the reconciliation figures. It is the only moment those are together
+— the badge afterwards can only say the date.
+
+**Resend → Broadcasts** is the only place that knows whether mail reached
+anybody. The send names each broadcast `<date> <slug>`, so RD#1 appears as
+`2026-09-01 rd-1-when-agents-take-over-code`; the broadcast carries a status
+(`draft`, `queued`, `sent`) and per-recipient events — delivered, opened,
+bounced, complained, unsubscribed. **Sent** in the editor means Resend accepted
+the broadcast, never that it was delivered. Delivery is Resend's to report and
+this system does not pretend to know it.
+
+**`issue_sends`** is our own record of what has gone out:
+
+```bash
+pnpm db:remote "SELECT issue_slug, resend_broadcast_id, recipient_count, datetime(sent_at/1000, 'unixepoch', '+8 hours') AS sent FROM issue_sends"
+```
+
+The one failure worth understanding is a send Resend accepted followed by a
+dropped write to that table: the mail is gone, the row is missing, and the
+toolbar offers the button again. Pressing it does not send a second time —
+the Resend lookup finds the broadcast under this Issue's name, writes the row
+from Resend's own timestamp, and the receipt says so ("Resend 已經寄過了"). The
+recipient count is recorded as 0 in that case, because Resend's list does not
+carry one and a wrong number in an audit record is worse than an obvious gap;
+the broadcast id is how the real figure is looked up.
+
+A broadcast sitting at `draft` under the same name is the other half of that
+window — created, never sent — and the send refuses it rather than guessing.
+Send it or delete it in Resend, then come back.
 
 ## Rehearsing the whole thing
 

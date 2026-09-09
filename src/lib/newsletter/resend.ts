@@ -98,6 +98,52 @@ export async function listContacts(apiKey: string, segmentId: string): Promise<R
   }
 }
 
+export interface RemoteBroadcast {
+  id: string;
+  /** Resend's own word for it: created but never sent, queued, or gone. */
+  status: "draft" | "queued" | "sent";
+  /** When Resend sent it, in epoch milliseconds, or null if it has not. */
+  sentAt: number | null;
+}
+
+/**
+ * The broadcast Resend already holds under this name, if there is one.
+ *
+ * Every Issue is created with a name we derive rather than one a person types
+ * — `<date> <slug>` — which makes Resend's own list an idempotency key for a
+ * send: if a broadcast with this name is there, this Issue has been through
+ * here before, whatever our own database says. That is the one question
+ * `issue_sends` cannot answer, because the write that fills it happens after
+ * the mail has left.
+ *
+ * Newest first, and the pages are followed to the end: an account accumulates
+ * broadcasts, and stopping at the first page would report an Issue sent last
+ * year as never sent.
+ */
+export async function findBroadcastByName(
+  apiKey: string,
+  name: string,
+): Promise<RemoteBroadcast | null> {
+  const resend = client(apiKey);
+  let after: string | undefined;
+
+  for (;;) {
+    const page = unwrap(await resend.broadcasts.list({ limit: 100, after }));
+    const found = page.data.find((broadcast) => broadcast.name === name);
+    if (found) {
+      return {
+        id: found.id,
+        status: found.status,
+        sentAt: found.sent_at === null ? null : Date.parse(found.sent_at),
+      };
+    }
+
+    const last = page.data.at(-1);
+    if (!page.has_more || !last) return null;
+    after = last.id;
+  }
+}
+
 export async function createBroadcast(
   apiKey: string,
   broadcast: {

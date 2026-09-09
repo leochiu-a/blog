@@ -1,8 +1,27 @@
 import { EditorError, issueStore } from "@/lib/editor/store";
+import { FROM_ADDRESS, REPLY_TO_ADDRESS } from "@/lib/newsletter/constants";
 import { parseIssueSource } from "@/lib/newsletter/issue-source";
 import { remoteEnv } from "@/lib/newsletter/remote-env";
-import { ResendError } from "@/lib/newsletter/resend";
-import { SendRefused, sendIssueToList, type Issue } from "@/lib/newsletter/send-issue";
+import {
+  ResendError,
+  createBroadcast,
+  createContact,
+  findBroadcastByName,
+  listContacts,
+  sendBroadcast,
+} from "@/lib/newsletter/resend";
+import {
+  SendRefused,
+  issueSendState,
+  sendIssueToList,
+  type Issue,
+  type SendIssueDeps,
+} from "@/lib/newsletter/send-issue";
+import {
+  confirmedEmails,
+  markUnsubscribedInBulk,
+  recordIssueSend,
+} from "@/lib/newsletter/subscribers";
 
 /**
  * The real send, from the editor.
@@ -25,6 +44,10 @@ import { SendRefused, sendIssueToList, type Issue } from "@/lib/newsletter/send-
  * step — the `yes` this used to ask for at a terminal prompt — and it is
  * checked here as well as in the dialog, so the endpoint itself is not one
  * stray `curl` away from a send.
+ *
+ * Everything below the body check is wiring. What a send does, and in which
+ * order, lives in `sendIssueToList`, where it is run against faked stores —
+ * the only way to exercise a path whose every real run mails the list.
  */
 
 async function loadIssue(slug: string): Promise<Issue> {
@@ -45,7 +68,7 @@ function answerFor(error: unknown): Response {
   // as "something went wrong".
   if (error instanceof SendRefused) {
     return Response.json(
-      { error: error.message, refusal: error.refusal, sentAt: error.candidate.sentAt },
+      { error: error.message, refusal: error.refusal, sentAt: error.sentAt },
       { status: 409 },
     );
   }
@@ -79,7 +102,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       throw new EditorError("`.dev.vars` 需要 RESEND_API_KEY 和 RESEND_SEGMENT_ID", 500);
     }
 
-    return Response.json(await sendIssueToList(db, { apiKey, segmentId }, issue));
+    const deps: SendIssueDeps = {
+      now: () => Date.now(),
+      sendState: (issueSlug) => issueSendState(db, issueSlug),
+      findBroadcast: (name) => findBroadcastByName(apiKey, name),
+      confirmedEmails: () => confirmedEmails(db),
+      listContacts: () => listContacts(apiKey, segmentId),
+      createContact: async (email) => {
+        await createContact(apiKey, { email, segmentId });
+      },
+      markUnsubscribed: async (emails, now) => {
+        await markUnsubscribedInBulk(db, emails, now);
+      },
+      createBroadcast: (broadcast) =>
+        createBroadcast(apiKey, {
+          ...broadcast,
+          segmentId,
+          from: FROM_ADDRESS,
+          replyTo: REPLY_TO_ADDRESS,
+        }),
+      sendBroadcast: async (broadcastId) => {
+        await sendBroadcast(apiKey, broadcastId);
+      },
+      recordSend: (record) => recordIssueSend(db, record),
+    };
+
+    return Response.json(await sendIssueToList(issue, deps));
   } catch (error) {
     return answerFor(error);
   }

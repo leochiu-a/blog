@@ -25,12 +25,24 @@ type Receipt = {
   recipients: number;
   sentAt: number;
   broadcastId: string;
+  pulledUnsubscribes: number;
+  pushedToResend: number;
+  recovered: boolean;
 };
 
 const day = (sentAt: number) =>
   new Date(sentAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
 
 const stamp = (sentAt: number) => new Date(sentAt).toLocaleString("zh-TW", { hour12: false });
+
+/**
+ * Where the send can be looked at afterwards. Our own records stop at "Resend
+ * accepted it"; whether it reached an inbox, bounced or was opened is Resend's
+ * to report, and this is the screen that reports it. The id is printed next to
+ * the link either way, so the receipt still says everything it knows if the
+ * dashboard's URL shape ever moves.
+ */
+const broadcastUrl = (id: string) => `https://resend.com/broadcasts/${id}`;
 
 /**
  * Sends the Issue in front of you to the list.
@@ -77,7 +89,10 @@ export function SendIssueButton({
   const unreachable = "error" in state ? state.error : null;
   const sentAt = receipt?.sentAt ?? refusedAt ?? ("error" in state ? null : state.sentAt);
 
-  if (sentAt !== null) {
+  // The receipt is on screen, so the toolbar behind it waits its turn: a badge
+  // appearing under an open dialog would answer the dialog's own question
+  // before it had been read.
+  if (sentAt !== null && !(open && receipt !== null)) {
     return (
       <Badge variant="secondary" title={`寄出於 ${stamp(sentAt)}`}>
         Sent · {day(sentAt)}
@@ -118,8 +133,11 @@ export function SendIssueButton({
         | null;
 
       if (response.ok && body?.sentAt != null) {
+        // The dialog stays open, holding the receipt. It is the only moment the
+        // recipient count, the broadcast id and what reconciliation moved are
+        // all in one place — and the badge that replaces this button afterwards
+        // can only say the date.
         setReceipt(body as Receipt);
-        setOpen(false);
         return;
       }
 
@@ -152,65 +170,118 @@ export function SendIssueButton({
         {/* `font-sans`, like the other dialogs here: this is portalled to
             <body>, which is set in garamond for reading. */}
         <DialogContent className="font-sans" initialFocus={field}>
+          {/* The question, then the answer to it. A dialog still headed "寄出去
+              就收不回來了" over a send that has happened is asking about
+              something that is no longer in front of you. */}
           <DialogHeader>
-            <DialogTitle>把這一期寄給訂閱者</DialogTitle>
+            <DialogTitle>{receipt === null ? "把這一期寄給訂閱者" : "寄出了"}</DialogTitle>
             <DialogDescription>
-              寄出去就收不回來了。寄的是硬碟上的檔案，不是瀏覽器裡還沒存的東西。
+              {receipt === null
+                ? "寄出去就收不回來了。寄的是硬碟上的檔案，不是瀏覽器裡還沒存的東西。"
+                : "這一期已經記成寄出過了，不會再寄第二次。"}
             </DialogDescription>
           </DialogHeader>
 
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 border-y py-4 text-sm">
             <dt className="text-muted-foreground">主旨</dt>
-            <dd className="min-w-0 font-medium">{subject}</dd>
+            <dd className="min-w-0 font-medium">{receipt?.subject ?? subject}</dd>
             <dt className="text-muted-foreground">收件人</dt>
             <dd className="font-medium tabular-nums">
-              {unreachable === null ? `${recipients} 位已確認的訂閱者` : "讀不到"}
+              {receipt !== null
+                ? receipt.recovered
+                  ? "Resend 已經寄過了"
+                  : `${receipt.recipients} 位`
+                : unreachable === null
+                  ? `${recipients} 位已確認的訂閱者`
+                  : "讀不到"}
             </dd>
+
+            {receipt !== null && (
+              <>
+                <dt className="text-muted-foreground">寄出時間</dt>
+                <dd className="font-medium tabular-nums">{stamp(receipt.sentAt)}</dd>
+                <dt className="text-muted-foreground">Resend</dt>
+                <dd className="min-w-0">
+                  <a
+                    href={broadcastUrl(receipt.broadcastId)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="break-all underline decoration-dotted underline-offset-2"
+                  >
+                    {receipt.broadcastId}
+                  </a>
+                </dd>
+                {(receipt.pulledUnsubscribes > 0 || receipt.pushedToResend > 0) && (
+                  <>
+                    <dt className="text-muted-foreground">對帳</dt>
+                    <dd className="text-muted-foreground">
+                      回寫退訂 {receipt.pulledUnsubscribes} 筆、補進 Resend 名單{" "}
+                      {receipt.pushedToResend} 筆
+                    </dd>
+                  </>
+                )}
+              </>
+            )}
           </dl>
 
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void send();
-            }}
-          >
-            <Field>
-              <FieldLabel htmlFor="send-issue-confirm">輸入 {slug} 以確認</FieldLabel>
-              <Input
-                id="send-issue-confirm"
-                ref={field}
-                required
-                autoComplete="off"
-                value={confirm}
-                disabled={sending || blocked !== null}
-                onChange={(event) => setConfirm(event.target.value)}
-                placeholder={slug}
-              />
-              {error !== null && (
-                <FieldDescription className="text-destructive">{error}</FieldDescription>
-              )}
-              {error === null && blocked !== null && (
-                <FieldDescription className="text-destructive">{blocked}</FieldDescription>
-              )}
-              {error === null && blocked === null && (
-                <FieldDescription>寄出後這一期會記成已寄出，不會再寄第二次。</FieldDescription>
-              )}
-            </Field>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={sending}
-                onClick={() => setOpen(false)}
-              >
-                取消
-              </Button>
-              <Button type="submit" disabled={sending || blocked !== null || confirm !== slug}>
-                {sending ? "寄送中…" : "寄給訂閱者"}
-              </Button>
+          {receipt !== null ? (
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground">
+                {receipt.recovered
+                  ? "這一期在 Resend 上早就寄出去了，只是我們這邊沒記到——剛剛把紀錄補上了，沒有再寄給任何人。"
+                  : "Resend 收下了。信有沒有真的進到收件匣、有沒有退信，上面那個連結看得到。"}
+              </p>
+              <div className="mt-4 flex justify-end">
+                <Button type="button" onClick={() => setOpen(false)}>
+                  好
+                </Button>
+              </div>
             </div>
-          </form>
+          ) : (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void send();
+              }}
+            >
+              <Field>
+                <FieldLabel htmlFor="send-issue-confirm">輸入 {slug} 以確認</FieldLabel>
+                <Input
+                  id="send-issue-confirm"
+                  ref={field}
+                  required
+                  autoComplete="off"
+                  value={confirm}
+                  disabled={sending || blocked !== null}
+                  onChange={(event) => setConfirm(event.target.value)}
+                  placeholder={slug}
+                />
+                {error !== null && (
+                  <FieldDescription className="text-destructive">{error}</FieldDescription>
+                )}
+                {error === null && blocked !== null && (
+                  <FieldDescription className="text-destructive">{blocked}</FieldDescription>
+                )}
+                {error === null && blocked === null && (
+                  <FieldDescription>寄出後這一期會記成已寄出，不會再寄第二次。</FieldDescription>
+                )}
+              </Field>
+
+              <div className="mt-4 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={sending}
+                  onClick={() => setOpen(false)}
+                >
+                  取消
+                </Button>
+                <Button type="submit" disabled={sending || blocked !== null || confirm !== slug}>
+                  {sending ? "寄送中…" : "寄給訂閱者"}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </>
