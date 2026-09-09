@@ -22,7 +22,7 @@ const LABEL = {
 } as const;
 
 /**
- * The deployed URL of a draft Post, ready to be sent to whoever should read it
+ * The deployed URL of a draft, ready to be sent to whoever should read it
  * before it is published.
  *
  * It sits in the settings panel, as a field showing the URL itself, because
@@ -41,9 +41,9 @@ const LABEL = {
  * something on a machine that is not this one, so it points at the deployed
  * site, and the draft has to be committed and deployed for it to answer.
  *
- * Posts only. An Issue's draft stays invisible on the archive page: it is
- * written to be mailed, and the thing worth reviewing before a send is the
- * email, not the web copy of it.
+ * Issues have one as well as Posts. A test send answers "does this hold up in
+ * an inbox" for one address; the draft link answers "is this any good" for as
+ * many readers as the edition needs, none of whom has to be a subscriber.
  */
 export function DraftLinkField({
   collection,
@@ -56,7 +56,7 @@ export function DraftLinkField({
 }) {
   const [state, setState] = useState<keyof typeof LABEL>("idle");
 
-  if (collection !== "posts" || !readFlag(frontmatter, "draft")) return null;
+  if (!readFlag(frontmatter, "draft")) return null;
 
   const url = `${SITE_URL}${collectionOf(collection).previewBase}/${slug}/`;
 

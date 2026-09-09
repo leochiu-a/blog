@@ -7,11 +7,11 @@
  * is for is the one reading — a reviewer who has no way to tell an unfinished
  * post from a finished one otherwise, and who might quote it as published.
  */
-export function DraftNotice() {
+export function DraftNotice({ what }: { what: "post" | "Issue" }) {
   return (
     <p className="mb-6 rounded-md border border-dashed border-border px-4 py-3 font-sans text-sm text-muted-foreground">
-      <span className="font-semibold text-foreground">Draft.</span> This post is not published yet —
-      it is listed nowhere and only people with this link can read it.
+      <span className="font-semibold text-foreground">Draft.</span> This {what} is not published yet
+      — it is listed nowhere and only people with this link can read it.
     </p>
   );
 }

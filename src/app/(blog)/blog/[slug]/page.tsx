@@ -142,7 +142,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           <article className="wrap-break-word">
             <div id="blog-hero">
-              {post.draft && <DraftNotice />}
+              {post.draft && <DraftNotice what="post" />}
               <h1 className="mt-2 font-sans text-3xl font-extrabold leading-[1.15] tracking-tight sm:mb-1 sm:text-4xl sm:leading-tight md:text-5xl">
                 {post.title}
               </h1>

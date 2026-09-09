@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { issues } from "@/lib/issues";
+import { reachableIssues } from "@/lib/issues";
 import { SITE_URL, seoTitle } from "@/lib/site";
 import { AuthorBio } from "@/components/blog/AuthorBio";
+import { DraftNotice } from "@/components/blog/DraftNotice";
 import { DevEditLink } from "@/components/blog/DevEditLink";
 import { RecentIssues } from "@/components/newsletter/RecentIssues";
 import { SubscribeCta } from "@/components/newsletter/SubscribeCta";
 
+/**
+ * Drafts included: an unpublished Issue answers at its own URL rather than
+ * 404ing (see lib/issues.ts). Nothing links to one, and `generateMetadata`
+ * keeps it out of search.
+ */
 export function generateStaticParams() {
-  return issues.map((issue) => ({ slug: issue.slug }));
+  return reachableIssues.map((issue) => ({ slug: issue.slug }));
 }
 
 export async function generateMetadata({
@@ -18,7 +24,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const issue = issues.find((candidate) => candidate.slug === slug);
+  const issue = reachableIssues.find((candidate) => candidate.slug === slug);
   // Same as the post page: the 404 that follows takes its metadata from the
   // boundary in `(blog)/not-found.tsx`.
   if (!issue) return {};
@@ -30,6 +36,9 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: `${SITE_URL}${issue.href}` },
+    // A draft is reachable by its link and by nothing else — an index entry
+    // would publish it on the day the crawler happened to pass.
+    ...(issue.draft && { robots: { index: false, follow: false } }),
     openGraph: {
       type: "article",
       title,
@@ -42,7 +51,7 @@ export async function generateMetadata({
 /** One past Issue on the web — also where the email's "read in a browser" link goes. */
 export default async function IssuePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const issue = issues.find((candidate) => candidate.slug === slug);
+  const issue = reachableIssues.find((candidate) => candidate.slug === slug);
   if (!issue) notFound();
 
   const Issue = issue.mdx;
@@ -50,6 +59,7 @@ export default async function IssuePage({ params }: { params: Promise<{ slug: st
   return (
     <>
       <article className="wrap-break-word">
+        {issue.draft && <DraftNotice what="Issue" />}
         <p className="font-sans text-sm text-muted-foreground">
           <Link href="/newsletter/" className="hover:text-gold">
             電子報
