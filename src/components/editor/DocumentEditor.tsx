@@ -18,6 +18,15 @@ import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
 import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
 import { createExtensions } from "@/lib/editor/extensions";
 import type { Clip, PmNode, EditorDocument } from "@/lib/editor/types";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Separator } from "@/components/ui/separator";
@@ -139,6 +148,15 @@ function endUpload(view: EditorView, id: string, setUpload: SetUpload): void {
  * share — which API saves it, where it is previewed, which settings it has —
  * comes from the collection; everything about editing prose is the same.
  */
+/**
+ * What an upload that did not happen has to say: a heading naming what was
+ * refused, and the reason under it. Two fields rather than one string because
+ * the reason can be a whole sentence from the server — an oversized clip says
+ * what the ceiling is — and a heading that also carried it would be a
+ * paragraph in bold type.
+ */
+type UploadNotice = { title: string; detail: string };
+
 export function DocumentEditor({
   collection,
   slug,
@@ -153,7 +171,11 @@ export function DocumentEditor({
   const [showSettings, setShowSettings] = useState(false);
   // A refused upload — an oversized clip, above all — has to say so somewhere;
   // failing in silence looked exactly like a file that had not been picked yet.
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  // It says so in a dialog rather than in the bar: this arrives in answer to a
+  // file the writer just dropped in the middle of the page, and a line of small
+  // red text at the top of the window is not where anyone is looking at that
+  // moment. It was missed often enough to be worth interrupting for.
+  const [uploadNotice, setUploadNotice] = useState<UploadNotice | null>(null);
   // So does an upload still running: a clip is uploaded whole and then
   // transcoded, which takes long enough that an editor showing nothing in the
   // meantime looks exactly like one that swallowed the file.
@@ -251,7 +273,7 @@ export function DocumentEditor({
         setUpload,
       );
       try {
-        setUploadError(null);
+        setUploadNotice(null);
         const { src } = await result;
         const bitmap = await createImageBitmap(file);
 
@@ -268,7 +290,10 @@ export function DocumentEditor({
           },
         });
       } catch (error) {
-        setUploadError(error instanceof Error ? error.message : "圖片上傳失敗");
+        setUploadNotice({
+          title: "圖片沒有加進來",
+          detail: error instanceof Error ? error.message : "圖片上傳失敗。",
+        });
       } finally {
         endUpload(editor.view, id, setUpload);
       }
@@ -293,7 +318,7 @@ export function DocumentEditor({
         setUpload,
       );
       try {
-        setUploadError(null);
+        setUploadNotice(null);
         const { src, poster, width, height } = await result;
 
         insertAtPlaceholder(editor, id, {
@@ -309,7 +334,10 @@ export function DocumentEditor({
           },
         });
       } catch (error) {
-        setUploadError(error instanceof Error ? error.message : "影片上傳失敗");
+        setUploadNotice({
+          title: "影片沒有加進來",
+          detail: error instanceof Error ? error.message : "影片上傳失敗。",
+        });
       } finally {
         endUpload(editor.view, id, setUpload);
       }
@@ -323,7 +351,10 @@ export function DocumentEditor({
       // archive page would show it and the email would not. Refusing the file
       // and saying so beats accepting one that disappears in the inbox.
       if (!takesUploads) {
-        setUploadError("電子報是純文字排版：圖片和影片不會出現在寄出去的信裡");
+        setUploadNotice({
+          title: "電子報放不了圖片和影片",
+          detail: "電子報是純文字排版，圖片和影片不會出現在寄出去的信裡，所以這個檔案沒有加進來。",
+        });
         return;
       }
 
@@ -365,16 +396,6 @@ export function DocumentEditor({
         >
           {STATUS_LABEL[status]}
         </span>
-        {uploadError && (
-          <button
-            type="button"
-            onClick={() => setUploadError(null)}
-            title="點一下關閉"
-            className="max-w-md cursor-pointer truncate text-xs text-destructive"
-          >
-            {uploadError}
-          </button>
-        )}
         <Button
           variant="ghost"
           size="sm"
@@ -462,6 +483,26 @@ export function DocumentEditor({
         open={showSettings}
         onOpenChange={setShowSettings}
       />
+
+      {/* Dismissed by the one button, by Esc, and by nothing else: it carries
+          the only account of a file that is not in the document, so it should
+          not be possible to lose it by clicking past it. */}
+      <AlertDialog
+        open={uploadNotice !== null}
+        onOpenChange={(open) => {
+          if (!open) setUploadNotice(null);
+        }}
+      >
+        <AlertDialogContent className="font-sans">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{uploadNotice?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{uploadNotice?.detail}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="default">知道了</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
