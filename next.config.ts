@@ -71,6 +71,15 @@ const withMDX = createMDX({
     remarkPlugins: ["remark-frontmatter", "remark-gfm"],
     rehypePlugins: [
       "rehype-slug",
+      // A link out of the site opens in a new tab; a link to another page of it
+      // does not. Following a recommendation should not cost the reader the
+      // piece they were in the middle of, but staying on the site is ordinary
+      // navigation — and a new tab there would cost the client-side router and
+      // the back button for nothing. Same line Medium draws.
+      //
+      // The default test is "has a protocol", which is exactly that split: a
+      // post's own links are written as `/blog/<slug>/` and are left alone.
+      ["rehype-external-links", { target: "_blank", rel: ["noopener", "noreferrer"] }],
       // Syntax highlighting, resolved at build time — shiki loads the grammars
       // while the MDX compiles, so a post ships as plain coloured HTML with no
       // highlighter in the bundle.
