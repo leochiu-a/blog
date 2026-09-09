@@ -3,7 +3,6 @@ title: RD#1 當 agent 接手程式碼之後
 subtitle: 模型變強之後，我們去年為了防 AI 犯錯寫下的那些規範還需要嗎？這週存的連結幾乎都在回答這個問題。
 description: RD#1 —— 過期的 harness 該刪哪一半、Chrome 內建 AI 的落地取捨、Rust 重寫的 pnpm 12，以及一份 agent 時代還留得住的工程價值清單。
 datetime: 2026-09-08T00:00:00+08:00
-draft: true
 ---
 
 ## 我自己寫的
