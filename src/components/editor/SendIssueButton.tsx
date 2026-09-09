@@ -245,7 +245,40 @@ export function SendIssueButton({
               }}
             >
               <Field>
-                <FieldLabel htmlFor="send-issue-confirm">輸入 {slug} 以確認</FieldLabel>
+                {/* `select-text` on the label, `select-all` on the slug.
+                    Between them, the代號 can be taken out of the sentence it
+                    is written in — nobody should transcribe thirty characters
+                    of kebab-case by eye.
+                    ⁃
+                    Both are needed. `Label` ships `select-none`
+                    (src/components/ui/label.tsx), so without the first the
+                    slug cannot be selected at all; without the second a click
+                    selects nothing and a double-click takes one word out of
+                    five. Measured in the editor: clicking the slug selects the
+                    whole of it and leaves focus alone, while clicking anywhere
+                    else in the label still focuses the field the way a label
+                    should.
+                    ⁃
+                    `block` because `Label` is a flex row: as flex items the
+                    three pieces of one sentence get gaps between them and
+                    refuse to wrap.
+                    ⁃
+                    Overriding `user-select` on the label itself rather than
+                    fighting it from inside also keeps WebKit honest — a
+                    descendant cannot escape an ancestor's
+                    `-webkit-user-select: none` there, only replace it here.
+                    ⁃
+                    Deliberately not a copy button. The guard is that the slug
+                    has to arrive in the field and the send has to be pressed
+                    after it; carrying it across by hand was never the part that
+                    made anybody think twice. */}
+                <FieldLabel htmlFor="send-issue-confirm" className="block select-text">
+                  輸入{" "}
+                  <code className="font-mono select-all" title="點一下就整段選取">
+                    {slug}
+                  </code>{" "}
+                  以確認
+                </FieldLabel>
                 <Input
                   id="send-issue-confirm"
                   ref={field}
@@ -254,7 +287,6 @@ export function SendIssueButton({
                   value={confirm}
                   disabled={sending || blocked !== null}
                   onChange={(event) => setConfirm(event.target.value)}
-                  placeholder={slug}
                 />
                 {error !== null && (
                   <FieldDescription className="text-destructive">{error}</FieldDescription>

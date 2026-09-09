@@ -157,6 +157,31 @@ describe("the send button", () => {
   });
 
   /**
+   * Two classes, both load-bearing. `Label` ships `select-none`, so without
+   * `select-text` the slug written into its sentence cannot be selected at
+   * all; without `select-all` a click selects nothing and a double-click on
+   * kebab-case takes one word out of five. Together, one click on the slug
+   * hands over all of it — verified in the editor, where it also leaves focus
+   * alone while the rest of the label still focuses the field.
+   */
+  it("lets the slug be selected out of the label it is written in", async () => {
+    const user = userEvent.setup();
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    const shown = screen.getByTitle("點一下就整段選取");
+    expect(shown.textContent).toBe("first");
+    expect(shown.className).toContain("select-all");
+
+    const label = shown.closest("label");
+    expect(label?.className).toContain("select-text");
+    // Still the field's label — every other test finds the input through it.
+    expect(label?.getAttribute("for")).toBe("send-issue-confirm");
+    expect(screen.getByLabelText("輸入 first 以確認").id).toBe("send-issue-confirm");
+  });
+
+  /**
    * No network, or no Wrangler login: the page could not read the list, so the
    * recipient count in the dialog would be a guess. Refusing to send on a guess
    * is the only safe reading of it.
