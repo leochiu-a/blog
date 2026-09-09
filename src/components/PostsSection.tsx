@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowRightIcon } from "lucide-react";
 import type { Post } from "@/types/content";
 import { PostPreviewPanel, anchorNameFor } from "@/components/PostPreviewPanel";
 import { SectionRow } from "@/components/SectionRow";
@@ -74,9 +75,15 @@ function EditorLink() {
   return (
     <Link
       href="/editor"
-      className="mt-3 self-start rounded-md border border-blog-accent/40 px-4 py-2 font-sans text-sm font-medium text-blog-accent transition-colors hover:border-blog-accent hover:bg-blog-accent/10"
+      className="group mt-3 inline-flex items-center gap-1.5 self-start rounded-md border border-blog-accent/40 px-4 py-2 font-sans text-sm font-medium text-blog-accent transition-colors hover:border-blog-accent hover:bg-blog-accent/10"
     >
-      Open editor →
+      Open editor
+      {/* Same leaning arrow the newsletter link gets, for the same reason: a →
+          in the text run cannot move without taking the label with it. */}
+      <ArrowRightIcon
+        aria-hidden
+        className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-focus-visible:translate-x-0"
+      />
     </Link>
   );
 }
