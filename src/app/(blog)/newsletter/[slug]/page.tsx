@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { reachableIssues } from "@/lib/issues";
-import { SITE_URL, seoTitle } from "@/lib/site";
+import { NEWSLETTER_OG_IMAGE, SITE_URL, seoTitle } from "@/lib/site";
+import { author } from "@/data/content";
 import { AuthorBio } from "@/components/blog/AuthorBio";
 import { DraftNotice } from "@/components/blog/DraftNotice";
 import { DevEditLink } from "@/components/blog/DevEditLink";
@@ -39,11 +40,26 @@ export async function generateMetadata({
     // A draft is reachable by its link and by nothing else — an index entry
     // would publish it on the day the crawler happened to pass.
     ...(issue.draft && { robots: { index: false, follow: false } }),
+    // Both blocks spell out everything they need, including the image every
+    // page shares. Next replaces a metadata block rather than merging into it:
+    // an `openGraph` without `images` dropped the site card instead of
+    // inheriting it, and leaving `twitter` off entirely inherited the layout's
+    // whole block — so an Issue went out on X titled "Leo Chiu", described as
+    // a job title. The post page states both for the same reason.
     openGraph: {
       type: "article",
       title,
       description,
       url: `${SITE_URL}${issue.href}`,
+      siteName: author.name,
+      images: [NEWSLETTER_OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      creator: "@leo_web_dev",
+      images: [NEWSLETTER_OG_IMAGE],
     },
   };
 }
