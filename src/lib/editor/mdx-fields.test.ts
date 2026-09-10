@@ -14,16 +14,16 @@ describe("the attribute form's fields", () => {
   });
 
   it("offers the spec's fields the file left out", () => {
-    const fields = editableAttributes("Callout", []);
+    const fields = editableAttributes("VideoEmbed", []);
 
-    expect(fields.map((field) => field.name)).toEqual(["type"]);
-    expect(fields[0]).toEqual({ name: "type", value: "note", expression: null });
+    expect(fields.map((field) => field.name)).toEqual(["src", "title"]);
+    expect(fields[1]).toEqual({ name: "title", value: "", expression: null });
   });
 
   it("does not offer a field the file already filled in", () => {
-    const fields = editableAttributes("Callout", [text("type", "warning")]);
+    const current = [text("src", "https://example.com/v"), text("title", "V")];
 
-    expect(fields).toEqual([text("type", "warning")]);
+    expect(editableAttributes("VideoEmbed", current)).toEqual(current);
   });
 
   it("keeps an attribute the spec doesn't know about", () => {

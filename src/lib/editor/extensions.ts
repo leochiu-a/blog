@@ -57,7 +57,7 @@ const TableCell = Node.create({
   renderHTML: () => ["td", 0],
 });
 
-/** An MDX component used as a block: `<Figure … />`, `<Callout>…</Callout>`. */
+/** An MDX component used as a block: `<Figure … />`, `<FancyQuote>…</FancyQuote>`. */
 const MdxBlock = Node.create({
   name: "mdxBlock",
   group: "block",

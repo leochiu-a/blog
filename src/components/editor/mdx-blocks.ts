@@ -39,13 +39,6 @@ export const MDX_BLOCKS: MdxBlockSpec[] = [
     derived: ["src", "width", "height"],
   },
   {
-    name: "Callout",
-    label: "Callout（提示框）",
-    selfClosing: false,
-    attributes: [text("type", "note")],
-    derived: [],
-  },
-  {
     name: "FancyQuote",
     label: "FancyQuote（置中大字引言）",
     selfClosing: false,
@@ -94,8 +87,8 @@ export function specFor(name: string | null): MdxBlockSpec | undefined {
  * in the file's own order, followed by the spec's remaining fields, minus the
  * ones the spec derives from the inserted file.
  *
- * Without the second half a `<Callout>` written without `type=` offers nowhere
- * to add it, even though the spec declares the shape.
+ * Without the second half a `<VideoEmbed>` written without `title=` offers
+ * nowhere to add it, even though the spec declares the shape.
  */
 export function editableAttributes(name: string | null, current: MdxAttribute[]): MdxAttribute[] {
   const spec = specFor(name);

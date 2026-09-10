@@ -185,7 +185,7 @@ function AttributeInput({
       id={id}
       // A caption is a sentence, and `alt` is a description: one line showed a
       // sliver of either. `field-sizing-content` grows the box with the text, so
-      // a short attribute like a Callout's `type` still sits on one line.
+      // a short attribute like a VideoEmbed's `title` still sits on one line.
       rows={1}
       className="min-h-8 resize-none py-1"
       value={draft ?? value}

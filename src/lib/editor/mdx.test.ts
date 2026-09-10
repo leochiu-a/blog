@@ -11,7 +11,6 @@ const post = (body: string) => `${FRONTMATTER}${body}\n`;
 const COMPONENTS = [
   `<Figure src="/a.png" alt="a" width={1200} height={800} caption="c" />`,
   `<Figure\n  src="/a.png"\n  alt="a"\n  width={1200}\n  height={800}\n/>`,
-  `<Callout type="warning">\n  heads up\n</Callout>`,
   `<FancyQuote>\n  big words\n</FancyQuote>`,
   `<VideoEmbed src="https://example.com/v" title="V" />`,
 ];
@@ -61,17 +60,17 @@ describe("MDX components", () => {
   });
 
   it("keeps a component's children editable as rich text", () => {
-    const document = parseDocument(post(COMPONENTS[2]!));
+    const document = parseDocument(post(`<FancyQuote>\n  big words\n</FancyQuote>`));
     const [block] = document.doc.content!;
 
     expect(block!.content).toEqual([
-      { type: "paragraph", content: [{ type: "text", text: "heads up" }] },
+      { type: "paragraph", content: [{ type: "text", text: "big words" }] },
     ]);
   });
 });
 
 describe("the insertable component list", () => {
-  it.each(["Figure", "Clip", "Callout", "VideoEmbed", "FancyQuote"])(
+  it.each(["Figure", "Clip", "VideoEmbed", "FancyQuote"])(
     "has a typed spec for %s",
     (name) => {
       expect(specFor(name)).toBeDefined();

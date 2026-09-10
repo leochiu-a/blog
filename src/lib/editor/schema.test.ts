@@ -33,7 +33,7 @@ describe("editor schema", () => {
     "```ts meta\nconst a = 1;\n```",
     `>> a pull quote`,
     `<Figure src="/a.png" alt="a" width={1200} height={800} />`,
-    `<Callout type="warning">\n  heads up\n</Callout>`,
+    `<FancyQuote>\n  big words\n</FancyQuote>`,
     `text with an <Abbr title="t">inline</Abbr> component`,
     `a [link](https://example.com "titled") inline`,
   ])("keeps %o intact through the editor schema", (body) => {

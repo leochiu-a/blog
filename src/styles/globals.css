@@ -246,8 +246,8 @@ main {
   max-width: 45.5rem; /* 728px, Substack's column width */
 }
 /* Tailwind Typography scopes every rule so it stops at a `not-prose` subtree.
-   Hand-written rules repeat that guard, or they reach inside Callout /
-   FancyQuote / Callout and undo the point of marking them `not-prose`. */
+   Hand-written rules repeat that guard, or they reach inside Figure /
+   FancyQuote / Clip and undo the point of marking them `not-prose`. */
 .prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   font-family: var(--font-sans), sans-serif;
   font-weight: 800;
@@ -316,7 +316,7 @@ main {
    divider — don't let the first child's own margin-top stack on top of it.
    No `not-prose` guard here: this is structural, about the child's relationship
    to the wrapper's padding, so it has to reach the `not-prose` MDX components
-   (Figure, Callout, FancyQuote) that open a post too. */
+   (Figure, Clip, FancyQuote) that open a post too. */
 .prose > :first-child {
   margin-top: 0;
 }
