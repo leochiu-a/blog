@@ -9,7 +9,7 @@ tags: ["Cloudflare", "Cloudflare Workers", "D1", "Turnstile", "WAF", "免費方�
 draft: true
 ---
 
-<Figure src="/blog-images/gemini-generated-image-geuvm2geuvm2geuv.webp" alt="" width={2816} height={1536} />
+<Figure src="/blog-images/cloudflare-free-tier-stack-hero.webp" alt="一個人站在岩石上張開雙臂擁抱一朵橘白色的雲，遠處有幾棟建築物的插畫" width={2816} height={1536} />
 
 ## 前言
 
@@ -50,7 +50,7 @@ draft: true
 
 但是 Cloudflare 在背後做了一些特殊的事情來達到**零冷啟動（Zero Cold Start），**&#x57;orkers 不使用傳統的虛擬機，而是使用 Google Chrome 瀏覽器的核心技術——**V8 Isolate**。它不需要啟動整個作業系統或 Node.js 虛擬環境，可以在**毫秒級（\<10ms）**&#x5167;直接執行 Next.js 的程式碼。
 
-<Figure src="/blog-images/image-3.webp" alt="" width={1678} height={666} caption="Cloudflare worker - V8 isolcates">
+<Figure src="/blog-images/cloudflare-free-tier-stack-v8-isolates.webp" alt="左右對照圖：傳統架構的四個區塊各自帶著一份使用者程式碼與一份 process overhead；Workers 的 V8 isolates 則是九份使用者程式碼共用同一份 process overhead" width={1678} height={666} caption="Cloudflare worker - V8 isolcates">
 
 </Figure>
 
@@ -122,7 +122,7 @@ D1 是 Cloudflare 提供的 Serverless SQLite 資料庫。
 
 免費方案每天給 500 萬 rows read、10 萬 rows written，以及 5 GB 總儲存空間。
 
-<Figure src="/blog-images/image-4.webp" alt="" width={2262} height={1006} caption="D1 Pricing">
+<Figure src="/blog-images/cloudflare-free-tier-stack-d1-pricing.webp" alt="Cloudflare D1 定價表：Storage 免費方案 5 GB、付費 $0.75/GB-month；Rows Read 免費每天 500 萬列、付費 $0.001/百萬列；Rows Written 免費每天 10 萬列、付費 $1.00/百萬列" width={2262} height={1006} caption="D1 Pricing">
 
 </Figure>
 
@@ -210,7 +210,7 @@ Turnstile 是 Cloudflare 用來取代傳統驗證碼（CAPTCHA）的工具。
 
 相比 Google 的 reCAPTCHA，Turnstile 的體驗好上不少。大部分時候使用者完全不需要用肉眼點紅綠燈或斑馬線，widget 在背景就把驗證跑完了。
 
-<Figure src="/blog-images/image-2.webp" alt="" width={3757} height={2700} caption="How Turnstile works" />
+<Figure src="/blog-images/cloudflare-free-tier-stack-turnstile-flow.webp" alt="Turnstile 運作流程圖：網頁載入 challenges.cloudflare.com 的 api.js，以 sitekey 呼叫 turnstile.render，iframe 跑完 challenge 後回傳 token；使用者送出請求時把 token 交給 Origin / Worker，後端再帶著 secret key 與 token 去打 siteverify API 驗證" width={3757} height={2700} caption="How Turnstile works" />
 
 ---
 
@@ -239,7 +239,7 @@ Turnstile 專門防機器人，Rate Limiting 則是抓同一個來源在短時�
 
 雖然沒有 Google Analytics 那種繁複的自訂事件追蹤或轉換漏斗，但寫部落格可能不需要這麼複雜的事件，也不需要有 Cookie bar。
 
-<Figure src="/blog-images/image.webp" alt="" width={2320} height={1370} caption="Web Analytics" />
+<Figure src="/blog-images/cloudflare-free-tier-stack-traffic-overview.webp" alt="Cloudflare 的 Traffic overview 儀表板，上方四張卡片顯示 6.28k 請求數、288、44.81% 與 77.91 MB，下方是過去 24 小時的請求數折線圖" width={2320} height={1370} caption="Web Analytics" />
 
 ---
 
