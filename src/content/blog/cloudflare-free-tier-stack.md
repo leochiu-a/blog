@@ -1,19 +1,23 @@
 ---
-title: "用 Cloudflare 免費方案架一個 blog：會用到哪些服務，以及怎麼把 Next.js 塞進去"
-subtitle: "你現在看的這個站就跑在免費方案上。先過一遍會用到的服務跟額度，再講 opennextjs 那段我被 10ms CPU 打爆的過程"
-description: "Cloudflare 免費方案架 blog 需要的服務：DNS、Workers、Pages、Workers Builds、D1、Turnstile、WAF Rate limiting rules、Web Analytics，加上 Email Routing、Images、Workers Logs。第二部分講 Next.js + @opennextjs/cloudflare 跟 Worker cache 怎麼避開 10ms CPU 限制。"
+title: "用 Cloudflare 免費方案架一個 blog，會用到哪些服務"
+subtitle: "你現在看的這個站就跑在免費方案上。DNS、Workers、D1、Turnstile、WAF，一個一個過，順便標出額度的邊界在哪"
+description: "Cloudflare 免費方案架 blog 會用到的服務與 2026 年 9 月的免費額度：DNS、Workers、Pages、Workers Builds、D1、Turnstile、WAF Rate limiting rules、Web Analytics，加上實際做下去才會發現需要的 Email Routing、Images、Workers Logs。"
 datetime: "2026-09-10"
-readTime: "14 min"
+readTime: "9 min"
 category: "professional"
-tags: ["Cloudflare", "Cloudflare Workers", "OpenNext", "Next.js", "D1", "免費方案"]
+tags: ["Cloudflare", "Cloudflare Workers", "D1", "Turnstile", "WAF", "免費方案"]
 draft: true
 ---
+
+<Figure src="/blog-images/gemini-generated-image-geuvm2geuvm2geuv.webp" alt="" width={2816} height={1536} />
 
 ## 前言
 
 現在這個 blog 跑在 Cloudflare 免費方案上，包括使用 Next.js 來實現 SSG，用 D1 資料庫來存電子報的訂閱者，也有使用 Turnstile 跟 WAF 來防止機器人跟大流量來打爆 Worker。
 
-這篇文章主要是想分享給那些想嘗試自架部落格，但是想要花較低成本的人。
+這篇文章主要是想分享給那些想嘗試自架部落格，但是想要花較低成本的人。下面把會用到的服務一個一個過，順便標出各自免費額度的邊界，數字是我 2026 年 9 月從官方文件一頁頁翻出來對過的。
+
+至於怎麼把 Next.js 塞進 Worker、還有我在那條路上踩到的坑，另外寫在[把 Next.js 搬上 Cloudflare Workers](/blog/nextjs-on-cloudflare-workers/)。
 
 ---
 
@@ -36,11 +40,15 @@ draft: true
 
 ## Workers
 
-我選擇把 Next.js 架在 Cloudflare Workers，而不是 Pages 上面。
+如果你想到 Next.js，一定會想到 Vercel，以前我也幾乎都把 Next.js 架在 Vercel 上面，因為 DX 很好，而且又提供免費的 HTTPS 服務。
+
+但這次我想嘗試看看把 Next.js 架在 Cloudflare Workers 上面。
 
 大家想到 Workers，一定會想說它可能比較接近 Cloud Functions 或是 AWS Lambda 這種 serverless 的服務。但其實網頁現在也可以在 Worker 部署，也可以拿來當作 serverless server 使用。
 
-而且很神奇的是，大家想到 Serverless 的 server，一定都會想到它會不會有冷啟動的時間。但是 Cloudflare 在背後做了很多優化，所以大家在進來網站時，幾乎不會有冷啟動的時間。
+而且很神奇的是，大家想到 Serverless 的 server，一定也會想到它會不會有冷啟動的時間 2\~3 秒的問題。
+
+但是 Cloudflare 在背後做了一些特殊的事情來達到**零冷啟動（Zero Cold Start）**&#x57;orkers 不使用傳統的虛擬機，而是使用 Google Chrome 瀏覽器的核心技術——**V8 Isolate**。它不需要啟動整個作業系統或 Node.js 虛擬環境，可以在 **毫秒級（\<10ms）** 內直接跑起 Next.js 的程式碼。
 
 ### 免費方案
 
@@ -54,13 +62,21 @@ draft: true
 
 ### 10ms 的 CPU 時間
 
-10 毫秒 CPU 時間這條限制比較麻煩一點，我初期在測試的時候，發現只要快速重整幾次，這個 10 毫秒的 CPU 時間很容易就會碰到，造成頁面直接回 HTTP 429。
+10 毫秒 CPU 時間這條限制比較麻煩一點，我初期在測試的時候，發現只要快速重整幾次，這個 10 毫秒的 CPU 時間很容易就會碰到，訪客會拿到 Cloudflare 的 **1102** 錯誤頁（Worker exceeded resource limits）。
 
-所以後來就需要用 Worker Cache 來處理這個問題，文章後面會提到。
+順帶分清楚兩個容易搞混的錯誤碼：1102 是這次講的 CPU 燒完，**1027** 才是免費方案當天 10 萬個請求用光。前者跟流量無關，一個人狂重整就會碰到。
 
-### 3MB -> 60MiB 的容量
+後來我是用 Worker Cache 把這個問題解掉的，那段連同其他坑寫在另一篇：[把 Next.js 搬上 Cloudflare Workers](/blog/nextjs-on-cloudflare-workers/)。
 
-[https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/)
+### 3 MB -> 64 MiB 的容量
+
+Worker 的大小上限在 2026 年 9 月 4 日放寬了，這件事對想把 Next.js 丟上來的人蠻關鍵的。
+
+以前免費方案是 **3 MB**、付費方案 **10 MB**，而且算的是 gzip 壓縮後的大小。opennextjs 打包出來的 `worker.js` 要塞進 3 MB 並不輕鬆，站一長大就會撞到。
+
+現在改成所有方案統一 **64 MiB**，而且改看未壓縮的大小，壓縮值只是列出來參考、不再是限制。官方的說法是「Cloudflare now only checks the uncompressed size of your bundle, which is 64 MiB across all plans」。
+
+> 參考：[Increased Worker size limit](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/)（2026-09-04）
 
 ---
 
@@ -72,7 +88,7 @@ draft: true
 
 Pages 沒有要關，老專案不會炸掉，免費額度也沒縮水：每個月 500 次 build、1 個並行 build、單一站台 20,000 個檔案、單檔最大 25 MiB、每個 project 能綁 100 個自訂網域，流量隨你跑不收錢。純靜態的站丟在 Pages 上面現在照樣跑得好好的。
 
-我沒選 Pages，主要是 Workers 現在支援 Static Assets 了，同一個 Worker 能同時扛靜態檔案跟 SSR。
+如果在前幾年，你可能就需要使用 Cloudflare Pages，再加上 Cloudflare Workers 來執行 SSR，才有辦法架設 Next.js。不然你就要每次設定 output 等於 export，讓 Next.js 輸出靜態檔，才能單純部署到 Cloudflare Pages 上面。
 
 ---
 
@@ -88,9 +104,13 @@ Pages 沒有要關，老專案不會炸掉，免費額度也沒縮水：每個�
 
 ## D1
 
-Cloudflare 推的 SQLite。免費方案每天有 5,000,000 rows read、100,000 rows written，儲存空間總共給 5 GB。
+Cloudflare 的 SQLite 資料庫服務。
 
-我拿它來存電子報的訂閱名單。部落格文章在 build 的時候就已經轉成靜態內容，根本用不到資料庫；只有那些「使用者在 runtime 寫進來、之後要撈出來看」的資料才需要，訂閱名單剛好符合這條件。
+免費方案每天有 5,000,000 rows read、100,000 rows written，儲存空間總共給 5 GB。
+
+我用它來存電子報的訂閱名單。
+
+部落格文章在 build 的時候就已經轉成靜態內容，根本用不到資料庫；只有那些「使用者在 runtime 寫進來、之後要撈出來看」的資料才需要，訂閱名單剛好符合這條件。
 
 ```jsonc
 // wrangler.jsonc
@@ -119,7 +139,9 @@ Cloudflare 拿來替換傳統 CAPTCHA 的工具。
 
 網站只要有一支開在外面的 POST endpoint 會往資料庫寫東西，機器人很快就會找上門，偏偏 D1 每天寫入上限就卡在 100,000 次。把 Turnstile 擋在最前線，就能把真人點擊跟自動化腳本洗資料區隔開來。
 
-用它比用 reCAPTCHA 舒服很多，大部分時候使用者不用肉眼認紅綠燈，widget 自己在背景就把驗證跑完了。
+用它比用 reCAPTCHA 舒服很多，大部分時候使用者不用肉眼認紅綠燈，widget 自己在背景就把驗證跑完了。**How Turnstile works**
+
+<Figure src="/blog-images/image-2.webp" alt="" width={3757} height={2700} caption="How Turnstile works" />
 
 ---
 
@@ -152,23 +174,9 @@ Turnstile 專門防機器人，rate limiting 則是抓同一個來源短時間�
 
 看個人 blog 的話它給的指標就很夠用了：page view、訪客數、流量來源、國家、裝置類型跟 Core Web Vitals 都有。雖然沒提供 Google Analytics 那種繁複的事件追蹤或轉換漏斗，但寫 blog 用不上那些，還能順手把 cookie consent banner 整塊拔掉。
 
+<Figure src="/blog-images/image.webp" alt="" width={2320} height={1370} caption="Web Analytics" />
+
 ---
-
-## 還會需要的三個
-
-前面列的那八樣算是整個架構的骨架，但剩下這三個，真的是要自己動手踩下去才會發現漏掉。
-
-### Email Routing
-
-如果你想用 `hi@yourdomain.com` 這種掛自己網域的收信地址，Email Routing 能免費幫你把信件轉進 Gmail。每個帳號能驗證 200 個轉發目標信箱、每個網域能配 200 條路由規則，單封收信上限 25 MiB，五分鐘就能拉好設定。
-
-這玩意只管收信不管寄信。網站如果要發驗證信、系統通知或電子報，Email Routing 幫不上忙，必須自己去串第三方服務。我這個 blog 找了 Resend 來送電子報，名單的權威來源依然放在 D1，送去 Resend 的只有驗證通過的 email：
-
-```
-D1（名單的權威來源） ──> Worker ──> Resend API ──> 收件者
-```
-
-看名字很容易讓人誤會收發信全都一手包辦，等寫到 double opt-in 的驗證信那一步，你就會發現得另外去翻寄信服務來串了。
 
 ### Images（圖片轉換）
 
@@ -204,135 +212,23 @@ Cloudflare Images 免費方案的寫法很容易讓人看錯。它送的是「�
 
 ---
 
-## Next.js + @opennextjs/cloudflare
-
-Workers 底層的 runtime 是 workerd，不是 Node.js。
-
-它缺了完整的 Node API、沒有實體檔案系統，也沒有常駐 process，偏偏 Next.js 的 `next start` 預設下面坐著一台 Node 伺服器。兩邊接不起來，中間就需要轉譯器，`@opennextjs/cloudflare` 就是拿來幹這個的：它吞掉 `next build` 吐出的東西，重新打包成 workerd 能執行的 Worker，外加一整包靜態檔案。
-
-設定入口要顧兩個檔案。先用 `wrangler.jsonc` 跟 Cloudflare 報備東西放哪裡：
-
-```jsonc
-// wrangler.jsonc
-{
-  "main": ".open-next/worker.js",
-  "name": "blog",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS",
-  },
-}
-```
-
-`nodejs_compat` 一定得掛上，Next.js 的 runtime 抓了部分 Node 內建模組來用。流量打進來的時候，Cloudflare 會先去翻 `.open-next/assets` 裡面有沒有現成檔案，抓到就直接送出去（免費、完全不算請求數），真的撲空了才會去把 `worker.js` 叫醒。
-
-`open-next.config.ts` 則是負責交代 OpenNext 怎麼編出這個 Worker。這裡藏了一個初次設定保證踩到的雷：
-
-```ts
-// open-next.config.ts
-config.buildCommand = "next build";
-```
-
-要是忘了寫這行，OpenNext 就會傻傻跑去執行 package.json 裡的 `build` script——偏偏那個指令本身就是 `opennextjs-cloudflare build`。兩邊無限遞迴互相 call，直到機器放棄。老老實實指定 `next build`，你敲 `pnpm build` 才能順利吐出 wrangler.jsonc 想要的那包檔案。
-
-本地端開發還有一個地方要補。`next dev` 跑在 Node 環境裡，預設摸不到 `env.NEWSLETTER_DB` 這些 binding，所以記得在 `next.config.ts` 最後補上一行呼叫：
-
-```ts
-// next.config.ts
-initOpenNextCloudflareForDev();
-```
-
-它會默默起一個 workerd 的 proxy，把那些 bindings 灌回 `next dev` 裡面。這時候 D1 預設會指到本地端的 SQLite 檔案，完全不會去碰線上的 production 資料。
-
----
-
-## Worker + cache：10 毫秒 CPU&#x20;
-
-我第一版 deploy 上去之後，站是活的，但如果有瞬間流量進來就會出現 `Exceeded CPU Time Limits`。
-
-跑進 dashboard 一查，median CPU 落在 28 毫秒左右，對比免費給的 10 毫秒額度直接超標。連續重新整理個幾下就開始噴錯。
-
-抓出原因才發現每個請求都在背後重新 render。文章明明在 build 階段就編好了，Worker 偏偏在每次 request 進來時硬要把 React 重跑一次。Next.js 的 ISR/prerender 機制在 Node 端是靠檔案系統在記快取，搬來 Workers 就沒有硬碟可用。OpenNext 必須由你明講要掛哪一種 incremental cache 實作，沒掛的話快取直接當作不存在。
-
-改法就是加這段：
-
-```ts
-// open-next.config.ts
-import staticAssetsIncrementalCache
-  from "@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache";
-
-const config = defineCloudflareConfig({
-  incrementalCache: staticAssetsIncrementalCache,
-  enableCacheInterception: true,
-});
-```
-
-### static assets incremental cache
-
-`staticAssetsIncrementalCache` 會把 prerender 好的 HTML 直接塞進 Workers Assets，跟一般靜態產物堆在一塊。這樣請求一到就單純是送檔案，Worker 幾乎不用花力氣去算。
-
-這招也是有代價的：這個 override 徹底沒有 revalidation 的本事，吐出來的永遠是 build 當下產出的內容。但對我這個 blog 來說完全夠用，反正在我重新 redeploy 之前文章都不會變。要是哪天有哪個 route 需要做 on-demand revalidation，就必須改換成 R2 或 KV 版本的 incremental cache。
-
-### enable cache interception
-
-`enableCacheInterception` 算是我省 CPU 的第二招：能被快取的路由在 Worker 很前面的生命週期就直接 response 掉了，根本不用把 Next.js 整套 routing 流程走完。如果你開了 PPR 就不能開這個選項，好在我這個站沒用那玩意。
-
-OpenNext 的 incremental cache 提供了好幾種 override（像 static assets、R2、KV、D1 tag cache 這些），挑選的差別就在於「快取放哪邊」以及「runtime 能不能更新」。下手前想清楚一件事：網站內容到底是不是重新 redeploy 才會改，還是 runtime 隨時會有變動？
-
-### Cloudflare 這邊有三層 cache
-
-摸清楚各層 cache 到底由誰負責，比你在那邊亂灌 cache header 有用得多：
-
-```
-瀏覽器
-  │
-  ├─ Cloudflare 邊緣 cache ← Cache Rules 控制（免費方案 10 條）
-  │
-  ├─ Workers Assets      ← 靜態檔與 prerender 的 HTML，免費且不計請求數
-  │
-  └─ Worker
-       └─ Cache API（caches.default）← 你在程式裡自己存的
-```
-
-**Cache Rules** 是直接在 dashboard 點的，決定邊緣節點要不要把某個 path 快取起來、TTL 要放多久、cache key 怎麼組。免費版給 10 條，管一個 blog 綽綽有餘。
-
-**Workers Assets** 就是剛剛上面提的那層，所有靜態檔跟 prerender HTML 通通躺在這，也是壓低 CPU 消耗最有效的一層。
-
-**Cache API** 則是寫在 Worker code 裡手動去呼叫的：
-
-```js
-const cache = caches.default;
-const hit = await cache.match(request);
-if (hit) return hit;
-```
-
-有兩個脾氣要先搞懂。它是 **per data center** 的機制，資料寫進東京的 colo，法蘭克福那台完全拿不到；再加上它只吃 GET，response 裡只要帶有 `Set-Cookie` 預設就不會幫你存。它很適合用來扛那種「算一次很貴、但在各節點各自算一次還能接受」的工作，像打外部 API 拿回來的 response 就很合適。
-
-### 順帶一個 OpenNext 的坑
-
-Next 16.3 預設打開了 `experimental.prefetchInlining`，這個設定一撞上 OpenNext 的 cache interception 就會出包：每次發 `Next-Router-Segment-Prefetch`，後端都吐回整頁完整的 RSC payload，前端 client 判定剛剛要的 prefetch 沒給齊，轉頭又再要一次，兩邊直接卡在無窮迴圈裡狂發請求——這可是活生生發生在真實使用者的分頁裡面。
-
-我的解法很乾脆，在 production 環境直接把它關了：
-
-```ts
-// next.config.ts
-...(process.env.NODE_ENV === "development" ? {} : { prefetchInlining: false }),
-```
-
-追蹤這個 issue 可以看 [opennextjs-cloudflare#1334](https://github.com/opennextjs/opennextjs-cloudflare/issues/1334)，相關修法在 #1348，等官方修復收進去後這段 hack 就能拔掉。會特別把這段寫出來，主要是 OpenNext 一直在後面追 Next.js 的新版，雙方預設值難免偶爾打架，deploy 上去花個幾分鐘盯一下 Workers Logs 跟瀏覽器的 Network 面板，值得。
-
----
-
 ## 我先撞到的是哪幾條
 
 把上面這堆東西通通盤過一遍，會發現各服務額度的鬆緊度落差極大。
 
-每天 100,000 requests 幾乎碰不到，畢竟靜態資產全都不算次數。D1 給的 5,000,000 rows read 額度也很大方，前提是你該上的索引都有建。至於 Workers Builds 每月 3,000 分鐘，還有 Turnstile 的 20 個 widget，普通人用都用不完。
+Worker 每天 10 萬次請求幾乎碰不到，畢竟靜態資產全都不算次數。
 
-平常需要盯著看的就三條。**Workers 的 10 毫秒 CPU** 是唯一當場把我卡死的一關，而且這跟流量毫無關聯，只要運算太重，一個人來也會爆，看的是你在單次 request 裡塞了多少運算。**Rate limiting 只有 1 條規則**，所以那條規則得放在最貴的 endpoint 上。**Images 每月 5,000 次轉換**，就看你有沒有先把圖片的尺寸規格收斂好。
+D1 給的 500 萬次 rows read 額度也很大方，前提是你該上的索引都有建。至於 Workers Builds 每月 3000 分鐘，還有 Turnstile 的 20 個 widget，普通人用都用不完。
 
-Cloudflare 免費方案能扛住的東西比我預想的還要多很多。它幫我省掉一堆「單純為了讓網站活著」的雜事——不必挑 VPS、省去配 nginx、不用管憑證續期，也不必到處比價找 CDN。剩下要動腦的地方是把 cache 擺在對的層次，而那件事本來就該花時間。
+平常需要盯著看的就三條。**Workers 的 10 毫秒 CPU** 是唯一當場把我卡死的一關，而且這跟流量毫無關聯，一個人來也會爆，看的是你在單次 request 裡塞了多少運算。
+
+**Rate limiting 只有 1 條規則**，所以那條規則得放在風險較高的 endpoint 上。
+
+**Images 每月 5000 次轉換**，就看你有沒有先把圖片的尺寸規格收斂好。
+
+Cloudflare 免費方案能扛住的東西比我預想的還要多很多。它幫我省掉一堆「單純為了讓網站活著」的雜事，不必挑 VPS、省去配置 nginx、不用管 HTTPS 憑證，也不必到處比價找 CDN。剩下要動腦的地方是把 cache 擺在對的層次，而那件事本來就該花時間。
+
+10 毫秒那條線我是怎麼過的，還有把 Next.js 塞進 Worker 的其他坑，之後會另外寫一篇文章來聊這件事情。
 
 ---
 
@@ -345,8 +241,5 @@ Cloudflare 免費方案能扛住的東西比我預想的還要多很多。它幫
 5. [D1 Pricing](https://developers.cloudflare.com/d1/platform/pricing/)
 6. [Turnstile Plans](https://developers.cloudflare.com/turnstile/plans/)
 7. [WAF Rate limiting rules](https://developers.cloudflare.com/waf/rate-limiting-rules/)
-8. [Cache Rules](https://developers.cloudflare.com/cache/how-to/cache-rules/)
-9. [Workers Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/)
-10. [Email Routing Limits](https://developers.cloudflare.com/email-routing/limits/)
-11. [Cloudflare Images Pricing](https://developers.cloudflare.com/images/pricing/)
-12. [OpenNext for Cloudflare](https://opennext.js.org/cloudflare)
+8. [Email Routing Limits](https://developers.cloudflare.com/email-routing/limits/)
+9. [Cloudflare Images Pricing](https://developers.cloudflare.com/images/pricing/)
