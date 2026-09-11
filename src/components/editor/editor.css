@@ -46,13 +46,54 @@
  * `---` becomes `<OrnamentSeparator>` on the published page: a hairline in the
  * border colour across the full column. The prose default is a border-top in a
  * different weight and rhythm, so restate it here.
+ *
+ * The box is taller than the line it draws. A one-pixel element is a
+ * one-pixel click target: selecting a divider meant hitting a hairline, and
+ * every near miss put the caret in the paragraph above instead. The element
+ * is `HIT` tall with the line painted down its middle, and the margins give
+ * back exactly what the extra height took — the rule lands on the same
+ * baseline as before, and the published page is untouched either way.
  */
 .ProseMirror hr {
-  margin: 3rem 0;
-  height: 1px;
+  --hit: 17px;
+  margin: calc(3rem - (var(--hit) - 1px) / 2) 0;
+  height: var(--hit);
   width: 100%;
   border: 0;
-  background-color: hsl(var(--border));
+  background-color: transparent;
+  background-image: linear-gradient(hsl(var(--border)), hsl(var(--border)));
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: center;
+  /* The frame below is drawn on this box, so the corner it rounds is this
+     one. An MDX block turns `rounded-lg` on a box hundreds of pixels tall;
+     the same eight pixels on a seventeen-pixel strip is most of its height,
+     and the frame comes out a capsule. One step down reads as the same
+     corner at this size. */
+  border-radius: var(--radius-sm);
+}
+
+/*
+ * A selected `---`.
+ *
+ * A divider is a hairline in the border colour, and a clicked one looked
+ * exactly like an unclicked one: nothing told you the next Backspace was
+ * about to remove it. Every other block you can select this way — an MDX
+ * component — answers a click with an accent outline held off the content,
+ * so the divider answers with the same one. `outline` takes up no layout
+ * space, so the rule does not shift when it lights up; the offset is zero
+ * because the hit box is already the eight pixels of air.
+ *
+ * The dashed frame on hover is the other half of that idiom: it says the
+ * hairline is an object you can take hold of, before you take hold of it.
+ */
+.ProseMirror hr:hover {
+  outline: 1px dashed hsl(var(--border));
+}
+
+.ProseMirror hr.ProseMirror-selectednode,
+.ProseMirror hr.ProseMirror-selectednode:hover {
+  outline: 1px solid hsl(var(--blog-accent));
 }
 
 /*
