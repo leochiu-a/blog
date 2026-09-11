@@ -7,6 +7,7 @@ readTime: "9 min"
 ogImage: "/blog-images/cloudflare-free-tier-stack-hero.webp"
 category: "professional"
 tags: ["Cloudflare", "Cloudflare Workers", "D1", "Turnstile", "WAF", "免費方案"]
+featured: true
 ---
 
 <Figure src="/blog-images/cloudflare-free-tier-stack-hero.webp" alt="一個人站在岩石上張開雙臂擁抱一朵橘白色的雲，遠處有幾棟建築物的插畫" width={2816} height={1536} hero />
