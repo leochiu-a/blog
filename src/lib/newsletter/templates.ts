@@ -1,4 +1,4 @@
-import { escapeHtml, renderIssueEmail } from "./email.ts";
+import { EMAIL_COLORS, escapeHtml, renderIssueEmail } from "./email.ts";
 
 /**
  * The shell every outgoing email shares, and the two emails this app sends.
@@ -16,13 +16,21 @@ interface ShellOptions {
   footerHtml: string;
 }
 
-const BODY_STYLE =
-  "margin:0;padding:24px 12px;background:#fafafa;color:#171717;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;";
-const CONTAINER_STYLE =
-  "max-width:640px;margin:0 auto;padding:32px 28px;background:#ffffff;border-radius:10px;";
-const FOOTER_STYLE =
-  "margin:32px 0 0;padding-top:20px;border-top:1px solid #e5e5e5;color:#737373;font-size:13px;line-height:1.7;";
-const FOOTER_LINK_STYLE = "color:#737373;text-decoration:underline;";
+const { INK, BODY, MUTED, ACCENT, RULE } = EMAIL_COLORS;
+
+/**
+ * A warm off-white behind the sheet, so the white container reads as paper
+ * laid on a surface rather than as the whole window. The hairline is what
+ * holds that edge in clients (Outlook among them) that ignore the radius.
+ */
+const BODY_STYLE = `margin:0;padding:32px 12px;background:#f5f4f2;color:${BODY};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;`;
+const CONTAINER_STYLE = `max-width:640px;margin:0 auto;padding:40px 28px;background:#ffffff;border:1px solid ${RULE};border-radius:12px;`;
+/** The masthead sits above a rule, the way the Issue page on the web does. */
+const MASTHEAD_STYLE = `margin:0 0 32px;padding-bottom:24px;border-bottom:1px solid ${RULE};`;
+const TITLE_STYLE = `margin:0;font-size:26px;font-weight:800;line-height:1.3;letter-spacing:-0.01em;color:${INK};`;
+const SUBTITLE_STYLE = `margin:10px 0 0;font-size:16px;line-height:1.6;color:${MUTED};`;
+const FOOTER_STYLE = `margin:36px 0 0;padding-top:20px;border-top:1px solid ${RULE};color:${MUTED};font-size:13px;line-height:1.7;`;
+const FOOTER_LINK_STYLE = `color:${MUTED};text-decoration:underline;`;
 /**
  * The "read this online" line, which belongs to the Issue rather than to the
  * footer: it is the last thing the reader is offered about *this* edition, and
@@ -31,9 +39,8 @@ const FOOTER_LINK_STYLE = "color:#737373;text-decoration:underline;";
  * above the rule, the way Programming Digest does it, so what is left below the
  * rule is only the housekeeping.
  */
-const READ_ONLINE_STYLE =
-  "margin:32px 0 0;text-align:right;font-size:14px;line-height:1.7;color:#525252;";
-const READ_ONLINE_LINK_STYLE = "color:#525252;";
+const READ_ONLINE_STYLE = `margin:40px 0 0;text-align:right;font-size:14px;line-height:1.7;color:${MUTED};`;
+const READ_ONLINE_LINK_STYLE = `color:${ACCENT};text-decoration:none;`;
 /** Set apart from the line above it: leaving is a decision of its own. */
 const UNSUBSCRIBE_STYLE = "margin:20px 0 0;";
 
@@ -68,10 +75,10 @@ export interface RenderedEmail {
  * lands in spam the subscription never happens.
  */
 export function confirmationEmail({ confirmUrl }: { confirmUrl: string }): RenderedEmail {
-  const contentHtml = `<h1 style="margin:0 0 16px;font-size:22px;font-weight:700;line-height:1.35;">確認訂閱</h1>
+  const contentHtml = `<h1 style="margin:0 0 16px;font-size:22px;font-weight:700;line-height:1.35;color:${INK};">確認訂閱</h1>
 <p style="margin:0 0 16px;font-size:16px;line-height:1.75;">你在 leochiu.com 要求訂閱電子報。點下面的連結完成訂閱，之後每一期都會寄到這個信箱。</p>
-<p style="margin:0 0 20px;font-size:16px;line-height:1.75;"><a href="${confirmUrl}" style="color:#0f62fe;">確認訂閱</a></p>
-<p style="margin:0;font-size:14px;line-height:1.7;color:#525252;">這個連結 24 小時後失效。如果這不是你要求的，把這封信刪掉就好，不會有任何事發生。</p>`;
+<p style="margin:0 0 20px;font-size:16px;line-height:1.75;"><a href="${confirmUrl}" style="color:${ACCENT};font-weight:700;text-decoration:none;">確認訂閱</a></p>
+<p style="margin:0;font-size:14px;line-height:1.7;color:${MUTED};">這個連結 24 小時後失效。如果這不是你要求的，把這封信刪掉就好，不會有任何事發生。</p>`;
 
   const text = `確認訂閱
 
@@ -114,8 +121,10 @@ export function issueEmail({
 }: IssueEmailOptions): RenderedEmail {
   const body = renderIssueEmail({ markdown, siteUrl });
 
-  const contentHtml = `<h1 style="margin:0 0 8px;font-size:24px;font-weight:700;line-height:1.3;">${escapeHtml(title)}</h1>
-${subtitle ? `<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#525252;">${escapeHtml(subtitle)}</p>` : ""}
+  const contentHtml = `<div style="${MASTHEAD_STYLE}">
+<h1 style="${TITLE_STYLE}">${escapeHtml(title)}</h1>
+${subtitle ? `<p style="${SUBTITLE_STYLE}">${escapeHtml(subtitle)}</p>` : ""}
+</div>
 ${body.html}
 <p style="${READ_ONLINE_STYLE}"><a href="${issueUrl}" style="${READ_ONLINE_LINK_STYLE}">在瀏覽器閱讀這一期</a>。</p>`;
 

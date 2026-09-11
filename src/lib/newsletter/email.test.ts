@@ -44,6 +44,33 @@ describe("rendering an issue for email", () => {
     expect(html).toContain("有人說過的話");
   });
 
+  it("sets an item's byline apart from the prose under it", () => {
+    const { html } = render("### [那篇](/blog/x/)\n\n*Leo Chiu · 9 分鐘*\n\n講了什麼。");
+
+    // The italics are dropped along with the paragraph styling: CJK has no
+    // italic, and a client that slants the glyphs itself makes 分鐘 unreadable.
+    expect(html).toContain("Leo Chiu · 9 分鐘");
+    expect(html).not.toContain("<em>Leo Chiu");
+    expect(html).toContain("font-style:normal");
+  });
+
+  it("leaves italics alone where they are not a byline", () => {
+    const { html } = render("這句話有 *重點* 在裡面。");
+
+    expect(html).toContain("<em>重點</em>");
+  });
+
+  it("does not underline an item title, the way the site does not", () => {
+    const { html } = render("### [那篇](/blog/x/)\n\n看 [這裡](/blog/y/)。");
+
+    expect(html).toContain(
+      '<a href="https://leochiu.com/blog/x/" style="color:#ff6719;text-decoration:none;"',
+    );
+    expect(html).toContain(
+      '<a href="https://leochiu.com/blog/y/" style="color:#ff6719;text-decoration:underline;"',
+    );
+  });
+
   it("escapes markup in the prose so content cannot break the email", () => {
     const { html } = render("a < b & c");
 
