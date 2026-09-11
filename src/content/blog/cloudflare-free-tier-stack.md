@@ -1,7 +1,7 @@
 ---
-title: "用 Cloudflare 免費方案架一個 blog，會用到哪些服務"
-subtitle: "你現在看的這個站就跑在免費方案上。DNS、Workers、D1、Turnstile、WAF，一個一個過，順便標出額度的邊界在哪"
-description: "Cloudflare 免費方案架 blog 會用到的服務與 2026 年 9 月的免費額度：DNS、Workers、Pages、Workers Builds、D1、Turnstile、WAF Rate limiting rules、Web Analytics，加上實際做下去才會發現需要的 Email Routing、Images、Workers Logs。"
+title: "用 Cloudflare 免費方案架 Blog：服務盤點與免費額度避坑指南"
+subtitle: "一次盤點 DNS、Workers、D1 到 WAF 等全套免費服務，並精準標出 10ms CPU、Rate Limit 等真正的免費額度瓶頸"
+description: "用 Cloudflare 免費方案架部落格會用到的服務與 2026 年 9 月的免費額度：DNS、Workers、Pages、Workers Builds、D1、Turnstile、WAF Rate limiting rules、Web Analytics、Workers Logs，以及部落格圖片該放 repo、Image Transformations 還是 R2。"
 datetime: "2026-09-10"
 readTime: "9 min"
 category: "professional"
