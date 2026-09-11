@@ -4,12 +4,12 @@ subtitle: "一次盤點 DNS、Workers、D1 到 WAF 等全套免費服務，並�
 description: "用 Cloudflare 免費方案架部落格會用到的服務與 2026 年 9 月的免費額度：DNS、Workers、Pages、Workers Builds、D1、Turnstile、WAF Rate limiting rules、Web Analytics、Workers Logs，以及部落格圖片該放 repo、Image Transformations 還是 R2。"
 datetime: "2026-09-10"
 readTime: "9 min"
+ogImage: "/blog-images/cloudflare-free-tier-stack-hero.webp"
 category: "professional"
 tags: ["Cloudflare", "Cloudflare Workers", "D1", "Turnstile", "WAF", "免費方案"]
-draft: true
 ---
 
-<Figure src="/blog-images/cloudflare-free-tier-stack-hero.webp" alt="一個人站在岩石上張開雙臂擁抱一朵橘白色的雲，遠處有幾棟建築物的插畫" width={2816} height={1536} />
+<Figure src="/blog-images/cloudflare-free-tier-stack-hero.webp" alt="一個人站在岩石上張開雙臂擁抱一朵橘白色的雲，遠處有幾棟建築物的插畫" width={2816} height={1536} hero />
 
 ## 前言
 
@@ -50,9 +50,7 @@ draft: true
 
 但是 Cloudflare 在背後做了一些特殊的事情來達到**零冷啟動（Zero Cold Start），**&#x57;orkers 不使用傳統的虛擬機，而是使用 Google Chrome 瀏覽器的核心技術——**V8 Isolate**。它不需要啟動整個作業系統或 Node.js 虛擬環境，可以在**毫秒級（\<10ms）**&#x5167;直接執行 Next.js 的程式碼。
 
-<Figure src="/blog-images/cloudflare-free-tier-stack-v8-isolates.webp" alt="左右對照圖：傳統架構的四個區塊各自帶著一份使用者程式碼與一份 process overhead；Workers 的 V8 isolates 則是九份使用者程式碼共用同一份 process overhead" width={1678} height={666} caption="Cloudflare worker - V8 isolcates">
-
-</Figure>
+<Figure src="/blog-images/cloudflare-free-tier-stack-v8-isolates.webp" alt="左右對照圖：傳統架構的四個區塊各自帶著一份使用者程式碼與一份 process overhead；Workers 的 V8 isolates 則是九份使用者程式碼共用同一份 process overhead" width={1678} height={666} caption="Cloudflare worker - V8 isolcates" />
 
 ### 免費方案額度
 
@@ -122,9 +120,7 @@ D1 是 Cloudflare 提供的 Serverless SQLite 資料庫。
 
 免費方案每天給 500 萬 rows read、10 萬 rows written，以及 5 GB 總儲存空間。
 
-<Figure src="/blog-images/cloudflare-free-tier-stack-d1-pricing.webp" alt="Cloudflare D1 定價表：Storage 免費方案 5 GB、付費 $0.75/GB-month；Rows Read 免費每天 500 萬列、付費 $0.001/百萬列；Rows Written 免費每天 10 萬列、付費 $1.00/百萬列" width={2262} height={1006} caption="D1 Pricing">
-
-</Figure>
+<Figure src="/blog-images/cloudflare-free-tier-stack-d1-pricing.webp" alt="Cloudflare D1 定價表：Storage 免費方案 5 GB、付費 $0.75/GB-month；Rows Read 免費每天 500 萬列、付費 $0.001/百萬列；Rows Written 免費每天 10 萬列、付費 $1.00/百萬列" width={2262} height={1006} caption="D1 Pricing" />
 
 因為部落格文章在 build 的階段就已預先產生為靜態內容，平時瀏覽完全不需要打資料庫。只有像訂閱名單這種「需要在 runtime 寫入、後續再撈出來」的動態資料，才需要放到 D1。
 
