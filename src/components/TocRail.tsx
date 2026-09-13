@@ -233,7 +233,15 @@ export function TocRail({
                   "group-hover:translate-x-0 group-hover:opacity-100",
                   "group-has-[:focus-visible]:translate-x-0 group-has-[:focus-visible]:opacity-100",
                   "hover:!text-blog-accent",
-                  i === activeIndex ? "text-foreground" : "text-muted-foreground",
+                  // Read, not reading: every section up to and including the
+                  // current one is ink, the rest stay muted. The same cut the
+                  // bar makes beside them, so the two halves of the rail agree
+                  // — lighting only the current entry told the reader where
+                  // they were while the bar was already telling them how far
+                  // they had come, and the column read as the odd one out.
+                  // `activeIndex` is -1 before the first section, which leaves
+                  // the whole column muted rather than lighting entry zero.
+                  i <= activeIndex ? "text-foreground" : "text-muted-foreground",
                 ),
               })}
             </div>

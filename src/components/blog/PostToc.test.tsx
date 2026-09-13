@@ -296,12 +296,20 @@ describe("PostToc", () => {
       expect(entries().filter((e) => e.className.includes("text-foreground"))).toHaveLength(0);
     });
 
-    it("lights the section being read, and only that one", async () => {
+    it("lights every section the reader has reached, not only the current one", async () => {
       plantArticle(article, 1100);
       render(<PostToc />);
 
       await scrollTo(600);
-      expect(entries().map((e) => e.className.includes("text-foreground"))).toEqual([false, true]);
+      expect(entries().map((e) => e.className.includes("text-foreground"))).toEqual([true, true]);
+    });
+
+    it("leaves the sections below the reader muted", async () => {
+      plantArticle(article, 1100);
+      render(<PostToc />);
+
+      await scrollTo(100);
+      expect(entries().map((e) => e.className.includes("text-foreground"))).toEqual([true, false]);
     });
 
     it("keeps a section lit while the reader is inside its subheadings", async () => {
