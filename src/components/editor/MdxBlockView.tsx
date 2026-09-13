@@ -62,7 +62,9 @@ export function MdxBlockView({
   // spelling out the same sentence in two places.
   const fields = editableAttributes(name, attributes).filter(
     (field) =>
-      !(preview !== null && field.name === "caption") &&
+      // A block with a preview writes its caption under the picture, and its
+      // `alt` is written for it — neither needs a second home in the form.
+      !(preview !== null && (field.name === "caption" || field.name === "alt")) &&
       // `hero` has the toggle in the label row. Left in the form it would draw
       // an empty textarea — the attribute carries no value — and anything typed
       // into it would serialize as `hero="…"`, which is not what the published
@@ -226,9 +228,17 @@ export function MdxBlockView({
             </PopoverContent>
           </Popover>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setEditing((open) => !open)}>
-          {editing ? "done" : "attrs"}
-        </Button>
+        {/* Only where there is something to edit. A finished Figure or Clip
+            has nothing left — file, size, caption and alt all come from
+            somewhere else — and a FancyQuote never had anything, so the button
+            opened an empty panel. It stays for a block inserted from the menu
+            rather than by dropping a file: that one arrives with no `src`, and
+            this is the only place to give it one. */}
+        {fields.length > 0 && (
+          <Button variant="ghost" size="sm" onClick={() => setEditing((open) => !open)}>
+            {editing ? "done" : "attrs"}
+          </Button>
+        )}
         <Button variant="ghost" size="sm" onClick={deleteNode}>
           remove
         </Button>
@@ -247,7 +257,7 @@ export function MdxBlockView({
         />
       )}
 
-      {editing && (
+      {editing && fields.length > 0 && (
         <FieldGroup className="not-prose mt-3 gap-3 rounded-md bg-muted/40 p-3 font-sans">
           {fields.map((attribute, index) => (
             <Field key={attribute.name ?? index} orientation="horizontal">
