@@ -9,6 +9,12 @@ import { useSetOgImage } from "./og-image";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,6 +37,8 @@ export function MdxBlockView({
   // block's fields.
   const formId = useId();
   const setOgImage = useSetOgImage();
+  // Controlled, so the handler below can keep a press on the trigger out of it.
+  const [explainingHero, setExplainingHero] = useState(false);
   const name = (node.attrs.name as string | null) ?? "";
   const attributes = (node.attrs.attributes as MdxAttribute[]) ?? [];
   const selfClosing = isSelfClosing(name);
@@ -181,19 +189,42 @@ export function MdxBlockView({
       >
         <span className="flex-1" />
         {supportsHero(name) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            // A toggle, not a command: `aria-pressed` is what tells a screen
-            // reader this is a state the button holds rather than something it
-            // does, and it is the only signal a reader gets — the accent
-            // colour says the same thing to everyone else.
-            aria-pressed={isHero}
-            onClick={() => setHero(!isHero)}
-            className={cn(isHero && "text-blog-accent")}
+          // Hover explains it, press toggles it — one control, one word.
+          // Filtering the reason is what keeps a gesture to a single job:
+          // without it a press would open the note too, so every time the
+          // writer set the hero a panel would appear under their cursor
+          // telling them what they had just done.
+          <Popover
+            open={explainingHero}
+            onOpenChange={(open, details) => {
+              if (details.reason === "trigger-press") return;
+              setExplainingHero(open);
+            }}
           >
-            hero
-          </Button>
+            <PopoverTrigger
+              openOnHover
+              delay={300}
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  // A toggle, not a command: `aria-pressed` is what tells a
+                  // screen reader this is a state the button holds rather
+                  // than something it does, and it is the only signal a
+                  // reader gets — the accent colour says the same thing to
+                  // everyone else.
+                  aria-pressed={isHero}
+                  onClick={() => setHero(!isHero)}
+                  className={cn(isHero && "text-blog-accent")}
+                />
+              }
+            >
+              hero
+            </PopoverTrigger>
+            <PopoverContent side="top" align="end" className="w-auto font-sans">
+              <PopoverDescription>Loads eagerly at high priority</PopoverDescription>
+            </PopoverContent>
+          </Popover>
         )}
         <Button variant="ghost" size="sm" onClick={() => setEditing((open) => !open)}>
           {editing ? "done" : "attrs"}
