@@ -149,7 +149,7 @@ serverExternalPackages: ["wrangler"],
 
 ### 為什麼不用 wrangler 的 named environment？
 
-**Wrangler 的 named environment&#x20;**&#x662F; Cloudflare 官方提供用來區分不同部署或開發環境（例如 `staging`、`production` 或 `qa`）的機制。
+**Wrangler 的 named environment** 是 Cloudflare 官方提供用來區分不同部署或開發環境（例如 `staging`、`production` 或 `qa`）的機制。
 
 當你將所有環境的設定都寫在同一份 `wrangler.jsonc`（或 `wrangler.toml`）時，就可以透過 named environment 在同一個檔案內定義不同環境的 override 參數。
 
@@ -171,7 +171,7 @@ serverExternalPackages: ["wrangler"],
 
 ### 為什麼已經用 Server Side Generation（SSG）還是會踩到 10ms 的上限？
 
-**1. 預設的 incrementalCache 是&#x20;**`"dummy"`
+**1. 預設的 incrementalCache 是 `"dummy"`**
 
 Next.js 在傳統 Node.js 環境中，SSG/ISR 的快取與預先渲染產物是寫在本機硬碟上的。
 
@@ -217,7 +217,7 @@ const config = defineCloudflareConfig({
 
 開啟 `enableCacheInterception: true` 後，`@opennextjs/cloudflare` 會在 Worker 接到 Request 的第一時間（尚未載入/執行 Next.js 完整 Routing 前），直接去檢查是否有符合該路徑的快取（如 prerender 的 HTML / RSC payload）
 
-**Cache Hit&#x20;**&#x6642;， Worker 直接回傳快取的 Response，立即結束請求。**完全不執行 Next.js 的路由邏輯**，CPU 消耗幾乎降為 0ms。
+**Cache Hit 時**，Worker 直接回傳快取的 Response，立即結束請求。**完全不執行 Next.js 的路由邏輯**，CPU 消耗幾乎降為 0ms。
 
 ---
 
