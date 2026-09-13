@@ -9,9 +9,13 @@ tags: ["Cloudflare Workers", "OpenNext", "Next.js", "workerd", "Cache", "部署"
 draft: true
 ---
 
-<Figure src="/blog-images/gemini-generated-image-3imprz3imprz3imp.webp" alt="" width={2816} height={1536}>
-
-</Figure>
+<Figure
+  src="/blog-images/nextjs-on-cloudflare-workers-hero.webp"
+  alt="一個人提著油燈，踩著發亮的橘色階梯往上走，四周是雲霧與刻著符號的黑色岩壁"
+  width={2816}
+  height={1536}
+  hero
+/>
 
 ## 前言
 
@@ -37,7 +41,7 @@ draft: true
 
 ## @opennextjs/cloudflare 的設定檔架構
 
-Workers 底層的 runtime 是 workerd，不是 Node.js。
+Workers 底層的 runtime 是 **workerd**，不是 Node.js。
 
 它沒有完整的 Node API，沒有能跨請求存活的檔案系統，也沒有常駐的 process。但 Next.js 預設的 `next start` 背後需要一台完整的 Node 伺服器。
 
