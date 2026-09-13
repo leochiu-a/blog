@@ -278,6 +278,39 @@ const QuoteBoundary = Extension.create({
   },
 });
 
+/**
+ * Cmd-Alt-1 and Cmd-Alt-2 for h2 and h3 — the only two levels a post is
+ * written in. Every other heading key is swallowed.
+ *
+ * Tiptap binds Mod-Alt-<n> to heading level n, which spends the first and
+ * easiest key on an h1 that no post has: the title is a frontmatter field
+ * above the editor, so a body h1 would be a second title. Shifting the run by
+ * one puts the two levels the writer reaches for on the two keys the hand
+ * finds first.
+ *
+ * Returning `true` for 3, 4 and 6 claims the key and does nothing, which is
+ * what takes h1, h4, h5 and h6 off the keyboard — an unbound key would fall
+ * through to StarterKit's default and make the heading anyway. 5 is left
+ * alone: QuoteBoundary spends it on the quote cycle.
+ *
+ * The schema still carries every level. `readOutline` deliberately covers a
+ * body h1, and one published post is written with h4s; narrowing the schema
+ * would leave that post unable to round-trip through the editor for the sake
+ * of a keymap. This only changes what the keyboard can produce.
+ */
+const HeadingShortcuts = Extension.create({
+  name: "headingShortcuts",
+  addKeyboardShortcuts() {
+    return {
+      "Mod-Alt-1": () => this.editor.commands.toggleHeading({ level: 2 }),
+      "Mod-Alt-2": () => this.editor.commands.toggleHeading({ level: 3 }),
+      "Mod-Alt-3": () => true,
+      "Mod-Alt-4": () => true,
+      "Mod-Alt-6": () => true,
+    };
+  },
+});
+
 type NodeViewRenderers = {
   mdxBlock?: () => NodeViewRenderer;
   unknownBlock?: () => NodeViewRenderer;
@@ -315,6 +348,7 @@ export function createExtensions(nodeViews: NodeViewRenderers = {}) {
       : UnknownBlock,
     UnknownInline,
     QuoteBoundary,
+    HeadingShortcuts,
     LineNumbers,
     UploadPlaceholder,
     SourceAttribute,
