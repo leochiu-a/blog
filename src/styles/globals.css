@@ -52,7 +52,8 @@
    .dark = DARK theme (homepage, original adds `dark` to <html>). */
 :root {
   /* Font family CSS variables (--font-garamond, --font-spectral,
-     --font-sans) are injected by next/font on <html>. */
+     --font-inter) are injected by next/font on <html>. `--font-sans` is not
+     one of them — see the theme block below. */
 
   --background: hsl(0 0% 98%);
   --foreground: hsl(210 3% 18%);
@@ -165,6 +166,16 @@ html:has(.dark) {
   --radius-xl: calc(var(--radius) + 4px);
   --font-garamond: var(--font-garamond), serif;
   --font-spectral: var(--font-spectral), serif;
+  /* next/font subsets these to Latin only, so every CJK glyph falls out of the
+     webfont and into whatever the browser picks — which is why a Chinese
+     heading and the English inside it render as two different typefaces. Name
+     the CJK face here rather than leave it to the default: `sans-serif` on
+     macOS is PingFang, but on Windows it is whatever the UI font resolves to,
+     and the serif default is a Ming face whose horizontal strokes disappear
+     below ~15px. Only the sans stack is named so far — Garamond and Spectral
+     keep the system serif they have always fallen back to, which is a separate
+     call about the body text and not one this makes. */
+  --font-sans: var(--font-inter), "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
 
   --text-xxs: 0.625rem;
 }
@@ -249,7 +260,7 @@ main {
    Hand-written rules repeat that guard, or they reach inside Figure /
    FancyQuote / Clip and undo the point of marking them `not-prose`. */
 .prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-sans);
   font-weight: 800;
   scroll-margin-top: 6rem;
 }

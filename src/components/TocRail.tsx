@@ -216,11 +216,18 @@ export function TocRail({
             >
               {renderEntry(section, {
                 className: cn(
+                  // Sans, like the h2 each label names — the rail inherits the
+                  // page's Garamond otherwise, and a contents entry set in a
+                  // different face from its own heading reads as a caption
+                  // about the section rather than a handle on it. It is also
+                  // the smallest CJK text on the page, and a Ming face loses
+                  // its horizontal strokes at this size.
+                  //
                   // 14px, not the 12px this is set at in Latin. A CJK glyph
                   // carries far more detail in the same em, and at 12px a
                   // heading in it is a shape you recognise rather than text you
                   // read — which is the whole job of the label.
-                  "block max-w-full truncate text-right text-sm leading-tight tracking-tight",
+                  "block max-w-full truncate text-right font-sans text-sm leading-tight tracking-tight",
                   "translate-x-1 opacity-0 transition-[opacity,transform,color] duration-200 ease-out motion-reduce:transition-none",
                   "pointer-events-none group-hover:pointer-events-auto group-has-[:focus-visible]:pointer-events-auto",
                   "group-hover:translate-x-0 group-hover:opacity-100",

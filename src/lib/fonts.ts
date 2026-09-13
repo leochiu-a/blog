@@ -15,9 +15,14 @@ export const garamond = EB_Garamond({
 
 // UI/heading sans for the blog reading view (Substack-style: sans headings and
 // chrome over a serif body).
+// `--font-inter` and not `--font-sans`: the theme layer builds the real
+// `--font-sans` on top of this one, appending the CJK fallback next/font's
+// Latin subset cannot supply. Declaring both under one name would put
+// next/font's value on <html> and Tailwind's in `:root` — a specificity tie
+// next/font wins, silently dropping the fallback.
 export const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-inter",
   display: "swap",
 });
 
