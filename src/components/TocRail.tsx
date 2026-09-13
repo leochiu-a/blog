@@ -277,8 +277,15 @@ export function TocRail({
                     chasing the page rather than tracking it. A transform is
                     compositor work and lands in the same frame as the scroll,
                     which is what makes it feel attached to the page. */}
+                {/* Ink, not the accent. The bar's one job is to separate read
+                    from unread, and the clearest way to say that is the same
+                    contrast step the text already uses: the read part is as
+                    dark as body copy, the track is the 20% ghost of it. An
+                    accent colour says "brand" before it says "you are here",
+                    and it spends the orange — which on this site means a link
+                    — on something nobody can click. */}
                 <div
-                  className="absolute inset-x-0 top-0 h-full origin-top rounded-full bg-blog-accent"
+                  className="absolute inset-x-0 top-0 h-full origin-top rounded-full bg-foreground"
                   style={{ transform: `scaleY(${fillOf(sections[i], position)})` }}
                 />
               </div>
