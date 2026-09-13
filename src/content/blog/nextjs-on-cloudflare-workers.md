@@ -211,13 +211,13 @@ const config = defineCloudflareConfig({
 
 ### Static Assets Incremental Cache
 
-> 負責「把快取放在哪裡（Storage）
+> 負責「把快取放在哪裡（Storage）」
 
 `staticAssetsIncrementalCache` 會把 prerender 好的 HTML 直接塞進 Workers Assets，跟一般靜態資產堆在一起。這樣請求一到就單純是回應靜態檔案， Worker 幾乎不需要耗費 CPU 去運算。
 
 ### Enable Cache Interception
 
-> 負責「什麼時候讀取快取（Execution Layer）
+> 負責「什麼時候讀取快取（Execution Layer）」
 
 開啟 `enableCacheInterception: true` 後，`@opennextjs/cloudflare` 會在 Worker 接到 Request 的第一時間（尚未載入/執行 Next.js 完整 Routing 前），直接去檢查是否有符合該路徑的快取（如 prerender 的 HTML / RSC payload）
 
