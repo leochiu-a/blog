@@ -78,6 +78,22 @@ export function isSelfClosing(name: string | null): boolean {
   return name !== null && SELF_CLOSING.has(name);
 }
 
+/**
+ * The attribute marking the one image above the fold. Bare — it carries no
+ * value, and the published `Figure` reads its mere presence as `true`.
+ */
+export const HERO_ATTRIBUTE = "hero";
+
+/**
+ * Whether a block can be the post's hero.
+ *
+ * `Figure` only: `hero` turns into eager loading at high priority on an
+ * `<Image>`, and `Clip` renders a `<video>`, which has no such lever.
+ */
+export function supportsHero(name: string | null): boolean {
+  return name === "Figure";
+}
+
 export function specFor(name: string | null): MdxBlockSpec | undefined {
   return MDX_BLOCKS.find((block) => block.name === name);
 }

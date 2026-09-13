@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import type { MdxAttribute } from "@/lib/editor/types";
-import { editableAttributes, isSelfClosing } from "./mdx-blocks";
+import { editableAttributes, HERO_ATTRIBUTE, isSelfClosing, supportsHero } from "./mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,8 +51,64 @@ export function MdxBlockView({
   // caption is dropped where the preview already offers it, rather than
   // spelling out the same sentence in two places.
   const fields = editableAttributes(name, attributes).filter(
-    (field) => !(preview !== null && field.name === "caption"),
+    (field) =>
+      !(preview !== null && field.name === "caption") &&
+      // `hero` has the toggle in the label row. Left in the form it would draw
+      // an empty textarea — the attribute carries no value — and anything typed
+      // into it would serialize as `hero="…"`, which is not what the published
+      // component reads.
+      field.name !== HERO_ATTRIBUTE,
   );
+
+  const isHero = attributes.some((attribute) => attribute.name === HERO_ATTRIBUTE);
+
+  /**
+   * Mark this block as the post's hero, or stop being it.
+   *
+   * A post has one image above the fold, so turning this on takes the mark off
+   * whichever Figure held it. Without that the button would let a writer set
+   * three heroes, and the browser would be told to fetch all three eagerly at
+   * high priority — which is the same as prioritising none of them.
+   *
+   * One transaction for all of it, so the swap is a single undo step and the
+   * document is never briefly between heroes. Attribute changes leave the
+   * document's shape alone, so the positions collected on the way through stay
+   * valid as it is applied.
+   *
+   * No `source` bookkeeping: `serializeBody` decides a block is untouched by
+   * re-serializing it and comparing, so changing an attribute invalidates the
+   * replay by itself.
+   */
+  const setHero = (next: boolean) => {
+    const position = getPos();
+    if (position === undefined) return;
+
+    const { state } = editor;
+    const tr = state.tr;
+
+    if (next) {
+      state.doc.descendants((child, childPos) => {
+        if (child.type.name !== "mdxBlock" || childPos === position) return;
+        const others = (child.attrs.attributes as MdxAttribute[]) ?? [];
+        if (!others.some((attribute) => attribute.name === HERO_ATTRIBUTE)) return;
+        tr.setNodeAttribute(
+          childPos,
+          "attributes",
+          others.filter((attribute) => attribute.name !== HERO_ATTRIBUTE),
+        );
+      });
+    }
+
+    tr.setNodeAttribute(
+      position,
+      "attributes",
+      next
+        ? [...attributes, { name: HERO_ATTRIBUTE, value: null, expression: null }]
+        : attributes.filter((attribute) => attribute.name !== HERO_ATTRIBUTE),
+    );
+
+    editor.view.dispatch(tr);
+  };
 
   const setAttribute = (field: MdxAttribute, next: string) => {
     const updated =
@@ -112,6 +168,21 @@ export function MdxBlockView({
         )}
       >
         <span className="flex-1" />
+        {supportsHero(name) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            // A toggle, not a command: `aria-pressed` is what tells a screen
+            // reader this is a state the button holds rather than something it
+            // does, and it is the only signal a reader gets — the accent
+            // colour says the same thing to everyone else.
+            aria-pressed={isHero}
+            onClick={() => setHero(!isHero)}
+            className={cn(isHero && "text-blog-accent")}
+          >
+            hero
+          </Button>
+        )}
         <Button variant="ghost" size="sm" onClick={() => setEditing((open) => !open)}>
           {editing ? "done" : "attrs"}
         </Button>
