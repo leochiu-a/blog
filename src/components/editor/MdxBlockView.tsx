@@ -5,6 +5,7 @@ import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from "@tiptap/re
 import type { MdxAttribute } from "@/lib/editor/types";
 import { editableAttributes, HERO_ATTRIBUTE, isSelfClosing, supportsHero } from "./mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
+import { useSetOgImage } from "./og-image";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export function MdxBlockView({
   // repeats across them: with two panels open the labels all point at the first
   // block's fields.
   const formId = useId();
+  const setOgImage = useSetOgImage();
   const name = (node.attrs.name as string | null) ?? "";
   const attributes = (node.attrs.attributes as MdxAttribute[]) ?? [];
   const selfClosing = isSelfClosing(name);
@@ -78,6 +80,10 @@ export function MdxBlockView({
    * No `source` bookkeeping: `serializeBody` decides a block is untouched by
    * re-serializing it and comparing, so changing an attribute invalidates the
    * replay by itself.
+   *
+   * Naming the hero also aims the share card at it. They are the same claim —
+   * this is the picture the post is — pointed once inward and once outward,
+   * and a writer who had to make it twice would sooner or later make it once.
    */
   const setHero = (next: boolean) => {
     const position = getPos();
@@ -108,6 +114,12 @@ export function MdxBlockView({
     );
 
     editor.view.dispatch(tr);
+
+    // Only on the way on. Turning the hero off says this picture is no longer
+    // the one above the fold, which is not the same as saying the post should
+    // go back to the site's default card — and clearing a field the writer may
+    // have set by hand is the more expensive guess to get wrong.
+    if (next) setOgImage(value("src"));
   };
 
   const setAttribute = (field: MdxAttribute, next: string) => {

@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Separator } from "@/components/ui/separator";
 import { readFlag, readText, withField } from "@/lib/editor/frontmatter-fields";
+import { SetOgImageContext } from "./og-image";
 import { type UploadProgress as Progress, uploadFile } from "@/lib/editor/upload";
 import {
   addPlaceholder,
@@ -271,6 +272,26 @@ export function DocumentEditor({
     [scheduleSave],
   );
 
+  /**
+   * Point the share card at a picture in the body — what the hero toggle calls.
+   *
+   * Overwrites whatever `ogImage` held. Naming the hero is the writer saying
+   * which picture the post is, and the card is the same claim aimed outward;
+   * asking them to say it twice is how the two drift apart. The Settings panel
+   * still owns the field, and shows the new crop the moment this runs, so a
+   * writer who wants a different card has somewhere obvious to say so.
+   *
+   * Not in the editor's undo stack — frontmatter is not part of the ProseMirror
+   * document, so undoing the toggle leaves the card where this put it.
+   */
+  const setOgImage = useCallback(
+    (src: string) => {
+      if (src === "") return;
+      updateFrontmatter(withField(frontmatter, "ogImage", src));
+    },
+    [frontmatter, updateFrontmatter],
+  );
+
   const uploadImage = useCallback(
     async (file: File) => {
       if (!editor) return;
@@ -488,10 +509,14 @@ export function DocumentEditor({
             )}
             {editor && <BubbleToolbar editor={editor} />}
             {editor && <LinkPopover editor={editor} />}
-            <EditorContent
-              editor={editor}
-              className="prose prose-lg prose-zinc max-w-none [&_.is-empty]:before:pointer-events-none [&_.is-empty]:before:float-left [&_.is-empty]:before:h-0 [&_.is-empty]:before:text-muted-foreground [&_.is-empty]:before:content-[attr(data-placeholder)]"
-            />
+            {/* Node views render into this React tree through portals, so the
+                blocks inside the document read this the way any child would. */}
+            <SetOgImageContext.Provider value={setOgImage}>
+              <EditorContent
+                editor={editor}
+                className="prose prose-lg prose-zinc max-w-none [&_.is-empty]:before:pointer-events-none [&_.is-empty]:before:float-left [&_.is-empty]:before:h-0 [&_.is-empty]:before:text-muted-foreground [&_.is-empty]:before:content-[attr(data-placeholder)]"
+              />
+            </SetOgImageContext.Provider>
           </div>
         </div>
       </main>
