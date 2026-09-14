@@ -88,15 +88,13 @@ const config = defineCloudflareConfig({ /** config */ });
 最終就會長這樣：
 
 ```
-沒設 buildCommand
-
-  pnpm build
-    └─► package.json "build"
-          └─► opennextjs-cloudflare build
-                └─► buildCommand 沒設，那就跑 package.json 的 build
-                      └─► package.json "build"
-                            └─► opennextjs-cloudflare build
-                                  └─► ⋯⋯ 直到機器放棄
+pnpm build
+  └─► package.json "build"
+        └─► opennextjs-cloudflare build
+              └─► buildCommand 沒設，那就跑 package.json 的 build
+                    └─► package.json "build"
+                          └─► opennextjs-cloudflare build
+                                └─► ⋯⋯ 直到機器放棄
 ```
 
 解法是在 `open-next.config.ts` 裡顯式指定編譯指令：
@@ -106,17 +104,15 @@ const config = defineCloudflareConfig({ /** config */ });
 config.buildCommand = "next build";
 ```
 
-指定了之後，才能正常的編譯 Next.js 專案：
+設了 `buildCommand` 之後，才能正常的編譯 Next.js 專案：
 
 ```
-設了 buildCommand
-
-  pnpm build
-    └─► package.json "build"
-          └─► opennextjs-cloudflare build
-                └─► buildCommand = "next build"
-                      └─► next build
-                            └─► .open-next/
+pnpm build
+  └─► package.json "build"
+        └─► opennextjs-cloudflare build
+              └─► buildCommand = "next build"
+                    └─► next build
+                          └─► .open-next/
 ```
 
 ---
