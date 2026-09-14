@@ -3,6 +3,7 @@ import type { MDXComponents } from "mdx/types";
 import { FancyQuote } from "@/components/mdx/FancyQuote";
 import { Figure } from "@/components/mdx/Figure";
 import { Clip } from "@/components/mdx/Clip";
+import { LinkCard } from "@/components/mdx/LinkCard";
 import { VideoEmbed } from "@/components/mdx/VideoEmbed";
 import { OrnamentSeparator } from "@/components/mdx/OrnamentSeparator";
 
@@ -39,6 +40,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Figure,
     Clip,
     VideoEmbed,
+    LinkCard,
     ...components,
   };
 }
