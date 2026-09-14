@@ -2,7 +2,7 @@
 title: "把 Next.js 搬上 Cloudflare Workers：OpenNext 設定指南與 5 個實戰避坑經驗"
 subtitle: "從 CPU Time Limit 10ms 超標到 0ms 靜態回應，紀錄 Next.js 搬上 Cloudflare Workers 的架構優化與踩坑過程。"
 description: "用 @opennextjs/cloudflare 把 Next.js 部署到 Cloudflare Workers 的實作筆記：build script 自我遞迴、next dev 拿不到 binding、median CPU 28 毫秒撞上 10 毫秒上限、三層 cache 怎麼分工，以及 prefetchInlining 造成的無窮迴圈。"
-datetime: "2026-09-17"
+datetime: "2026-09-14"
 readTime: "12 min"
 category: "professional"
 tags: ["Cloudflare Workers", "OpenNext", "Next.js", "workerd", "Cache", "部署"]
