@@ -18,7 +18,9 @@ featured: true
 
 這篇文章想分享給打算低成本自架部落格的朋友，我把會用到的 Cloudflare 服務盤點了一遍，並整理出各自免費額度的邊界（數據為 2026 年 9 月對照官方文件的最新版本）。
 
-至於如何把 Next.js 塞進 Worker，以及中間踩過哪些坑，我整理在另一篇：[把 Next.js 搬上 Cloudflare Workers：OpenNext 設定指南與 5 個實戰避坑經驗](/blog/nextjs-on-cloudflare-workers/)。
+至於如何把 Next.js 塞進 Worker，以及中間踩過哪些坑，我整理在另一篇文章。
+
+<LinkCard href="/blog/nextjs-on-cloudflare-workers/" />
 
 ---
 
@@ -75,7 +77,9 @@ featured: true
 - **1102**：CPU 時間燒完（跟流量無關， 一個人狂刷新就會爆）。
 - **1027**：當天 10 萬次請求總額度用光。
 
-這個 CPU 限制後來我是靠 Worker Cache 搞定的，細節與其它坑點我整理在另一篇：[把 Next.js 搬上 Cloudflare Workers：OpenNext 設定指南與 5 個實戰避坑經驗](/blog/nextjs-on-cloudflare-workers/)。
+這個 CPU 限制後來我是靠 Worker Cache 搞定的，細節與其它坑點我整理在另一篇文章。
+
+<LinkCard href="/blog/nextjs-on-cloudflare-workers/" />
 
 ### 容量限制：3 MB -> 64 MiB
 
