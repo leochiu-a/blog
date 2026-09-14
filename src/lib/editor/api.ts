@@ -1,4 +1,5 @@
 import { parseDocument, serializeDocument } from "./document";
+import { readLinkCard } from "./link-card";
 import { EditorError, type createAssetStore, type createContentStore } from "./store";
 import type { EditorDocument } from "./types";
 
@@ -114,5 +115,18 @@ export function uploadVideo(request: Request, store: AssetStore): Promise<Respon
     const file = await uploadedFile(request);
     const clip = await store.saveVideo(file.name, new Uint8Array(await file.arrayBuffer()));
     return Response.json(clip, { status: 201 });
+  });
+}
+
+/**
+ * The metadata behind a `<LinkCard>`, read once here rather than by every
+ * reader of the published post. See `link-card.ts` for why it is resolved at
+ * insert time.
+ */
+export function createLinkCard(request: Request, store: AssetStore): Promise<Response> {
+  return respond(async () => {
+    const { url } = await readJson(request);
+    if (typeof url !== "string" || url.trim() === "") badRequest("Expected a url");
+    return Response.json(await readLinkCard(url.trim(), store), { status: 201 });
   });
 }
