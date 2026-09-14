@@ -11,6 +11,7 @@ import {
 import { NodeSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
+import { shortcutKeys, toolbarShortcuts } from "@/lib/editor/shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
@@ -28,10 +29,7 @@ import {
 } from "lucide-react";
 
 /**
- * Which glyphs stand for the modifier keys. A Mac writes ⌘⌥⇧; everywhere else
- * spells the same keys out, so the hint has to be read off the machine rather
- * than hard-coded — a Ctrl user shown ⌘ would be told to press a key their
- * keyboard does not have.
+ * Which machine this is, for `shortcutKeys` to spell the modifiers for.
  *
  * The keyboard is an external store, not state: `useSyncExternalStore` is what
  * lets the server render the non-Mac spelling and the browser correct it in
@@ -40,11 +38,6 @@ import {
 const subscribeToNothing = () => () => {};
 const isMac = () => /Mac|iPhone|iPad/.test(navigator.userAgent);
 const notMac = () => false;
-
-function useModifierKeys() {
-  const onMac = useSyncExternalStore(subscribeToNothing, isMac, notMac);
-  return onMac ? { mod: "⌘", alt: "⌥", shift: "⇧" } : { mod: "Ctrl", alt: "Alt", shift: "Shift" };
-}
 
 /**
  * Lucide draws a heading as a capital H with a subscript numeral, so at the
@@ -81,7 +74,7 @@ export function BubbleToolbar({ editor }: { editor: Editor }) {
     if (linking) linkField.current?.focus();
   }, [linking]);
 
-  const keys = useModifierKeys();
+  const onMac = useSyncExternalStore(subscribeToNothing, isMac, notMac);
 
   /**
    * The toolbar fades up as it arrives, and sinks back out as it goes.
@@ -216,7 +209,7 @@ export function BubbleToolbar({ editor }: { editor: Editor }) {
    */
   const action = (
     label: string,
-    shortcut: string[],
+    binding: string | null,
     Icon: ComponentType,
     active: boolean,
     run: () => void,
@@ -241,9 +234,9 @@ export function BubbleToolbar({ editor }: { editor: Editor }) {
           between the two surfaces instead of stacking them. */}
       <TooltipContent sideOffset={8}>
         {label}
-        {shortcut.length > 0 && (
+        {binding && (
           <KbdGroup>
-            {shortcut.map((key) => (
+            {shortcutKeys(binding, onMac).map((key) => (
               <Kbd key={key}>{key}</Kbd>
             ))}
           </KbdGroup>
@@ -272,23 +265,23 @@ export function BubbleToolbar({ editor }: { editor: Editor }) {
           row after that opens the next one at once, the way a toolbar the
           writer is already scanning should behave. */}
       <TooltipProvider delay={500} closeDelay={100}>
-        {action("bold", [keys.mod, "B"], BoldIcon, editor.isActive("bold"), () =>
+        {action("bold", toolbarShortcuts.bold, BoldIcon, editor.isActive("bold"), () =>
           editor.chain().focus().toggleBold().run(),
         )}
-        {action("italic", [keys.mod, "I"], ItalicIcon, editor.isActive("italic"), () =>
+        {action("italic", toolbarShortcuts.italic, ItalicIcon, editor.isActive("italic"), () =>
           editor.chain().focus().toggleItalic().run(),
         )}
         {action(
           "strikethrough",
-          [keys.mod, keys.shift, "S"],
+          toolbarShortcuts.strikethrough,
           StrikethroughIcon,
           editor.isActive("strike"),
           () => editor.chain().focus().toggleStrike().run(),
         )}
-        {action("code", [keys.mod, "E"], CodeIcon, editor.isActive("code"), () =>
+        {action("code", toolbarShortcuts.code, CodeIcon, editor.isActive("code"), () =>
           editor.chain().focus().toggleCode().run(),
         )}
-        {action("link", [], LinkIcon, editor.isActive("link"), () => {
+        {action("link", null, LinkIcon, editor.isActive("link"), () => {
           setHref((editor.getAttributes("link").href as string | undefined) ?? "");
           setLinking(true);
         })}
@@ -297,24 +290,20 @@ export function BubbleToolbar({ editor }: { editor: Editor }) {
 
         {action(
           "heading 2",
-          [keys.mod, keys.alt, "1"],
+          toolbarShortcuts["heading 2"],
           Heading2,
           editor.isActive("heading", { level: 2 }),
           () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
         )}
         {action(
           "heading 3",
-          [keys.mod, keys.alt, "2"],
+          toolbarShortcuts["heading 3"],
           Heading3,
           editor.isActive("heading", { level: 3 }),
           () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
         )}
-        {action(
-          "quote",
-          [keys.mod, keys.shift, "B"],
-          TextQuoteIcon,
-          editor.isActive("blockquote"),
-          () => editor.chain().focus().toggleBlockquote().run(),
+        {action("quote", toolbarShortcuts.quote, TextQuoteIcon, editor.isActive("blockquote"), () =>
+          editor.chain().focus().toggleBlockquote().run(),
         )}
       </TooltipProvider>
     </BubbleMenu>
