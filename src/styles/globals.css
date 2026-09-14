@@ -375,6 +375,15 @@ main {
   border: 1px solid hsl(var(--border));
   border-radius: 6px;
   font-size: 0.8125em;
+  /* A long line scrolls rather than wraps — code's indentation carries meaning,
+     and a wrapped continuation reads as one more level of it. The bar stays:
+     it is the only sign that there is more to the right, and a line cut after
+     `});` gives the reader nothing else to go on. Tinted rather than hidden,
+     so it reads as part of the panel instead of a light rail across it; the
+     thumb borrows the panel's own border colour, which keeps it right in both
+     themes without a second rule. */
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 .prose :where(pre code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   background-color: transparent;
