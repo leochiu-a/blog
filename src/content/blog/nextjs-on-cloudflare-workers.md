@@ -4,7 +4,7 @@ subtitle: "從 CPU Time Limit 10ms 超標到 0ms 靜態回應，紀錄 Next.js �
 description: "用 @opennextjs/cloudflare 把 Next.js 部署到 Cloudflare Workers 的實作筆記：build script 自我遞迴、next dev 拿不到 binding、median CPU 28 毫秒撞上 10 毫秒上限、三層 cache 怎麼分工，以及 prefetchInlining 造成的無窮迴圈。"
 ogImage: "/blog-images/nextjs-on-cloudflare-workers-hero.webp"
 datetime: "2026-09-14"
-readTime: "12 min"
+readTime: "9 min"
 category: "professional"
 tags: ["Cloudflare Workers", "OpenNext", "Next.js", "workerd", "Cache", "部署"]
 ---
@@ -21,7 +21,7 @@ tags: ["Cloudflare Workers", "OpenNext", "Next.js", "workerd", "Cache", "部署"
 
 你現在看的這個 blog 是基於 Next.js，跑在 Cloudflare Workers 上。
 
-前一篇 [Cloudflare 免費方案架 Blog：服務盤點與免費額度避坑指南](https://leochiu.com/blog/cloudflare-free-tier-stack/)整理了用了哪些服務和免費額度。
+前一篇 [用 Cloudflare 免費方案架 Blog：服務盤點與免費額度避坑指南](/blog/cloudflare-free-tier-stack/)整理了用了哪些服務和免費額度。
 
 這篇會講到在整合 Next.js 到 Cloudflare Workers 上踩到的坑，如果你以前習慣使用 Vercel 來部署 Next.js 的話，這篇也許對你來說會有幫助。
 
@@ -45,7 +45,7 @@ Workers 底層的 runtime 是 **workerd**，不是 Node.js。
 
 它沒有完整的 Node API，沒有能跨請求存活的檔案系統，也沒有常駐的 process。但 Next.js 預設的 `next start` 背後需要一台完整的 Node 伺服器。
 
-要把 Next.js 跟 Cloudflare worker 接起來，就需要 `@opennextjs/cloudflare` 這個套件。它把 `next build` 的結果重新重新打包成 workerd 能執行的 Worker，並獨立出一包靜態檔。
+要把 Next.js 跟 Cloudflare Worker 接起來，就需要 `@opennextjs/cloudflare` 這個套件。它把 `next build` 的結果重新打包成 workerd 能執行的 Worker，並獨立出一包靜態檔。
 
 ### `wrangler.jsonc`
 
@@ -71,7 +71,7 @@ Workers 底層的 runtime 是 **workerd**，不是 Node.js。
 
 另一個檔案 `open-next.config.ts` 負責告訴 OpenNext 怎麼打包出這個 Worker：
 
-```
+```ts
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
 const config = defineCloudflareConfig({ /** config */ });
@@ -87,7 +87,7 @@ const config = defineCloudflareConfig({ /** config */ });
 
 最終就會長這樣：
 
-```
+```text
 pnpm build
   └─► package.json "build"
         └─► opennextjs-cloudflare build
@@ -106,7 +106,7 @@ config.buildCommand = "next build";
 
 設了 `buildCommand` 之後，才能正常的編譯 Next.js 專案：
 
-```
+```text
 pnpm build
   └─► package.json "build"
         └─► opennextjs-cloudflare build
@@ -169,7 +169,7 @@ serverExternalPackages: ["wrangler"],
 
 先釐清這個額度的計算方式，它只看 **CPU 實際運算時間**，不包含掛在背景等待的時間。去等外部 API、等待 D1 回傳資料都不會扣這筆額度，可以慢慢等 response，但 CPU 運算不能拉長。
 
-### 為什麼已經用 Server Side Generation（SSG）還是會踩到 10ms 的上限？
+### 為什麼已經用 Static Site Generation（SSG）還是會踩到 10ms 的上限？
 
 **1. 預設的 incrementalCache 是 `"dummy"`**
 
@@ -209,13 +209,13 @@ const config = defineCloudflareConfig({
 
 > 負責「把快取放在哪裡（Storage）」
 
-`staticAssetsIncrementalCache` 會把 prerender 好的 HTML 直接塞進 Workers Assets，跟一般靜態資產堆在一起。這樣請求一到就單純是回應靜態檔案， Worker 幾乎不需要耗費 CPU 去運算。
+`staticAssetsIncrementalCache` 會把 prerender 好的 HTML 直接塞進 Workers Assets，跟一般靜態資產堆在一起。這樣請求一到就單純是回應靜態檔案，Worker 幾乎不需要耗費 CPU 去運算。
 
 ### Enable Cache Interception
 
 > 負責「什麼時候讀取快取（Execution Layer）」
 
-開啟 `enableCacheInterception: true` 後，`@opennextjs/cloudflare` 會在 Worker 接到 Request 的第一時間（尚未載入/執行 Next.js 完整 Routing 前），直接去檢查是否有符合該路徑的快取（如 prerender 的 HTML / RSC payload）
+開啟 `enableCacheInterception: true` 後，`@opennextjs/cloudflare` 會在 Worker 接到 Request 的第一時間（尚未載入/執行 Next.js 完整 Routing 前），直接去檢查是否有符合該路徑的快取（如 prerender 的 HTML / RSC payload）。
 
 **Cache Hit 時**，Worker 直接回傳快取的 Response，立即結束請求。**完全不執行 Next.js 的路由邏輯**，CPU 消耗幾乎降為 0ms。
 
@@ -244,11 +244,11 @@ Next 16.3 預設啟用了 `experimental.prefetchInlining`，這個設定一撞�
 
 ---
 
-## 坑五：OpenNext 一直在追趕 Next.js 的版本相容性
+## 踩坑五：OpenNext 一直在追趕 Next.js 的版本相容性
 
 上面 prefetch 的問題並非特例，而是這套架構的常態：OpenNext 永遠在後面追趕 Next.js 的新版本。當雙方的預設值產生衝突時，通常不會反應在 build 階段的 log 裡，而是要等到部署上線後才會暴露出來。
 
-因此部署完成後，可能需要關注意一下 Workers Logs，Workers Logs 免費方案每天能處理 200,000 個 event、資料保留 3 天，3 天對這種情境已相當足夠。
+因此部署完成後，可能需要關注一下 Workers Logs，Workers Logs 免費方案每天能處理 200,000 個 event、資料保留 3 天，3 天對這種情境已相當足夠。
 
 ---
 
@@ -259,7 +259,7 @@ Next 16.3 預設啟用了 `experimental.prefetchInlining`，這個設定一撞�
 原本我以為會先了解架一個部落格需要使用哪些服務，但是在架 Blog 的時候才發現，問題都是一些很瑣碎的事情：
 
 - 了解到 Cloudflare Workers 的底層不是 Node.js，而是 workerd。且免費方案有嚴格的 10ms CPU 時間限制。
-- Next.js 在整合上 Cloudflare Workers 時，要實作 Cache 機制不能依賴 CDN，而是要搞清楚 worker cache 的機制
+- Next.js 在整合上 Cloudflare Workers 時，要實作 Cache 機制不能依賴 CDN，而是要搞清楚 worker cache 的機制。
 - Next.js 跟 OpenNext 的版本差異也是潛在問題，不管是用 `serverExternalPackages` 避開 Turbopack 原生套件打包，還是指定 `buildCommand` 避免打包的無窮迴圈，都說明 Cloudflare 跟 Next.js 的整合並非這麼無縫。
 
 但自己使用 Cloudflare 架設之後，也確實更了解了它提供的生態系，它提供的服務真的蠻完整的。
@@ -273,7 +273,5 @@ Next 16.3 預設啟用了 `experimental.prefetchInlining`，這個設定一撞�
 1. [OpenNext for Cloudflare](https://opennext.js.org/cloudflare)
 2. [Workers Pricing](https://developers.cloudflare.com/workers/platform/pricing/)
 3. [Static Assets Billing and Limitations](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
-4. [Workers Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/)
-5. [Cache Rules](https://developers.cloudflare.com/cache/how-to/cache-rules/)
-6. [opennextjs-cloudflare#1334](https://github.com/opennextjs/opennextjs-cloudflare/issues/1334)
-7. [OpenNext for Cloudflare — Caching](https://opennext.js.org/cloudflare/caching)
+4. [opennextjs-cloudflare#1334](https://github.com/opennextjs/opennextjs-cloudflare/issues/1334)
+5. [OpenNext for Cloudflare — Caching](https://opennext.js.org/cloudflare/caching)
