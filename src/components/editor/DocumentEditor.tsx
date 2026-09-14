@@ -33,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Separator } from "@/components/ui/separator";
 import { readFlag, readText, withField } from "@/lib/editor/frontmatter-fields";
-import { postAt } from "@/lib/posts";
+import { postAt } from "@/lib/post-at";
 import { SetOgImageContext } from "./og-image";
 import { type UploadProgress as Progress, uploadFile } from "@/lib/editor/upload";
 import {

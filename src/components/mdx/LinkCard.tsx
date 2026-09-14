@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { postAt } from "@/lib/posts";
+import { postAt } from "@/lib/post-at";
 
 interface LinkCardProps {
   /**

@@ -1,4 +1,4 @@
-import { allPosts, type Post } from "content-collections";
+import { allPosts } from "content-collections";
 
 /** Every post in the repo, newest first. */
 const byNewest = [...allPosts].sort((a, b) => b.datetime.localeCompare(a.datetime));
@@ -28,20 +28,3 @@ export const posts = byNewest.filter(
  * who looks, so a token would guard the door of a house with no walls.
  */
 export const reachablePosts = byNewest;
-
-/**
- * The post a site-relative link points at, or `undefined` when it points at
- * something else on the site — or at a post that has since been renamed.
- *
- * Drafts are included: a card linking one is how a draft gets read before it
- * is published, and the URL does not change when it is.
- *
- * Trailing slashes are normalised because both spellings are written by hand
- * and `trailingSlash: true` makes them the same page.
- */
-export function postAt(href: string): Post | undefined {
-  if (!href.startsWith("/")) return undefined;
-  const path = href.split(/[?#]/)[0]!;
-  const normalised = path.endsWith("/") ? path : `${path}/`;
-  return reachablePosts.find((post) => post.href === normalised);
-}
