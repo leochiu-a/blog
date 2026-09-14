@@ -28,6 +28,9 @@ export type InsertOption = Common &
   (
     | { kind: "upload"; accept: string; target: "image" | "video" }
     | { kind: "mdx"; block: string }
+    // A block that has to be told where to read its content from before there
+    // is anything to insert. The menu asks; `DocumentEditor` does the reading.
+    | { kind: "link"; block: string }
     | { kind: "command"; command: InsertCommand }
   );
 
@@ -56,7 +59,7 @@ const ALL: InsertOption[] = [
   ...MDX_BLOCKS.map((block): InsertOption => ({
     id: `mdx:${block.name}`,
     label: block.label,
-    kind: "mdx",
+    kind: block.insertedBy === "url" ? "link" : "mdx",
     block: block.name,
     survivesEmail: false,
   })),

@@ -5,6 +5,7 @@ import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from "@tiptap/re
 import type { MdxAttribute } from "@/lib/editor/types";
 import { editableAttributes, HERO_ATTRIBUTE, isSelfClosing, supportsHero } from "./mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
+import { LinkCard } from "@/components/mdx/LinkCard";
 import { useSetOgImage } from "./og-image";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
@@ -243,6 +244,31 @@ export function MdxBlockView({
           remove
         </Button>
       </div>
+
+      {/* The published card itself, not a stand-in: it carries no state, and a
+          card is small enough that a preview drawn differently would be a
+          second design to keep in step for no gain. Pointer events are off it
+          so a click lands on the wrapper and selects the block instead of
+          following the link out of the editor. */}
+      {name === "LinkCard" && value("href") !== "" && (
+        <div contentEditable={false} role="presentation" onClick={selectBlock}>
+          <div className="pointer-events-none">
+            {/* An attribute the block does not carry has to arrive as
+                `undefined`, not as "": a card pointing at a post on this site
+                writes only its `href` and reads the rest from the collection,
+                and an empty string is a value — it would win that fallback and
+                draw an empty card. In a published post the absent attributes
+                simply are not there, which is why this only shows here. */}
+            <LinkCard
+              href={value("href")}
+              title={value("title") || undefined}
+              description={value("description") || undefined}
+              site={value("site") || undefined}
+              image={value("image") || undefined}
+            />
+          </div>
+        </div>
+      )}
 
       {preview !== null && value("src") !== "" && (
         <MediaPreview

@@ -18,6 +18,8 @@ import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
 import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
 import { createExtensions } from "@/lib/editor/extensions";
 import type { Clip, PmNode, EditorDocument } from "@/lib/editor/types";
+// Type only — `link-card.ts` reaches the filesystem, and never ships to the browser.
+import type { LinkCard } from "@/lib/editor/link-card";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -31,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Separator } from "@/components/ui/separator";
 import { readFlag, readText, withField } from "@/lib/editor/frontmatter-fields";
+import { postAt } from "@/lib/posts";
 import { SetOgImageContext } from "./og-image";
 import { type UploadProgress as Progress, uploadFile } from "@/lib/editor/upload";
 import {
@@ -375,6 +378,69 @@ export function DocumentEditor({
     [editor],
   );
 
+  /**
+   * Reads the page behind a pasted link and inserts the card describing it.
+   *
+   * No upload placeholder: this is one request for a small document, not a
+   * file leaving the machine, and the menu it was asked from stays open with
+   * its own "讀取中…" on it. The rejection is left to travel — the menu shows
+   * the reason under the field that caused it, which is where it can be
+   * corrected.
+   */
+  const insertLinkCard = useCallback(
+    async (url: string) => {
+      if (!editor) return;
+
+      /** Writes the card, leaving out whatever the page did not say. */
+      const insert = (card: Partial<LinkCard> & { href: string }) => {
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "mdxBlock",
+            attrs: {
+              name: "LinkCard",
+              // What is missing is left out rather than written as an empty
+              // attribute: the component treats a missing description the same
+              // way, and the `.md` file stays readable.
+              attributes: (["href", "title", "description", "site", "image"] as const)
+                .filter((name) => (card[name] ?? "") !== "")
+                .map((name) => ({ name, value: card[name]!, expression: null })),
+            },
+          })
+          .run();
+      };
+
+      // A post on this site needs no request and carries no copied text: the
+      // card reads the collection when the page is built, so it follows a
+      // retitled post instead of quoting what its title was today. All the
+      // block records is where it points — in the collection's own spelling,
+      // so a path typed without its trailing slash still matches later.
+      if (url.startsWith("/")) {
+        const post = postAt(url);
+        if (!post) throw new Error(`站內找不到這篇：${url}`);
+        insert({ href: post.href });
+        return;
+      }
+
+      const response = await fetch("/api/editor/links/", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const body = (await response.json().catch(() => null)) as
+        | (LinkCard & { error?: string })
+        | null;
+
+      if (!response.ok || body === null) {
+        throw new Error(body?.error ?? `讀取失敗（${response.status}）`);
+      }
+
+      insert(body);
+    },
+    [editor],
+  );
+
   useEffect(() => {
     uploadFiles.current = (files) => {
       // An upload lands as an MDX block, which an Issue cannot carry: the
@@ -505,6 +571,7 @@ export function DocumentEditor({
                 editor={editor}
                 onUploadImage={uploadImage}
                 onUploadVideo={uploadVideo}
+                onInsertLink={insertLinkCard}
               />
             )}
             {editor && <BubbleToolbar editor={editor} />}

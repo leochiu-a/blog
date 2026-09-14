@@ -29,10 +29,14 @@ describe("what an Issue may insert", () => {
     ]);
   });
 
-  // The three the email drops, named one by one: a regression here is silent,
-  // because the block still renders everywhere except the inbox.
-  it("offers no MDX block", () => {
-    expect(insertOptions("issues").filter((option) => option.kind === "mdx")).toEqual([]);
+  // The blocks the email drops, named one by one: a regression here is silent,
+  // because the block still renders everywhere except the inbox. Both kinds an
+  // MDX block can be offered under count — a `LinkCard` is asked for by URL
+  // rather than inserted empty, and would otherwise slip past this.
+  it("offers no MDX block, under either kind", () => {
+    const offered = insertOptions("issues");
+    expect(offered.filter((option) => option.kind === "mdx")).toEqual([]);
+    expect(offered.filter((option) => option.kind === "link")).toEqual([]);
   });
 
   it("offers no upload, and refuses a dropped file for the same reason", () => {

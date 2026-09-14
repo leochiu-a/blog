@@ -13,6 +13,11 @@ const COMPONENTS = [
   `<Figure\n  src="/a.png"\n  alt="a"\n  width={1200}\n  height={800}\n/>`,
   `<FancyQuote>\n  big words\n</FancyQuote>`,
   `<VideoEmbed src="https://example.com/v" title="V" />`,
+  `<LinkCard href="https://example.com/p" title="T" description="D" site="Example" image="/blog-images/og-example-com.webp" />`,
+  `<LinkCard href="https://example.com/p" title="T" />`,
+  // A post on this site: the card reads the collection, so the block is only
+  // ever the one attribute.
+  `<LinkCard href="/blog/a-post/" />`,
 ];
 
 const attributesOf = (block: PmNode) => (block.attrs as { attributes: MdxAttribute[] }).attributes;

@@ -12,6 +12,12 @@ export type MdxBlockSpec = {
    * the attribute form leaves them out. See `editableAttributes`.
    */
   derived: string[];
+  /**
+   * How the block gets its content, when picking it from the menu is not
+   * enough on its own. `"url"` asks for a link and reads the page behind it;
+   * an empty block would have nothing to show and nothing to link to.
+   */
+  insertedBy?: "url";
 };
 
 const text = (name: string, value = ""): MdxAttribute => ({ name, value, expression: null });
@@ -60,6 +66,19 @@ export const MDX_BLOCKS: MdxBlockSpec[] = [
     // cuts the poster (DocumentEditor's `uploadVideo`). `caption` is the one field
     // a person writes.
     derived: ["src", "poster", "width", "height"],
+  },
+  {
+    name: "LinkCard",
+    label: "LinkCard（連結卡片）",
+    selfClosing: true,
+    attributes: [text("href"), text("title"), text("description"), text("site"), text("image")],
+    // Reading the page fills all five (see `lib/editor/link-card.ts`), but only
+    // these two are nobody's to type: `href` is what was pasted, and `image` is
+    // a path in this repository that the copy step chose. The other site's
+    // title and summary were written to sell it in a search result, and
+    // trimming them is ordinary editing.
+    derived: ["href", "image"],
+    insertedBy: "url",
   },
   {
     name: "VideoEmbed",
