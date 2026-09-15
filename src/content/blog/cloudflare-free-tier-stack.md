@@ -276,7 +276,9 @@ Turnstile 專門防機器人，Rate Limiting 則是抓同一個來源在短時�
 
 總體來說 Cloudflare 還是非常佛心，如果想要自己架設個部落格，不需要在多個雲端服務之間斡旋，可以選擇 Cloudflare 全家桶，等之後流量或是需求因素踩到一些免費額度的上線，到時候再思考也不遲。
 
-Next.js + Cloudflare 實際會踩到的那些坑，另一篇寫完了：[OpenNext 設定指南與 5 個實戰避坑經驗](/blog/nextjs-on-cloudflare-workers/)。
+如果你想知道 Next.js + Cloudflare 可能會踩到哪些坑，可以參考另一篇文章：
+
+<LinkCard href="/blog/nextjs-on-cloudflare-workers/" />
 
 ---
 
