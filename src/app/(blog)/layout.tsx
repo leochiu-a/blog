@@ -8,10 +8,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Leo Chiu",
   description: "Senior Software Engineer at KKday.",
-  icons: {
-    icon: "/seo/icon.svg",
-    apple: "/seo/apple-touch-icon.png",
-  },
+  // No `icons` block on purpose. `src/app/icon.svg` and `src/app/apple-icon.png`
+  // are file conventions, so Next emits both links itself with hashed URLs. An
+  // `icons` literal here does not add to those — it replaces them, and naming
+  // only `apple` is how the favicon went missing while the touch icon stayed.
   alternates: {
     types: {
       "application/rss+xml": "/feed.xml",

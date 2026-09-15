@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <!-- The cup came in drawn on a 9-unit grid, which divides neither 16 nor 32:
+       every block landed on a fractional boundary and antialiasing ground the
+       hard edges into ramps. Replotted here on a 16 grid, so a 16px favicon is
+       1:1 and a 32px one exactly 2:1. The original 9-unit art still ships as
+       the apple-touch icon, where 180/15 = 12 keeps it pixel-exact.
+
+       The steam is the only part that has to move with the theme. At #EBEAF7 it
+       is invisible against a light tab strip, so the light value is darkened
+       into the same cool violet family rather than outlined — a 1x1 block is a
+       single pixel at 16px, and a stroke on it would be sub-pixel mush. The
+       amber cup carries both backgrounds unchanged. -->
+  <style>
+    .steam { fill: #5F5D78 }
+    @media (prefers-color-scheme: dark) { .steam { fill: #EBEAF7 } }
+  </style>
+  <rect class="steam" x="5" y="3" width="1" height="1"/>
+  <rect class="steam" x="4" y="4" width="1" height="1"/>
+  <rect class="steam" x="5" y="5" width="1" height="1"/>
+  <rect class="steam" x="9" y="3" width="1" height="1"/>
+  <rect class="steam" x="8" y="4" width="1" height="1"/>
+  <rect class="steam" x="9" y="5" width="1" height="1"/>
+  <polygon fill="#FFB100" points="3,7 3,12 4,12 4,13 10,13 10,12 11,12 11,7"/>
+  <rect fill="#D38100" x="11" y="8" width="1" height="1"/>
+  <rect fill="#D38100" x="12" y="9" width="1" height="1"/>
+  <rect fill="#D38100" x="11" y="10" width="1" height="1"/>
+</svg>

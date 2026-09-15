@@ -7,10 +7,8 @@ import { DEFAULT_OG_IMAGE, SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   description: "Senior Software Engineer at KKday.",
-  icons: {
-    icon: "/seo/icon.svg",
-    apple: "/seo/apple-touch-icon.png",
-  },
+  // No `icons` block on purpose — see the note in the blog layout: the file
+  // conventions emit both icon links, and an `icons` literal replaces them.
   // Neither block states a title or a description. Next replaces a metadata
   // block rather than merging into it, so a literal here is not a default — it
   // is what every page that does not spell out its own `openGraph`/`twitter`
