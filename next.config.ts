@@ -7,7 +7,14 @@ import { pageExtensionsFor } from "./src/lib/editor/dev-routes";
 const nextConfig: NextConfig = {
   // Match the previous (Astro) URL scheme: /blog/<slug>/ with a trailing slash.
   trailingSlash: true,
+  // Auto-memoize components instead of hand-written useMemo/useCallback.
+  reactCompiler: true,
   experimental: {
+    // Run the compiler as the native Rust port inside Turbopack rather than the
+    // Babel plugin in Node — same output, without a Babel pass per file. Needs
+    // Turbopack, which is what `next build` and `next dev` use here, and makes
+    // `babel-plugin-react-compiler` unnecessary.
+    turbopackRustReactCompiler: true,
     // Serve `app/global-not-found.tsx` for unmatched URLs. Needed because every
     // route sits in a group with its own root layout, so a plain `not-found`
     // has no layout to render inside.
