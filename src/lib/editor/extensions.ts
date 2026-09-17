@@ -6,6 +6,7 @@ import { Link } from "@tiptap/extension-link";
 import { TextSelection, type Command } from "@tiptap/pm/state";
 import { wrapIn } from "@tiptap/pm/commands";
 import { common, createLowlight } from "lowlight";
+import { SoleHero } from "./hero";
 import { LineNumbers } from "./line-numbers";
 import { UploadPlaceholder } from "./upload-placeholder";
 
@@ -57,6 +58,37 @@ const TableCell = Node.create({
   renderHTML: () => ["td", 0],
 });
 
+/**
+ * The attributes of an MDX node, written somewhere the DOM can hold them.
+ *
+ * A node's attributes only survive a round trip through HTML if they are *in*
+ * the HTML, and copying is exactly that round trip: ProseMirror serializes the
+ * slice with the schema, and parses it back on paste. Rendering just the
+ * component's name meant cutting a `<Figure>` and pasting it produced an empty
+ * block — src, caption, alt and hero all left behind in the cut.
+ *
+ * JSON in one attribute rather than an attribute each: the values are a list of
+ * `{ name, value, expression }`, and an MDX attribute may be an expression
+ * rather than a string. Flattening that into DOM attributes would lose the
+ * distinction the serializer needs to write `hero` and `width={1280}` back the
+ * way they came.
+ */
+const attributesToDOM = (attributes: unknown) => JSON.stringify(attributes ?? []);
+
+const attributesFromDOM = (element: HTMLElement) => {
+  const raw = element.getAttribute("data-mdx-attributes");
+  if (raw === null) return [];
+  // Anything may be on the clipboard, including HTML hand-written by someone
+  // else that happens to carry the attribute. A block with no attributes is a
+  // recoverable loss; a parse error takes the whole paste down.
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 /** An MDX component used as a block: `<Figure … />`, `<FancyQuote>…</FancyQuote>`. */
 const MdxBlock = Node.create({
   name: "mdxBlock",
@@ -64,10 +96,21 @@ const MdxBlock = Node.create({
   content: "block*",
   defining: true,
   addAttributes: () => ({ name: { default: null }, attributes: { default: [] } }),
-  parseHTML: () => [{ tag: "div[data-mdx-block]" }],
+  parseHTML: () => [
+    {
+      tag: "div[data-mdx-block]",
+      getAttrs: (element) => ({
+        name: element.getAttribute("data-mdx-block") || null,
+        attributes: attributesFromDOM(element),
+      }),
+    },
+  ],
   renderHTML: ({ HTMLAttributes }) => [
     "div",
-    { "data-mdx-block": String(HTMLAttributes.name ?? "") },
+    {
+      "data-mdx-block": String(HTMLAttributes.name ?? ""),
+      "data-mdx-attributes": attributesToDOM(HTMLAttributes.attributes),
+    },
     0,
   ],
 });
@@ -351,6 +394,7 @@ export function createExtensions(nodeViews: NodeViewRenderers = {}) {
     HeadingShortcuts,
     LineNumbers,
     UploadPlaceholder,
+    SoleHero,
     SourceAttribute,
     MarkdownAttributes,
   ];

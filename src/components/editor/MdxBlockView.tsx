@@ -3,7 +3,8 @@
 import { useId, useState } from "react";
 import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import type { MdxAttribute } from "@/lib/editor/types";
-import { editableAttributes, HERO_ATTRIBUTE, isSelfClosing, supportsHero } from "./mdx-blocks";
+import { HERO_ATTRIBUTE, supportsHero } from "@/lib/editor/hero";
+import { editableAttributes, isSelfClosing } from "./mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
 import { LinkCard } from "@/components/mdx/LinkCard";
 import { useSetOgImage } from "./og-image";
@@ -184,7 +185,13 @@ export function MdxBlockView({
           : "outline outline-1 outline-transparent hover:outline-dashed hover:outline-border",
       )}
     >
+      {/* The label row is chrome, and chrome that sits inside the editable
+          element is document text as far as the browser is concerned: a
+          selection the browser serializes itself — one starting in the title
+          field, above ProseMirror — carried "hero" and "remove" into the
+          clipboard, and pasting it wrote the two words into the post. */}
       <div
+        contentEditable={false}
         className={cn(
           "absolute -top-8 left-0 right-0 flex items-center gap-2 font-sans transition-opacity",
           selected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
