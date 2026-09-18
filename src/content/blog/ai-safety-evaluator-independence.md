@@ -1,14 +1,19 @@
 ---
 title: "從 OpenAI 攻擊 Hugging Face 看 AI 安全的監督困境"
 subtitle: "揭開 AI 安全機構的資金與獨立性迷思"
-description: "2026 年 9 月，一份自稱審計 Anthropic 財務的文件指控 AI 安全評估者被它要評估的公司養著。這篇拆解那條推論鏈為什麼接不起來，以及它戳到的制度問題為什麼是真的。"
-datetime: "2026-09-16"
-readTime: "8 min"
+description: "從 OpenAI 模型越權事件，看 AI 安全第三方評估機構的監督困境。拆解「末日論」資金鏈傳聞為何存在邏輯矛盾，以及評估機構真正面臨的「存取權依賴」與「同溫層盲點」制度困境。"
+datetime: "2026-09-18"
+readTime: "10 min"
 category: "professional"
-tags: ["AI 安全", "AI 治理", "METR", "第三方評估", "利益衝突", "AI 監管"]
+tags: ["AI 安全", "METR", "AI 監管", "AI 末世論", "OpenAI", "Anthropic", "xAI"]
 draft: true
-ogImage: "/blog-images/ai-safety-evaluator-independence-sam-altman-post.webp"
+ogImage: "/blog-images/ai-safety-evaluator-independence-hero.webp"
+featured: true
 ---
+
+<Figure src="/blog-images/ai-safety-evaluator-independence-hero.webp" alt="等距視角的線條插畫，白底搭配橘色點綴，畫面是一整片資料中心的伺服器機櫃，機櫃之間散布著多個造型簡單的人形 agent：左上角三個聚在牆面裂縫旁，中間兩個面對面比著手勢交談，一個站在機櫃前伸手指點，右上角還有一個從機櫃後方探頭張望" width={2752} height={1536} hero>
+
+</Figure>
 
 ## OpenAI 的 Agents 攻擊 Hugging Face 的事件
 
@@ -86,7 +91,7 @@ Elon Musk 也回應了一句：「Dario is right」，說明這件事他也會�
 
 ---
 
-## 第三方評估機構
+## **第三方評估機構及其利益衝突**
 
 現在 OpenAI、Anthropic 等等公司有個結構性的信任缺口，一個模型到底有多危險，只有建構它的人測得出來，因為只有他們手上有權重、有內部評估環境、有完整的訓練歷程。
 
