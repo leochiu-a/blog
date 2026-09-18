@@ -6,7 +6,7 @@ datetime: "2026-09-18"
 readTime: "10 min"
 category: "professional"
 tags: ["AI 安全", "METR", "AI 監管", "AI 末世論", "OpenAI", "Anthropic", "xAI"]
-draft: true
+draft: false
 ogImage: "/blog-images/ai-safety-evaluator-independence-hero.webp"
 featured: true
 ---
@@ -91,7 +91,7 @@ Elon Musk 也回應了一句：「Dario is right」，說明這件事他也會�
 
 ---
 
-## **第三方評估機構及其利益衝突**
+## 球員兼裁判？第三方評估機構與模型商的利益衝突
 
 現在 OpenAI、Anthropic 等等公司有個結構性的信任缺口，一個模型到底有多危險，只有建構它的人測得出來，因為只有他們手上有權重、有內部評估環境、有完整的訓練歷程。
 
@@ -102,10 +102,6 @@ Elon Musk 也回應了一句：「Dario is right」，說明這件事他也會�
 外部非營利組織拿到實驗室給的存取權，獨立跑危險能力評估，然後公開結果。
 
 METR 就是最具代表性的一家第三方評估機構，2023 年從 Alignment Research Center 分拆出來，最出名的產出是量測模型能自主完成多長任務的「時間跨度」研究。
-
----
-
-## 模型商與評估機構的利益衝突
 
 ### 關鍵基金會投資了 OpenAI 跟 Anthropic
 
