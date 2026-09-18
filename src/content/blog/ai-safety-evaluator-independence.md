@@ -117,13 +117,17 @@ METR 就是最具代表性的一家第三方評估機構，2023 年從 Alignment
 
 ### 利益衝突
 
-2026 年 9 月，一條推論在社群上瘋傳。它大致是這樣：
+2026 年 9 月，X 上的一則貼文引發社群熱議，Kevin Bass 宣稱對 Anthropic 進行了「財務審計」，並指控 Anthropic 與第三方機構 METR 之間存在嚴重的利益關聯，甚至呼籲國會介入調查。
 
-Facebook 共同創辦人 Dustin Moskovitz 早年投資了 Anthropic，隨著 Claude 起飛，那筆股權從幾億美元漲到數十億，接著他把它捐進了自己的基金會。
+為了證明這不是空穴來風，他在 GitHub 上公開了包含 4644 列文獻與鏈結的資料庫，試圖重構這條利益鏈。
 
-而這家基金會，養著一批號稱獨立第三方的評估機構，例如 METR，專門評估 Anthropic、OpenAI、Google 等這些大廠最新模型的風險，然後發布風險報告。
+Kevin Bass 質疑的核心邏輯在於：
 
-然後這些錢也養著一群替主流媒體生產「AI 會毀滅世界」內容的人，用來影響輿論。
+Dustin Moskovitz 早期投資了 Anthropic，隨後將暴增至數十億美元的股權捐入自己的基金會，而這筆資金恰巧撫養著號稱「獨立」的評估機構 METR。
+
+如此一來，便形成了一套看似自洽的商業閉環，Anthropic 估值越高，基金會就越有錢。資金源源不絕地投入，讓末日論聲音放大，進而促成公眾要求更多「獨立評估」。
+
+評估機構因此拿到更多撥款，但因為彼此皆為同溫層「自己人」，評估機構永遠不會給出對模型商致命的測試報告。
 
 <Figure
   src="/blog-images/ai-safety-evaluator-independence-kevin-bass-post.webp"
@@ -212,6 +216,8 @@ Anthropic 估值越高
 指控方：
 
 - [Kevin Bass 的原始貼文](https://x.com/kevinnbass/status/2099621874279817638)
+- [kevinnbass/metr-deep：以公開記錄重建 METR 的資金與獨立性](https://github.com/kevinnbass/metr-deep)
+- [kevinnbass/metr-money-figure：METR 與 Anthropic 金流圖與逐列證據](https://github.com/kevinnbass/metr-money-figure)
 - [Protos：Viral report alleges Anthropic's AI safety watchdog conflicted](https://protos.com/viral-report-alleges-anthropics-ai-safety-watchdog-conflicted/)
 - [OfficeChai：METR's independence questioned](https://officechai.com/ai/metrs-independence-questioned-after-x-user-highlights-financial-links-between-company-and-anthropic/)
 
