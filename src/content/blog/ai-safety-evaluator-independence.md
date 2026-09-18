@@ -97,19 +97,23 @@ Elon Musk 也回應了一句：「Dario is right」，說明這件事他也會�
 
 >> 這就像驗屋，如果整棟房子只有蓋的人有鑰匙，誰來驗？
 
-### 業界的解法是**第三方評估機構**
+### 業界的解法是第三方評估機構
 
 外部非營利組織拿到實驗室給的存取權，獨立跑危險能力評估，然後公開結果。
 
 METR 就是最具代表性的一家第三方評估機構，2023 年從 Alignment Research Center 分拆出來，最出名的產出是量測模型能自主完成多長任務的「時間跨度」研究。
 
-### 關鍵基金會投資了 OpenAI 跟 Anthropic
+### 第三方評估機構的資金來源與背後爭議
 
-Good Ventures 是 [Moskovitz](https://en.wikipedia.org/wiki/Dustin_Moskovitz) 與 [Cari Tuna](https://en.wikipedia.org/wiki/Cari_Tuna) 的基金會，最新稅表資產約 101 億美元，旗下長出的 Open Philanthropy（2025 年 11 月改名 Coefficient Giving）是 AI 安全領域最大的單一資助者。
+有幾個關鍵人物跟組織：
 
-而 Moskovitz 2017 年捐了 3000 萬美元給 OpenAI 非營利體，2021 年參與 Anthropic 那輪 1.24 億美元募資。
+- **Dustin Moskovitz 與 Cari Tuna**：[Moskovitz](https://en.wikipedia.org/wiki/Dustin_Moskovitz) 是 Facebook 與 Asana 的共同創辦人，[Cari Tuna](https://en.wikipedia.org/wiki/Cari_Tuna) 是他的太太。
+- **Good Ventures**：Moskovitz 夫婦的家族基金會，最新稅表顯示資產約 101 億美元。
+- **Open Philanthropy**（2025 年 11 月改名 Coefficient Giving）：由 Good Ventures 出資成立的撥款機構，是目前 AI 安全領域最大的單一資助者，也是撥款給 METR 的那一方。
 
-> [Moskovitz](https://en.wikipedia.org/wiki/Dustin_Moskovitz) 是 Facebook 與 Asana 的共同創辦人，而 [Cari Tuna](https://en.wikipedia.org/wiki/Cari_Tuna) 是他的老婆。
+2017 年 OpenAI 仍是非營利組織時，拿到的 3000 萬美元屬於 Open Philanthropy 的機構撥款（分三年提供），並由 Holden Karnofsky 代表取得一席董事。
+
+相對地，Anthropic 在 2021 年的 1.24 億美元 A 輪融資，則是 Dustin Moskovitz 等人的「個人參投」。不論是 Good Ventures 還是 Open Philanthropy，基金會本身都未參與這筆投資。
 
 ### 利益衝突
 
