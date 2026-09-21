@@ -20,7 +20,6 @@ export const postFrontmatterSchema = z.object({
   updated: z.string().optional(),
   readTime: z.string(),
   category: z.enum(["professional", "personal"]),
-  featured: z.boolean().optional(),
   draft: z.boolean().optional(),
 });
 

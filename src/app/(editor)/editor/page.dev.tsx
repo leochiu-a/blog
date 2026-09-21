@@ -4,6 +4,7 @@ import { Pin } from "lucide-react";
 import { editorPath, type CollectionName } from "@/lib/editor/collections";
 import { parseDocument } from "@/lib/editor/document";
 import { readFlag, readText } from "@/lib/editor/frontmatter-fields";
+import { isRecent } from "@/lib/featured";
 import { CATEGORIES } from "@/lib/post-frontmatter";
 import { issueStore, postStore } from "@/lib/editor/store";
 import { NewDocumentButton } from "@/components/editor/NewDocumentButton";
@@ -46,7 +47,7 @@ async function loadDocuments(store: Store): Promise<DocumentSummary[]> {
         readTime: readText(frontmatter, "readTime"),
         category: readText(frontmatter, "category"),
         ogImage: readText(frontmatter, "ogImage"),
-        featured: readFlag(frontmatter, "featured"),
+        featured: isRecent(readText(frontmatter, "datetime")),
         draft: readFlag(frontmatter, "draft"),
       };
     }),

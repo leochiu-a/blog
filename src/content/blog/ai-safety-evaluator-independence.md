@@ -8,7 +8,6 @@ category: "professional"
 tags: ["AI 安全", "METR", "AI 監管", "AI 末世論", "OpenAI", "Anthropic", "xAI"]
 draft: false
 ogImage: "/blog-images/ai-safety-evaluator-independence-hero.webp"
-featured: true
 ---
 
 <Figure src="/blog-images/ai-safety-evaluator-independence-hero.webp" alt="等距視角的線條插畫，白底搭配橘色點綴，畫面是一整片資料中心的伺服器機櫃，機櫃之間散布著多個造型簡單的人形 agent：左上角三個聚在牆面裂縫旁，中間兩個面對面比著手勢交談，一個站在機櫃前伸手指點，右上角還有一個從機櫃後方探頭張望" width={2752} height={1536} hero />

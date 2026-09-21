@@ -9,7 +9,8 @@ export interface Post {
   /** Frontmatter summary and hero, shown in the listing's hover preview. */
   description?: string;
   ogImage?: string;
-  featured?: boolean; // gold ✦ marker
+  /** Gold ✦ marker. Derived from the date — see lib/featured.ts. */
+  featured?: boolean;
   draft?: boolean; // unpublished — only ever reaches the listing in `next dev`
 }
 
@@ -52,7 +53,7 @@ export interface IssueSummary {
   subtitle?: string;
   date: string; // display string, e.g. "8 Sep 2026"
   datetime: string; // ISO
-  /** Gold ✦ marker. Derived from the date, unlike a post's hand-set flag. */
+  /** Gold ✦ marker. Derived from the date — see lib/featured.ts. */
   featured?: boolean;
   draft?: boolean;
 }

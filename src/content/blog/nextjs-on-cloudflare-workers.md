@@ -7,7 +7,6 @@ datetime: "2026-09-14"
 readTime: "9 min"
 category: "professional"
 tags: ["Cloudflare Workers", "OpenNext", "Next.js", "workerd", "Cache", "部署"]
-featured: true
 ---
 
 <Figure

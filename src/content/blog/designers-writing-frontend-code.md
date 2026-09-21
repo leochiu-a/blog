@@ -7,7 +7,6 @@ datetime: "2026-09-06"
 readTime: "9 min"
 category: "professional"
 tags: ["Figma MCP", "設計師寫 code", "Design System", "前端協作", "Code Connect", "Figma"]
-featured: true
 ---
 
 <Figure

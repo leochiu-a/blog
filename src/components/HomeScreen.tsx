@@ -1,4 +1,5 @@
 import { posts } from "@/lib/posts";
+import { isRecent } from "@/lib/featured";
 import { issues } from "@/lib/issues";
 import { PortfolioApp } from "@/components/PortfolioApp";
 import { JsonLd } from "@/components/JsonLd";
@@ -15,32 +16,9 @@ const toPost = (entry: (typeof posts)[number]): Post => ({
   datetime: entry.datetime,
   description: entry.description,
   ogImage: entry.ogImage,
-  featured: entry.featured,
+  featured: isRecent(entry.datetime),
   draft: entry.draft,
 });
-
-const A_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
-
-/**
- * An Issue earns the ✦ for its first month.
- *
- * A post is starred by hand in its frontmatter, because "the one worth reading"
- * is a judgement about that post. An Issue is starred by age instead: they go
- * out on a schedule and the only interesting one is the one that just landed,
- * so nothing has to be un-starred by hand when the next one ships.
- *
- * The comparison happens at build time, not in the browser — the home page is
- * prerendered, and a `Date.now()` on the client would disagree with the HTML it
- * hydrates. That does mean a star outlives its month until the next deploy,
- * which is the right trade for a site that redeploys whenever anything is
- * published.
- */
-// Module scope, not inside the component: this is read once when the page is
-// built, and a `Date.now()` in a render body is an impure call the React
-// compiler rejects. It also means every Issue is aged against the same instant.
-const BUILT_AT = Date.now();
-
-const isRecent = (datetime: string) => BUILT_AT - Date.parse(datetime) < A_MONTH_MS;
 
 const toIssue = (entry: (typeof issues)[number]): IssueSummary => ({
   title: entry.title,

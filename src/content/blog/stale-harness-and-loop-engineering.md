@@ -7,7 +7,6 @@ datetime: "2026-08-25"
 updated: "2026-08-28"
 readTime: "9 min"
 category: "professional"
-featured: true
 tags: ["AI Agent", "Harness Engineering", "Loop Engineering", "Prompt Engineering", "AI 工程"]
 ---
 

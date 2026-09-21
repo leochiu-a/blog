@@ -4,7 +4,7 @@ import { applyFrontmatter, parseFrontmatter } from "./frontmatter";
 const SOURCE = [
   `title: "Hello"`,
   `datetime: "2026-01-01"`,
-  `featured: true`,
+  `draft: true`,
   `tags: ["AI", "工程師職涯"]`,
 ].join("\n");
 
@@ -39,12 +39,12 @@ describe("writing frontmatter back", () => {
   });
 
   it("leaves booleans unquoted", () => {
-    expect(applyFrontmatter(SOURCE, { ...values, draft: true })).toContain("draft: true");
+    expect(applyFrontmatter(SOURCE, { ...values, draft: false })).toContain("draft: false");
   });
 
   it("drops a key that is no longer there", () => {
-    const { featured: _featured, ...rest } = values;
+    const { draft: _draft, ...rest } = values;
 
-    expect(applyFrontmatter(SOURCE, rest)).not.toContain("featured");
+    expect(applyFrontmatter(SOURCE, rest)).not.toContain("draft");
   });
 });

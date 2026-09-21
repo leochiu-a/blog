@@ -7,7 +7,6 @@ readTime: "12 min"
 category: "professional"
 ogImage: "/blog-images/chrome-built-in-ai-and-webmcp-hero.webp"
 tags: ["Built-in AI", "WebMCP", "Gemini Nano", "Prompt API", "AI Agent", "Web Platform"]
-featured: true
 ---
 
 <Figure src="/blog-images/chrome-built-in-ai-and-webmcp-hero.webp" alt="Chrome Built-in AI 與 WebMCP 的示意圖：瀏覽器同時扮演本地推論引擎與 AI agent 的工具提供者" width={1600} height={872} hero />

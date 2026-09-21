@@ -36,7 +36,7 @@ describe("reading a field", () => {
 
   it("reads a flag, missing or not", () => {
     expect(readFlag(post, "draft")).toBe(true);
-    expect(readFlag(post, "featured")).toBe(false);
+    expect(readFlag(post, "nope")).toBe(false);
   });
 });
 

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -30,7 +29,6 @@ import { CATEGORIES } from "@/lib/post-frontmatter";
 import { seoTitle } from "@/lib/site";
 import { collectionOf, type CollectionName } from "@/lib/editor/collections";
 import {
-  readFlag,
   readList,
   readText,
   withField,
@@ -191,17 +189,6 @@ export function SettingsPanel({
               </Field>
 
               {text("readTime", "readTime", "5 min")}
-
-              <Field orientation="horizontal">
-                <FieldLabel htmlFor="featured">featured</FieldLabel>
-                <Switch
-                  id="featured"
-                  checked={readFlag(frontmatter, "featured")}
-                  onCheckedChange={(checked) =>
-                    checked ? set("featured", true) : clear("featured")
-                  }
-                />
-              </Field>
             </FieldSet>
           )}
 
