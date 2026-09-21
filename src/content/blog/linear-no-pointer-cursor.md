@@ -128,10 +128,6 @@ npx shadcn@latest init --pointer
 
 <Figure src="/blog-images/image-3.webp" alt="" width={1866} height={460} caption="https://github.com/shadcn-ui/ui/issues/7501" />
 
->>
-
-##
-
 ---
 
 ## 小結
