@@ -6,7 +6,6 @@ datetime: "2026-09-21"
 readTime: "4 min"
 category: "professional"
 tags: ["Linear", "CSS", "Tailwind CSS", "shadcn/ui", "Design System"]
-draft: true
 ogImage: "/blog-images/linear-no-pointer-cursor-hero.webp"
 ---
 
