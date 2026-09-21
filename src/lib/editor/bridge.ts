@@ -127,6 +127,21 @@ function inlineToPm(nodes: PhrasingContent[], marks: PmMark[]): PmNode[] {
   return out;
 }
 
+/**
+ * The children of a container the schema will not accept empty.
+ *
+ * Markdown can write one — `>`, `>>` and a bare `-` are all a container with
+ * nothing in it — while `blockquote` is `block+` and `listItem` is
+ * `paragraph block*`. Handing ProseMirror the empty node builds a document
+ * that violates its own schema, and an invalid node has no position inside it
+ * to put a cursor in: an empty pull quote could be neither typed into nor
+ * deleted, because every keystroke started from a state ProseMirror had no
+ * rule for. One empty paragraph is what the writer sees anyway.
+ */
+function filled(children: PmNode[]): PmNode[] {
+  return children.length > 0 ? children : [{ type: "paragraph" }];
+}
+
 function blockToPm(node: RootContent): PmNode {
   switch (node.type) {
     case "paragraph":
@@ -138,7 +153,7 @@ function blockToPm(node: RootContent): PmNode {
         content: inlineToPm(node.children, []),
       };
     case "blockquote":
-      return { type: "blockquote", content: node.children.map(blockToPm) };
+      return { type: "blockquote", content: filled(node.children.map(blockToPm)) };
     case "list":
       return {
         type: node.ordered ? "orderedList" : "bulletList",
@@ -149,7 +164,7 @@ function blockToPm(node: RootContent): PmNode {
       return {
         type: "listItem",
         attrs: { checked: node.checked ?? null, spread: node.spread ?? false },
-        content: node.children.map(blockToPm),
+        content: filled(node.children.map(blockToPm)),
       };
     case "code":
       return {
