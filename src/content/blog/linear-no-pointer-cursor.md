@@ -1,11 +1,11 @@
 ---
 title: "為什麼 Linear 與 Tailwind v4 都不再幫按鈕加上 cursor: pointer？"
 subtitle: "從一個 CSS 細節，看 Web 與 Native App 介面語彙的演進"
-description: "Linear 的 app 裡，滑鼠移到按鈕上不會變成手指游標。這是刻意的設計決策，官方說法是要模擬 Mac app 的原生手感。這篇談 cursor: pointer 的歷史語意、Linear 為什麼敢拿掉它，Tailwind v4 又是怎麼把同一個決定變成全世界的預設值，以及跟著做之前你得先補上什麼。"
+description: "發現升級 Tailwind v4 或用 shadcn 時按鈕都不會變手指游標了嗎？這不是 bug！從 Linear 追求的 Mac 原生手感到 CSS 規格真相，聊聊為什麼按鈕本來就不該是 pointer，以及各大工具是怎麼跟進的。"
 datetime: "2026-09-21"
 readTime: "4 min"
 category: "professional"
-tags: ["Linear", "CSS", "cursor pointer", "Tailwind CSS", "shadcn/ui", "UI 設計", "Design System", "可用性"]
+tags: ["Linear", "CSS", "Tailwind CSS", "shadcn/ui", "Design System"]
 draft: true
 ogImage: "/blog-images/linear-no-pointer-cursor-hero.webp"
 ---
