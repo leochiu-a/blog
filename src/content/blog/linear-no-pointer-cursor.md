@@ -1,42 +1,35 @@
 ---
-title: "為什麼 Linear 的按鈕不會變成手指游標"
+title: "為什麼 Linear 的按鈕都不用 cursor: pointer"
 subtitle: "從一個 CSS 小細節，看 web app 與桌面 app 的介面語彙差異"
-description: "Linear 的 app 裡，滑鼠移到按鈕上不會變成手指游標。這是刻意的設計決策，官方說法是要模擬 Mac app 的原生手感。這篇談 cursor: pointer 的歷史語意、Linear 為什麼敢拿掉它，以及跟著做之前你得先補上什麼。"
-datetime: "2026-09-16"
-readTime: "6 min"
+description: "Linear 的 app 裡，滑鼠移到按鈕上不會變成手指游標。這是刻意的設計決策，官方說法是要模擬 Mac app 的原生手感。這篇談 cursor: pointer 的歷史語意、Linear 為什麼敢拿掉它，Tailwind v4 又是怎麼把同一個決定變成全世界的預設值，以及跟著做之前你得先補上什麼。"
+datetime: "2026-09-21"
+readTime: "10 min"
 category: "professional"
-tags: ["Linear", "CSS", "cursor pointer", "UI 設計", "Design System", "可用性"]
+tags: ["Linear", "CSS", "cursor pointer", "Tailwind CSS", "shadcn/ui", "UI 設計", "Design System", "可用性"]
 draft: true
 ---
 
-## 先修正一個前提
+## Linear 的按鈕都不用 cursor: pointer
 
-我第一次聽到「Linear 不用 `cursor: pointer`」這個說法時，直覺是打開 linear.app 想驗證，結果掃出來的答案跟傳言相反。
+在 Linear 的 app 裡，把滑鼠移到 sidebar、issues、toolbar 按鈕上，滑鼠都不會變成 `cursor: pointer`，只有文字連結才會變成 `cursor: pointer`。
 
-我在 DevTools 跑了一段 script，把首頁上所有 `button`、`a`、`[role="button"]` 的 computed style 掃過一遍：
+所以我就有疑問了，按照印象中，在網頁中只要是可以點擊的項目，幾乎都會變成 `cursor: pointer` 才對。
 
-```js
-const els = [...document.querySelectorAll('button, a, [role="button"]')];
-els.map((el) => ({
-  tag: el.tagName,
-  text: (el.innerText || "").trim().slice(0, 20),
-  cursor: getComputedStyle(el).cursor,
-}));
-```
-
-行銷首頁上幾乎所有可互動元素都是 `pointer`。導覽列的 Product、Resources、Pricing、右上角的 Open app，全部都會變成手指。
-
-所以不用 pointer 的是**登入後的 Linear app 本體**，不是官網。這兩件事常常被混在一起講。
+<Clip src="/blog-videos/area-2026-09-20-19-36-19.mp4" poster="/blog-images/area-2026-09-20-19-36-19-poster.webp" width={1142} height={720} />
 
 ---
 
-## Linear 自己的說法
+## Linear 的官方說法
 
-Linear 官方在 2022 年發過一則推特，講的就是這個決定：
+Linear 官方在 2022 年在 X（Twitter）上發過一則推文：
 
 > One of the small preferences we introduced in the Linear app is not displaying the mouse cursor pointer over links. Most of our users never notice it — but to some it feels weird. So we gave them the option to make the switch if they don't like it.
 
-後來這則推文被丟上 [Hacker News 討論](https://news.ycombinator.com/item?id=30183948)，Linear 在串裡補了設計動機：他們要**模擬 Mac app 的原生手感**（"mimic the feeling you natively have on the desktop with our Mac app"）。
+<Figure src="/blog-images/image.webp" alt="" width={1200} height={715} caption="https://x.com/linear/status/1491467491335454729" />
+
+後來這則推文被丟上 [Hacker News 討論](https://news.ycombinator.com/item?id=30183948)，Linear 在串裡補了設計動機：
+
+>> Linear 要**模擬 Mac app 的原生手感**（"mimic the feeling you natively have on the desktop with our Mac app"）
 
 所以他們在設定裡開了兩種模式：
 
@@ -45,47 +38,99 @@ Linear 官方在 2022 年發過一則推特，講的就是這個決定：
 
 ---
 
-## 手指游標原本的意思是「導航」
+## pointer 原本的意思是「導航」
 
 這個決定背後有一段 web 的歷史包袱。
 
-CSS 裡叫 `pointer` 的那隻手，在早期瀏覽器的語意是**「這是一條超連結，點下去會跑到別的地方」**。它標記的是導航行為，不是「可以點擊」這件事。
+### CSS 規格
 
-而按鈕代表的是動作：送出表單、開啟 modal、切換狀態，頁面不會換位置。這兩種互動在 web 早期是分開的，只是後來 SPA 普及、`<div onClick>` 滿地跑，大家習慣把所有能點的東西都掛上 `cursor: pointer`，兩種語意就糊在一起了。
+`pointer` 這個關鍵字在 CSS2（1998）第一次出現，定義是：[The cursor is a pointer that indicates a link](https://www.w3.org/TR/CSS2/ui.html#propdef-cursor)。它指的是「這是一條超連結，點下去會跑到別的地方」不是「這裡可以點」。
 
-原生桌面 app 一直維持著另一套慣例。你在 macOS 的 Finder 側邊欄、Xcode 的 toolbar、Notes 的清單上移動滑鼠，游標從頭到尾都是箭頭。桌面 app 靠 hover 的背景色變化來告訴你「這格可以點」，游標本身不參與這件事。
+這句定義一路到最新的的 [CSS Basic UI Level 3](https://www.w3.org/TR/css-ui-3/) 都還是一樣。
 
-Linear 把自己定位成桌面等級的工具，而不是一個網站。所以 issue row、側邊欄項目、toolbar 按鈕全部維持箭頭，只有內文裡會把你帶去另一個頁面的文字連結才給手指。
+### HTML 渲染規格
 
->> 手指游標標記的是「會離開這一頁」，不是「這裡可以點」。
+而在 [HTML 規格的預設樣式表](https://html.spec.whatwg.org/multipage/rendering.html) 裡，整份 rendering 章節唯一一條 cursor 規則是：
+
+```css
+:link, :visited {
+  cursor: pointer 
+}
+```
+
+`button` 預設不會有 pointer 的樣式。
+
+>> 瀏覽器原生的按鈕本來就不會變手指
+
+### native mac app
+
+native mac app 一直維持著「按鈕不會變成手指」的慣例，你在 macOS 的 Finder 側邊欄、Notes 的清單上移動滑鼠，鼠標從頭到尾都是箭頭。
+
+如果你平常會用 **Claude Desktop、Figma**，他們也是維持著 native 的行為，但在 hover 到可以點擊的區塊時，會出現引導的背景顏色、該區塊的可點擊元素等等。
+
+### Linear
+
+Linear 想要實現的是 native mac app 的體驗，所以 issue row、sidebar、toolbar 按鈕全部維持箭頭，只有內文裡的文字連結才會變成 pointer。
 
 ---
 
-## 反對的聲音
+## Tailwind 這個圈子也有一樣的問題
 
-這件事在設計圈是有爭議的，HN 那串下面的批評主要有兩類。
+2022 年 7 月 26 日，有人在 Tailwind 開了 [issue #8961](https://github.com/tailwindlabs/tailwindcss/issues/8961)，主張 CSS 規格裡 `cursor: pointer` 的語意是超連結，按鈕不應該套上這個樣式。
 
-第一類是**「需要做成設定，代表設計本身沒解決」**。有人的說法是這等於提供了兩種都不夠對的行為，把連結跟按鈕混為一談之後，再用一個 toggle 把問題丟回給使用者。
+隔天 Adam Wathan （Tailwind 作者）自己開了 [PR #8962](https://github.com/tailwindlabs/tailwindcss/pull/8962)，把 preflight 裡 `button` 的 `cursor: pointer` 設定拔掉了。
 
-第二類是**可用性風險**。對非技術背景的使用者來說，游標變化是「這東西可以點」最強的訊號之一。拿掉它以後，affordance 得全部靠 hover 態、底線、色塊撐起來。撐不住的話，使用者會停在畫面上不確定哪裡能按。
+<Figure src="/blog-images/image-2.webp" alt="" width={1810} height={654} caption="https://github.com/tailwindlabs/tailwindcss/pull/8962" />
 
-這場辯論兩邊各有代表作，Adam Silver 的 [Buttons shouldn't have a hand cursor](https://uxdesign.cc/buttons-shouldnt-have-a-hand-cursor-part-2-4a6e1c8423a5) 站在 Linear 這邊，Pascal Heynol 的 [On the web, maybe buttons should have a hand cursor](https://thepascalheynol.medium.com/on-the-web-maybe-buttons-should-have-a-hand-cursor-1e4498c42b3e) 則站在對面。
+他寫下的理由是：
+
+> These days though very UI-forward applications like Linear are using the default cursor for buttons and I think this trend will continue as more people become aware that `cursor: pointer` is meant for links.
+
+九天後（2022/08/05）這個 commit 就被 revert 了，commit message 裡面寫了：
+
+> We're undecided on whether or not this should be released right now so we'll revert it and revisit it later.
+
+那則留言底下的倒讚超多，到最後 Tailwind v3，按鈕的 `cursor: pointer` 都還是留著。
 
 ---
 
-## 想跟著做的話
+## Tailwind v4 偷偷把按鈕的  `cursor: pointer` 拿掉了
 
-Linear 敢拿掉 pointer，是因為它每一個可互動元素都有很紮實的 hover 背景色、border 變化和 focus ring。游標這條訊號拿掉之後，還有另外三條在撐。
+2024 年 7 月，v4 的 `next` branch 裡面，這個樣式設定就被拿掉了。
 
-如果你的按鈕 hover 只有淡到看不出來的 opacity 變化，或者根本沒做 hover 態，那 pointer 可能是使用者唯一能確認「這裡能點」的線索。這種情況下跟著拿掉，只會讓介面變難用。
+[PR #14061](https://github.com/tailwindlabs/tailwindcss/pull/14061) 是一位外部貢獻者發現「既然 `cursor: pointer` 沒了，那條為了蓋掉它而存在的 `:disabled { cursor: default }` 也該清掉」，Adam 回了一句 `Good catch, thanks!` 就 merge 了。
 
-我的建議是照這個順序處理：
+後來有人發現 Tailwind 默默的移除這個設定，就開了一個討論串 [Silent removal of cursor: pointer](https://github.com/tailwindlabs/tailwindcss/discussions/18182)，想詢問作者這個改動是怎麼回事，後來作者有說他們有在 Tailwind v4 的 [upgrade guide](https://tailwindcss.com/docs/upgrade-guide#buttons-use-the-default-cursor) 裡面寫到：
 
-1. 先把 hover、active、focus-visible 三個狀態補齊，每個狀態的視覺差異要在一般螢幕亮度下看得出來
-2. 把「導航」跟「動作」在程式碼裡分開，`<a>` 就是 `<a>`，動作就用 `<button>`
-3. 做完前兩步以後，再決定要不要把 `<button>` 的 pointer 拿掉
+> Buttons now use `cursor: default` instead of `cursor: pointer` to match the default browser behavior.
 
-順帶一提，這個決定只影響滑鼠使用者。觸控裝置上沒有 hover、沒有游標，鍵盤使用者靠的是 focus ring。所以 pointer 這條訊號本來就只覆蓋一部分的人，把它當成唯一的 affordance 一直都是有問題的做法。
+最後這個討論串就這樣結束了。
+
+<Figure src="/blog-images/image-1.webp" alt="" width={1862} height={838} caption="https://github.com/tailwindlabs/tailwindcss/discussions/18182" />
+
+---
+
+## Shadcn 也沒有處理這個問題
+
+使用 Shadcn UI 的人，升級到 Tailwind v4 陸續發現按鈕 hover 不會變手指了，[issue #7501](https://github.com/shadcn-ui/ui/issues/7501) 有人問了這個修改：
+
+> The (eternal) question is, does this library want to move forward with or without the cursor-pointer rule on buttons?
+
+相關的 bug report 和 PR（[#6843](https://github.com/shadcn-ui/ui/issues/6843)、[#6800](https://github.com/shadcn-ui/ui/pull/6800)、[#7977](https://github.com/shadcn-ui/ui/pull/7977)）最後也都被 close 了， 因為其實這些回報的問題都是 feature。
+
+所以 shadcn 的 `<Button>` 沒有 `cursor-pointer`，不是元件庫做了什麼設計抉擇，純粹是因為 Tailwind v4 的改動。
+
+最後 Shadcn 在 CLI 加一個開關：
+
+```bash
+npx shadcn@latest init --pointer
+```
+
+<Figure src="/blog-images/image-3.webp" alt="" width={1866} height={460} caption="https://github.com/shadcn-ui/ui/issues/7501" />
+
+>>
+
+##
 
 ---
 
