@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { acceptsUploads, insertOptions } from "@/components/editor/insert-options";
-import { MDX_BLOCKS } from "@/components/editor/mdx-blocks";
+import { MDX_BLOCKS } from "./mdx-blocks";
 
 describe("what a Post may insert", () => {
   it("offers everything: uploads, every MDX block, and the plain-Markdown ones", () => {

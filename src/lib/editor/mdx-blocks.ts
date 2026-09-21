@@ -1,4 +1,4 @@
-import type { MdxAttribute } from "@/lib/editor/types";
+import type { MdxAttribute } from "./types";
 
 /** The MDX components the editor can insert, and how each one is shaped. */
 export type MdxBlockSpec = {
@@ -95,6 +95,16 @@ const SELF_CLOSING = new Set(
 
 export function isSelfClosing(name: string | null): boolean {
   return name !== null && SELF_CLOSING.has(name);
+}
+
+/**
+ * Which of the two MDX nodes a component is written as. A component that holds
+ * no children is an atom (`mdxLeaf`) rather than an empty container, so a
+ * selection can't reach through it and a join can't fill it — see `MdxLeaf` in
+ * `extensions.ts`.
+ */
+export function mdxNodeType(name: string | null): "mdxBlock" | "mdxLeaf" {
+  return isSelfClosing(name) ? "mdxLeaf" : "mdxBlock";
 }
 
 export function specFor(name: string | null): MdxBlockSpec | undefined {

@@ -28,7 +28,7 @@ function carriesHero(node: PmSchemaNode): boolean {
 export function heroPositions(doc: PmSchemaNode): number[] {
   const found: number[] = [];
   doc.descendants((node, pos) => {
-    if (node.type.name === "mdxBlock" && carriesHero(node)) found.push(pos);
+    if (node.type.name === "mdxLeaf" && carriesHero(node)) found.push(pos);
   });
   return found;
 }

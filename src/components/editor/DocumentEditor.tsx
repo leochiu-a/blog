@@ -200,6 +200,7 @@ export function DocumentEditor({
     () => [
       ...createExtensions({
         mdxBlock: () => ReactNodeViewRenderer(MdxBlockView),
+        mdxLeaf: () => ReactNodeViewRenderer(MdxBlockView),
         unknownBlock: () => ReactNodeViewRenderer(UnknownBlockView),
         codeBlock: () => ReactNodeViewRenderer(CodeBlockView),
       }),
@@ -311,7 +312,7 @@ export function DocumentEditor({
         const bitmap = await createImageBitmap(file);
 
         insertAtPlaceholder(editor, id, {
-          type: "mdxBlock",
+          type: "mdxLeaf",
           attrs: {
             name: "Figure",
             attributes: [
@@ -355,7 +356,7 @@ export function DocumentEditor({
         const { src, poster, width, height } = await result;
 
         insertAtPlaceholder(editor, id, {
-          type: "mdxBlock",
+          type: "mdxLeaf",
           attrs: {
             name: "Clip",
             attributes: [
@@ -397,7 +398,7 @@ export function DocumentEditor({
           .chain()
           .focus()
           .insertContent({
-            type: "mdxBlock",
+            type: "mdxLeaf",
             attrs: {
               name: "LinkCard",
               // What is missing is left out rather than written as an empty

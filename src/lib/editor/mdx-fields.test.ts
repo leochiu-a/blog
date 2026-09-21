@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { editableAttributes } from "@/components/editor/mdx-blocks";
+import { editableAttributes } from "./mdx-blocks";
 import type { MdxAttribute } from "./types";
 
 const text = (name: string, value: string): MdxAttribute => ({ name, value, expression: null });

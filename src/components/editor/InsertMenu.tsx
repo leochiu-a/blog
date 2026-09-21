@@ -13,7 +13,7 @@ import {
   type InsertOption,
   type UploadOption,
 } from "./insert-options";
-import { specFor } from "./mdx-blocks";
+import { mdxNodeType, specFor } from "@/lib/editor/mdx-blocks";
 
 type Props = {
   collection: CollectionName;
@@ -108,7 +108,7 @@ export function InsertMenu({
       .chain()
       .focus()
       .insertContent({
-        type: "mdxBlock",
+        type: mdxNodeType(spec.name),
         attrs: { name: spec.name, attributes: spec.attributes },
         ...(spec.selfClosing
           ? {}

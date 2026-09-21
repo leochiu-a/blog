@@ -1,6 +1,6 @@
 import { collectionOf, type CollectionName } from "@/lib/editor/collections";
 import { VIDEO_ACCEPT } from "@/lib/editor/uploads";
-import { MDX_BLOCKS } from "./mdx-blocks";
+import { MDX_BLOCKS } from "@/lib/editor/mdx-blocks";
 
 /**
  * What the `+` menu can put on the page, and — the part worth testing — which

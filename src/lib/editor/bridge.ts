@@ -9,6 +9,7 @@ import type {
 } from "mdast";
 import type { MdxJsxAttribute, MdxJsxExpressionAttribute } from "mdast-util-mdx-jsx";
 import type { MdxAttribute, PmMark, PmNode } from "./types";
+import { isSelfClosing } from "./mdx-blocks";
 
 /**
  * The mdast <-> ProseMirror bridge.
@@ -168,12 +169,16 @@ function blockToPm(node: RootContent): PmNode {
       return { type: "tableRow", content: node.children.map(blockToPm) };
     case "tableCell":
       return { type: "tableCell", content: inlineToPm(node.children, []) };
-    case "mdxJsxFlowElement":
-      return {
-        type: "mdxBlock",
-        attrs: { name: node.name, attributes: toMdxAttributes(node.attributes) },
-        content: node.children.map(blockToPm),
-      };
+    case "mdxJsxFlowElement": {
+      const attrs = { name: node.name, attributes: toMdxAttributes(node.attributes) };
+      // Which of the two MDX nodes a component becomes is the spec's call, not
+      // the file's: a `<Figure>` written with an empty line between its tags
+      // has no children either, and reading the shape off the source would
+      // make it a container that the next backspace could fill.
+      return isSelfClosing(node.name)
+        ? { type: "mdxLeaf", attrs }
+        : { type: "mdxBlock", attrs, content: node.children.map(blockToPm) };
+    }
     default:
       return { type: "unknownBlock", attrs: { mdast: withoutPosition(node) } };
   }
@@ -339,7 +344,8 @@ export function blockToMdast(node: PmNode): RootContent {
       return { type: "tableRow", children: (node.content ?? []).map(blockToMdast) as TableCell[] };
     case "tableCell":
       return { type: "tableCell", children: inlineToMdast(node.content ?? []) };
-    case "mdxBlock": {
+    case "mdxBlock":
+    case "mdxLeaf": {
       const attrs = (node.attrs ?? {}) as { name: string | null; attributes: MdxAttribute[] };
       return {
         type: "mdxJsxFlowElement",

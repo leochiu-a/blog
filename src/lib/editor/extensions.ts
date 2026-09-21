@@ -3,7 +3,7 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
-import { TextSelection, type Command } from "@tiptap/pm/state";
+import { NodeSelection, TextSelection, type Command } from "@tiptap/pm/state";
 import { wrapIn } from "@tiptap/pm/commands";
 import { common, createLowlight } from "lowlight";
 import { SoleHero } from "./hero";
@@ -115,6 +115,46 @@ const MdxBlock = Node.create({
   ],
 });
 
+/**
+ * A self-closing MDX component: `<Figure … />`, `<Clip … />`, `<LinkCard … />`.
+ *
+ * An atom, not an empty container. As a container it was a node with no
+ * children, which is a node with no position inside it: `<Figure>` occupied
+ * positions 14 and 16 and nothing in between, so a selection that reached past
+ * the block before it had nowhere to stop and landed on the far side — select
+ * the quote above a figure, press delete, and the figure went with it. The
+ * same hole let `joinBackward` pull the following paragraph *into* the figure,
+ * where `content: "block*"` accepted it, the node view hid it, and saving
+ * wrote it between the tags of a component that renders no children — the
+ * paragraph left the published page without ever looking deleted.
+ *
+ * Being an atom gives it what both of those were missing: one indivisible
+ * position, selected whole or not at all.
+ */
+const MdxLeaf = Node.create({
+  name: "mdxLeaf",
+  group: "block",
+  atom: true,
+  defining: true,
+  addAttributes: () => ({ name: { default: null }, attributes: { default: [] } }),
+  parseHTML: () => [
+    {
+      tag: "div[data-mdx-leaf]",
+      getAttrs: (element) => ({
+        name: element.getAttribute("data-mdx-leaf") || null,
+        attributes: attributesFromDOM(element),
+      }),
+    },
+  ],
+  renderHTML: ({ HTMLAttributes }) => [
+    "div",
+    {
+      "data-mdx-leaf": String(HTMLAttributes.name ?? ""),
+      "data-mdx-attributes": attributesToDOM(HTMLAttributes.attributes),
+    },
+  ],
+});
+
 const MdxInline = Node.create({
   name: "mdxInline",
   group: "inline",
@@ -163,6 +203,7 @@ const BLOCK_TYPES = [
   "horizontalRule",
   "table",
   "mdxBlock",
+  "mdxLeaf",
   "unknownBlock",
 ];
 
@@ -307,6 +348,34 @@ export const cycleQuote: Command = (state, dispatch) => {
   return true;
 };
 
+/**
+ * Backspace at the start of a block whose previous sibling is a self-closing
+ * MDX component selects that component instead of deleting it.
+ *
+ * ProseMirror's `joinBackward` ends with "if the node before is an atom,
+ * delete it", so one press at the top of the paragraph under a figure took the
+ * figure away, with nothing having named it as the target first. Selecting it
+ * shows what the next press will remove, which is what Backspace does over
+ * every other block — and it costs the writer one keystroke, not a dialog.
+ */
+export const selectLeafBackward: Command = (state, dispatch) => {
+  const { empty, $from } = state.selection;
+  if (!empty || $from.depth === 0 || $from.parentOffset > 0) return false;
+  if (!$from.parent.isTextblock) return false;
+
+  const index = $from.index($from.depth - 1);
+  if (index === 0) return false;
+
+  const before = $from.node($from.depth - 1).child(index - 1);
+  if (!before.isAtom || !before.type.isBlock) return false;
+
+  if (dispatch) {
+    const position = $from.before($from.depth) - before.nodeSize;
+    dispatch(state.tr.setSelection(NodeSelection.create(state.doc, position)));
+  }
+  return true;
+};
+
 const QuoteBoundary = Extension.create({
   name: "quoteBoundary",
   addKeyboardShortcuts() {
@@ -341,6 +410,16 @@ const QuoteBoundary = Extension.create({
  * would leave that post unable to round-trip through the editor for the sake
  * of a keymap. This only changes what the keyboard can produce.
  */
+const LeafBoundary = Extension.create({
+  name: "leafBoundary",
+  addKeyboardShortcuts() {
+    return {
+      Backspace: () =>
+        this.editor.commands.command(({ state, dispatch }) => selectLeafBackward(state, dispatch)),
+    };
+  },
+});
+
 const HeadingShortcuts = Extension.create({
   name: "headingShortcuts",
   addKeyboardShortcuts() {
@@ -356,6 +435,7 @@ const HeadingShortcuts = Extension.create({
 
 type NodeViewRenderers = {
   mdxBlock?: () => NodeViewRenderer;
+  mdxLeaf?: () => NodeViewRenderer;
   unknownBlock?: () => NodeViewRenderer;
   codeBlock?: () => NodeViewRenderer;
 };
@@ -392,12 +472,14 @@ export function createExtensions(nodeViews: NodeViewRenderers = {}) {
     TableRow,
     TableCell,
     nodeViews.mdxBlock ? MdxBlock.extend({ addNodeView: nodeViews.mdxBlock }) : MdxBlock,
+    nodeViews.mdxLeaf ? MdxLeaf.extend({ addNodeView: nodeViews.mdxLeaf }) : MdxLeaf,
     MdxInline,
     nodeViews.unknownBlock
       ? UnknownBlock.extend({ addNodeView: nodeViews.unknownBlock })
       : UnknownBlock,
     UnknownInline,
     QuoteBoundary,
+    LeafBoundary,
     HeadingShortcuts,
     LineNumbers,
     UploadPlaceholder,

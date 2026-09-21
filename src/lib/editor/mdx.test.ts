@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { MDX_BLOCKS, specFor } from "@/components/editor/mdx-blocks";
+import { MDX_BLOCKS, specFor } from "./mdx-blocks";
 import { parseDocument, serializeDocument } from "./document";
 import type { MdxAttribute, PmNode } from "./types";
 
@@ -32,7 +32,7 @@ describe("MDX components", () => {
     const document = parseDocument(post(COMPONENTS[0]!));
     const [block] = document.doc.content!;
 
-    expect(block!.type).toBe("mdxBlock");
+    expect(block!.type).toBe("mdxLeaf");
     expect(block!.attrs!.name).toBe("Figure");
     expect(attributesOf(block!)).toEqual([
       { name: "src", value: "/a.png", expression: null },

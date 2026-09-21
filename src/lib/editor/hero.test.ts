@@ -11,7 +11,7 @@ const hero: MdxAttribute = { name: HERO_ATTRIBUTE, value: null, expression: null
 
 /** A `<Figure>` block, named by its `src` so the assertions can tell them apart. */
 function figure(src: string, { isHero = false } = {}) {
-  return schema.nodes.mdxBlock!.create({
+  return schema.nodes.mdxLeaf!.create({
     name: "Figure",
     attributes: [{ name: "src", value: src, expression: null }, ...(isHero ? [hero] : [])],
   });

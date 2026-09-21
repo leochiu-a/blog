@@ -43,7 +43,8 @@ describe("post round-trip", () => {
   // reproduce — it writes every element on one line. That gap is exactly why
   // untouched blocks are replayed verbatim rather than rewritten.
   const isHandWrappedJsx = (block: PmNode) =>
-    block.type === "mdxBlock" && String(block.attrs?.source).includes("\n  ");
+    (block.type === "mdxBlock" || block.type === "mdxLeaf") &&
+    String(block.attrs?.source).includes("\n  ");
 
   it.each(postFiles)("%s re-serializes to the same markdown, block by block", (name) => {
     const source = read(name);

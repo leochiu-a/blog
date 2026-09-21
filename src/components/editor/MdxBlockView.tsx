@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import type { MdxAttribute } from "@/lib/editor/types";
 import { HERO_ATTRIBUTE, supportsHero } from "@/lib/editor/hero";
-import { editableAttributes, isSelfClosing } from "./mdx-blocks";
+import { editableAttributes, isSelfClosing } from "@/lib/editor/mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
 import { LinkCard } from "@/components/mdx/LinkCard";
 import { useSetOgImage } from "./og-image";
@@ -106,7 +106,7 @@ export function MdxBlockView({
 
     if (next) {
       state.doc.descendants((child, childPos) => {
-        if (child.type.name !== "mdxBlock" || childPos === position) return;
+        if (child.type.name !== node.type.name || childPos === position) return;
         const others = (child.attrs.attributes as MdxAttribute[]) ?? [];
         if (!others.some((attribute) => attribute.name === HERO_ATTRIBUTE)) return;
         tr.setNodeAttribute(
@@ -307,9 +307,10 @@ export function MdxBlockView({
         </FieldGroup>
       )}
 
-      <NodeViewContent
-        className={cn("prose prose-lg prose-zinc max-w-none", selfClosing && "hidden")}
-      />
+      {/* Only the container node has children to render. A self-closing
+          component is an atom — rendering a content hole into one asks
+          ProseMirror for a position that does not exist. */}
+      {!selfClosing && <NodeViewContent className="prose prose-lg prose-zinc max-w-none" />}
     </NodeViewWrapper>
   );
 }
