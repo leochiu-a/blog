@@ -4,6 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -67,6 +68,33 @@ describe("reading and writing posts", () => {
 
   it("reports a missing post rather than inventing one", async () => {
     await expect(store.read("nope")).rejects.toThrow(/not found/i);
+  });
+
+  /**
+   * `writeFile` truncates before it writes, and the editor saves on a timer
+   * inside a `next dev` process that gets restarted freely. A post came back
+   * at zero bytes from that overlap, so the swap goes through a sibling file
+   * and a rename, and the post is only ever replaced whole.
+   */
+  it("leaves nothing behind in the directory it wrote to", async () => {
+    await store.write("hello", "changed\n");
+
+    expect(readdirSync(join(root, "src/content/blog"))).toEqual(["hello.md"]);
+  });
+
+  it("cleans up after itself and keeps the post when the swap fails", async () => {
+    const path = join(root, "src/content/blog/hello.md");
+    const original = readFileSync(path, "utf8");
+    // A directory where the post should be: it passes the existence check, and
+    // the rename onto it is what fails.
+    rmSync(path);
+    mkdirSync(path);
+
+    await expect(store.write("hello", "changed\n")).rejects.toThrow();
+    expect(readdirSync(join(root, "src/content/blog"))).toEqual(["hello.md"]);
+
+    rmSync(path, { recursive: true });
+    writeFileSync(path, original);
   });
 
   it("refuses to write to a slug that has no post yet", async () => {

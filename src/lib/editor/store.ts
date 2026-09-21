@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
-import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import sharp from "sharp";
 import { stringify as stringifyYaml } from "yaml";
@@ -96,6 +97,32 @@ async function toWebp(
   }
 }
 
+/**
+ * Replace a file's contents in one step.
+ *
+ * `writeFile` truncates the file and then writes it, so a process killed
+ * between the two leaves nothing behind. The editor saves on a timer while the
+ * `next dev` process it lives in is restarted freely, and a post being edited
+ * came back at zero bytes from exactly that overlap — the save and the server's
+ * exit share a second in the logs.
+ *
+ * Writing a sibling and renaming it over the target makes the swap atomic on
+ * the same filesystem: a kill mid-write leaves a stray temp file and the
+ * document as it was. The temp name ends in `.tmp` rather than `.md`, so
+ * neither `listSlugs` nor the content collection watching that directory ever
+ * sees a half-written post.
+ */
+async function writeFileAtomic(path: string, contents: string): Promise<void> {
+  const temp = `${path}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temp, contents, "utf8");
+    await rename(temp, path);
+  } catch (error) {
+    await rm(temp, { force: true });
+    throw error;
+  }
+}
+
 async function exists(path: string): Promise<boolean> {
   try {
     await access(path, constants.F_OK);
@@ -124,7 +151,7 @@ export function createContentStore(root: string, collection: Collection) {
     // Saving only ever updates a document that exists; new ones go through
     // `create`, which is the one place a file is allowed to appear.
     if (!(await exists(path))) throw new EditorError(`Document not found: ${slug}`, 404);
-    await writeFile(path, contents, "utf8");
+    await writeFileAtomic(path, contents);
   }
 
   async function remove(slug: string): Promise<void> {
@@ -179,7 +206,7 @@ export function createContentStore(root: string, collection: Collection) {
       flowCollectionPadding: false,
     }).replace(/\n$/, "");
 
-    await writeFile(documentPath(slug), `---\n${yaml}\n---\n\n`, "utf8");
+    await writeFileAtomic(documentPath(slug), `---\n${yaml}\n---\n\n`);
     return slug;
   }
 
