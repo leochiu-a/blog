@@ -376,6 +376,13 @@ export function createExtensions(nodeViews: NodeViewRenderers = {}) {
         })
       : CodeBlockLowlight.configure({ lowlight, languageClassPrefix: "language-" }),
     Link.configure({ openOnClick: false }).extend({
+      // Tiptap ties the mark's inclusivity to `autolink`
+      // (`inclusive() { return this.options.autolink }`), so leaving autolink
+      // on means every character typed at the end of a link — the space after
+      // it included — is swallowed into the link. Autolink applies its marks
+      // over explicit ranges from an `appendTransaction`, so it keeps working
+      // with the mark closed; the two options only look related.
+      inclusive: () => false,
       addAttributes() {
         return { ...this.parent?.(), title: { default: null } };
       },
