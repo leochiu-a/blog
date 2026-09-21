@@ -1,13 +1,16 @@
 ---
-title: "為什麼 Linear 的按鈕都不用 cursor: pointer"
-subtitle: "從一個 CSS 小細節，看 web app 與桌面 app 的介面語彙差異"
+title: "為什麼 Linear 與 Tailwind v4 都不再幫按鈕加上 cursor: pointer？"
+subtitle: "從一個 CSS 細節，看 Web 與 Native App 介面語彙的演進"
 description: "Linear 的 app 裡，滑鼠移到按鈕上不會變成手指游標。這是刻意的設計決策，官方說法是要模擬 Mac app 的原生手感。這篇談 cursor: pointer 的歷史語意、Linear 為什麼敢拿掉它，Tailwind v4 又是怎麼把同一個決定變成全世界的預設值，以及跟著做之前你得先補上什麼。"
 datetime: "2026-09-21"
 readTime: "10 min"
 category: "professional"
 tags: ["Linear", "CSS", "cursor pointer", "Tailwind CSS", "shadcn/ui", "UI 設計", "Design System", "可用性"]
 draft: true
+ogImage: "/blog-images/linear-no-pointer-cursor-hero.webp"
 ---
+
+<Figure src="/blog-images/linear-no-pointer-cursor-hero.webp" alt="" width={2752} height={1536} hero />
 
 ## Linear 的按鈕都不用 cursor: pointer
 
@@ -15,7 +18,7 @@ draft: true
 
 所以我就有疑問了，按照印象中，在網頁中只要是可以點擊的項目，幾乎都會變成 `cursor: pointer` 才對。
 
-<Clip src="/blog-videos/area-2026-09-20-19-36-19.mp4" poster="/blog-images/area-2026-09-20-19-36-19-poster.webp" width={1142} height={720} />
+<Clip src="/blog-videos/linear-no-pointer-cursor-app-demo.mp4" poster="/blog-images/linear-no-pointer-cursor-app-demo-poster.webp" width={1142} height={720} />
 
 ---
 
@@ -25,7 +28,7 @@ Linear 官方在 2022 年在 X（Twitter）上發過一則推文：
 
 > One of the small preferences we introduced in the Linear app is not displaying the mouse cursor pointer over links. Most of our users never notice it — but to some it feels weird. So we gave them the option to make the switch if they don't like it.
 
-<Figure src="/blog-images/image.webp" alt="" width={1200} height={715} caption="https://x.com/linear/status/1491467491335454729" />
+<Figure src="/blog-images/linear-no-pointer-cursor-linear-tweet.webp" alt="" width={1200} height={715} caption="https://x.com/linear/status/1491467491335454729" />
 
 後來這則推文被丟上 [Hacker News 討論](https://news.ycombinator.com/item?id=30183948)，Linear 在串裡補了設計動機：
 
@@ -80,7 +83,7 @@ Linear 想要實現的是 native mac app 的體驗，所以 issue row、sidebar�
 
 隔天 Adam Wathan （Tailwind 作者）自己開了 [PR #8962](https://github.com/tailwindlabs/tailwindcss/pull/8962)，把 preflight 裡 `button` 的 `cursor: pointer` 設定拔掉了。
 
-<Figure src="/blog-images/image-2.webp" alt="" width={1810} height={654} caption="https://github.com/tailwindlabs/tailwindcss/pull/8962" />
+<Figure src="/blog-images/linear-no-pointer-cursor-tailwind-pr-8962.webp" alt="" width={1810} height={654} caption="https://github.com/tailwindlabs/tailwindcss/pull/8962" />
 
 他寫下的理由是：
 
@@ -106,7 +109,7 @@ Linear 想要實現的是 native mac app 的體驗，所以 issue row、sidebar�
 
 最後這個討論串就這樣結束了。
 
-<Figure src="/blog-images/image-1.webp" alt="" width={1862} height={838} caption="https://github.com/tailwindlabs/tailwindcss/discussions/18182" />
+<Figure src="/blog-images/linear-no-pointer-cursor-tailwind-discussion-18182.webp" alt="" width={1862} height={838} caption="https://github.com/tailwindlabs/tailwindcss/discussions/18182" />
 
 ---
 
@@ -126,12 +129,17 @@ Linear 想要實現的是 native mac app 的體驗，所以 issue row、sidebar�
 npx shadcn@latest init --pointer
 ```
 
-<Figure src="/blog-images/image-3.webp" alt="" width={1866} height={460} caption="https://github.com/shadcn-ui/ui/issues/7501" />
+<Figure src="/blog-images/linear-no-pointer-cursor-shadcn-issue-7501.webp" alt="" width={1866} height={460} caption="https://github.com/shadcn-ui/ui/issues/7501" />
 
 ---
 
 ## 小結
 
-Linear 拿掉手指游標，換來的是 app 更接近原生桌面軟體的質感。代價是每個可互動元素都得自己把 affordance 做到位，沒有退路。
+最近在研究 Linear 這個產品，使用的時候總覺得有哪裡跟其他的網頁不太一樣，後來發現原來是滑鼠的互動體驗不一樣。
 
-這是一個有立場的設計決策，它不通用，也不該通用。我自己在專案裡沒有跟著拿掉，因為我們的 hover 態還沒做到那個程度——游標是目前少數幾條穩定的訊號之一，先拆掉會讓使用者猜。
+所以就想要研究一下為什麼 Linear 的團隊會這樣選擇，研究到一半時，突然想到每次用 Shadcn UI 在做專案時，預設也不會有 `cursor: pointer`，所以我就好奇了，為什麼他們都這樣選擇。
+
+最後發現原因主要有兩個：
+
+- 一個是 CSS 跟 HTML 規範裡面，按鈕本身就就沒有定義要帶 `cursor: pointer`
+- 另一個是 mac native app 預設也不會改變鼠標，Linear 團隊想要盡量靠近原生的體驗，所以這樣抉擇
