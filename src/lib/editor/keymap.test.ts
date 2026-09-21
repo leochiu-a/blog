@@ -58,6 +58,60 @@ describe("backspace after a blockquote", () => {
   it("stands aside when what precedes it isn't a quote", () => {
     expect(backspaceOutOfQuote(stateAtEnd("a paragraph"), () => {})).toBe(false);
   });
+
+  /**
+   * An empty heading is as empty as an empty paragraph, and ProseMirror joins
+   * it into the quote just the same. Once it was in there the quote had two
+   * children, so it was no longer a pull quote, and no press deleted the
+   * heading — backspace only shuffled the two around.
+   */
+  it("deletes an empty heading under a pull quote instead of adopting it", () => {
+    let next: EditorState | undefined;
+    const loaded = stateAtEnd(">> a pull quote\n\n##");
+    // Into the empty heading itself, which is what the writer is backspacing
+    // out of — `stateAtEnd` parks the cursor a block further down.
+    const heading = loaded.doc.child(0).nodeSize + 1;
+    const state = loaded.apply(
+      loaded.tr.setSelection(TextSelection.near(loaded.doc.resolve(heading))),
+    );
+
+    expect(state.selection.$from.parent.type.name).toBe("heading");
+    expect(backspaceOutOfQuote(state, (tr) => (next = state.apply(tr)))).toBe(true);
+
+    const quote = next!.doc.child(0);
+    expect(quote.childCount).toBe(1);
+    expect(quote.child(0).type.name).toBe("blockquote");
+    expect(next!.selection.$from.parent.textContent).toBe("a pull quote");
+  });
+
+  /** And gets a quote that already adopted one back out of that state. */
+  it("removes an empty heading a quote has already adopted", () => {
+    const withHeading = schema.nodeFromJSON({
+      type: "doc",
+      content: [
+        {
+          type: "blockquote",
+          content: [
+            {
+              type: "blockquote",
+              content: [{ type: "paragraph", content: [{ type: "text", text: "a pull quote" }] }],
+            },
+            { type: "heading", attrs: { level: 2 } },
+          ],
+        },
+      ],
+    });
+    const start = EditorState.create({ schema, doc: withHeading });
+    const state = start.apply(
+      start.tr.setSelection(TextSelection.near(start.doc.resolve(start.doc.content.size - 1), -1)),
+    );
+
+    let next: EditorState | undefined;
+
+    expect(backspaceOutOfQuote(state, (tr) => (next = state.apply(tr)))).toBe(true);
+    expect(next!.doc.child(0).childCount).toBe(1);
+    expect(next!.doc.child(0).child(0).type.name).toBe("blockquote");
+  });
 });
 
 describe("enter at the end of a pull quote", () => {

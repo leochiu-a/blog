@@ -238,21 +238,26 @@ const MarkdownAttributes = Extension.create({
 });
 
 /**
- * Backspace in an empty paragraph that sits right after a blockquote.
+ * Backspace in an empty block that sits right after a blockquote.
  *
- * ProseMirror's default pulls the paragraph into the quote as one more child.
- * For a pull quote — `>>`, a blockquote whose only child is a blockquote —
- * that extra child breaks the `:only-child` shape the editor styles it by, so
- * it snaps back to two nested rules mid-typing. Delete the empty paragraph and
- * put the cursor at the end of the quote instead, which is what backspace
- * means everywhere else.
+ * ProseMirror's default pulls the block into the quote as one more child. For
+ * a pull quote — `>>`, a blockquote whose only child is a blockquote — that
+ * extra child breaks the `:only-child` shape the editor styles it by, so it
+ * snaps back to two nested rules mid-typing. Delete the empty block and put
+ * the cursor at the end of the quote instead, which is what backspace means
+ * everywhere else.
+ *
+ * Any empty textblock, not only a paragraph: an empty heading under a pull
+ * quote went in as the second child, and once it was in there the quote was
+ * no longer a pull quote, no press deleted the heading, and backspace just
+ * shuffled the two around — which reads as a block that cannot be removed.
  */
 export const backspaceOutOfQuote: Command = (state, dispatch) => {
   const { empty, $from } = state.selection;
   if (!empty || $from.depth === 0) return false;
 
-  const paragraph = $from.parent;
-  if (paragraph.type.name !== "paragraph" || paragraph.content.size > 0) return false;
+  const block = $from.parent;
+  if (!block.isTextblock || block.content.size > 0) return false;
 
   const index = $from.index($from.depth - 1);
   if (index === 0) return false;
@@ -260,7 +265,7 @@ export const backspaceOutOfQuote: Command = (state, dispatch) => {
 
   if (dispatch) {
     const start = $from.before();
-    const tr = state.tr.delete(start, start + paragraph.nodeSize);
+    const tr = state.tr.delete(start, start + block.nodeSize);
     // `start - 1` is just inside the blockquote's close; searching backwards
     // from there lands at the end of its last text, however deeply nested.
     tr.setSelection(TextSelection.near(tr.doc.resolve(start - 1), -1));
