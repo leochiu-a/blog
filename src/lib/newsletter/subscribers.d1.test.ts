@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { startOfUtcDay } from "./subscription.ts";
 import {
   confirmSubscriber,
+  confirmedCount,
   confirmedEmails,
   countConfirmationsOnDay,
   findSubscriber,
@@ -215,5 +216,29 @@ describe("the dashboard figures", () => {
       unsubscribed: 0,
       bounced: 0,
     });
+  });
+});
+
+describe("the recipient count the editor reads", () => {
+  it("agrees with the list the send would actually mail", async () => {
+    // Two statements answering the same question: the toolbar counts with
+    // `COUNT(*)` so opening an Issue does not drag the list across the
+    // network, the send reads the addresses because it has to mail them. A
+    // count that drifts from the list would promise a number the send misses.
+    await recordConfirmationSent(db, { email: "a@example.com", now: NOW, day: DAY, source: null });
+    await confirmSubscriber(db, "a@example.com", NOW);
+    await recordConfirmationSent(db, { email: "b@example.com", now: NOW, day: DAY, source: null });
+    await confirmSubscriber(db, "b@example.com", NOW);
+    await recordConfirmationSent(db, { email: "c@example.com", now: NOW, day: DAY, source: null });
+    await confirmSubscriber(db, "c@example.com", NOW);
+    await unsubscribeSubscriber(db, "c@example.com", NOW);
+    await recordConfirmationSent(db, { email: "d@example.com", now: NOW, day: DAY, source: null });
+
+    expect(await confirmedCount(db)).toBe((await confirmedEmails(db)).length);
+    expect(await confirmedCount(db)).toBe(2);
+  });
+
+  it("is zero on an empty list", async () => {
+    expect(await confirmedCount(db)).toBe(0);
   });
 });

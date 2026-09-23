@@ -174,6 +174,23 @@ export async function confirmedEmails(db: D1Database): Promise<string[]> {
   return results.map((row) => row.email);
 }
 
+/**
+ * How many addresses a send would go to, without reading them.
+ *
+ * Separate from `confirmedEmails` because the editor opens an Issue on every
+ * page render and only wants the number: the list itself crosses the network
+ * from the deployed database (see src/lib/newsletter/remote-env.ts), so
+ * fetching every row to take its `.length` costs more the longer the list
+ * gets. The send still reads the addresses — it has to mail them.
+ */
+export async function confirmedCount(db: D1Database): Promise<number> {
+  const row = await db
+    .prepare("SELECT COUNT(*) AS count FROM subscribers WHERE status = 'confirmed'")
+    .first<{ count: number }>();
+
+  return row?.count ?? 0;
+}
+
 /** Records unsubscribes that happened at Resend rather than through our own page. */
 export async function markUnsubscribedInBulk(
   db: D1Database,

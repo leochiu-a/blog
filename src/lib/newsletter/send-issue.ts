@@ -1,6 +1,6 @@
 import type { IssueFrontmatter } from "./issue-frontmatter.ts";
 import type { RemoteBroadcast, RemoteContact } from "./resend.ts";
-import { confirmedEmails, issueSentAt } from "./subscribers.ts";
+import { confirmedCount, issueSentAt } from "./subscribers.ts";
 import { parseEmail } from "./subscription.ts";
 import { issueEmail } from "./templates.ts";
 import { SITE_URL } from "../site.ts";
@@ -54,8 +54,8 @@ export interface SendState {
 }
 
 export async function issueSendState(db: D1Database, slug: string): Promise<SendState> {
-  const [sentAt, confirmed] = await Promise.all([issueSentAt(db, slug), confirmedEmails(db)]);
-  return { sentAt, recipients: confirmed.length };
+  const [sentAt, recipients] = await Promise.all([issueSentAt(db, slug), confirmedCount(db)]);
+  return { sentAt, recipients };
 }
 
 /**
