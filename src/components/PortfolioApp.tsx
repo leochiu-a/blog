@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ViewTransition } from "react";
 import type { IssueSummary, Mode, Post } from "@/types/content";
 import { NavLink } from "@/components/NavLink";
 import { ModeToggle } from "@/components/ModeToggle";
@@ -55,63 +55,70 @@ export function PortfolioApp({
   };
 
   return (
-    <main
-      // Professional mode is the dark one. The class lands here rather than on
-      // <html> so it can follow client-side state, with `html:has(.dark)` in
-      // globals.css carrying the tokens up to the document element — the same
-      // arrangement an article uses (see (blog)/layout.tsx).
-      className={`flex min-h-screen w-full max-w-300 flex-col items-center px-6 pb-10 pt-7 font-garamond${
-        mode === "professional" ? " dark" : ""
-      }`}
-    >
-      <header className="mb-12 flex w-full flex-wrap pb-3 text-sm sm:flex-nowrap">
-        {/* Below sm there isn't room for "Home" beside the toggle (the toggle
+    // Crossfades this page in and out on a client-side navigation. On the page
+    // rather than a layout, because a layout persists and never enters or
+    // exits. See node_modules/next/dist/docs/01-app/02-guides/view-transitions.md.
+    <ViewTransition enter="auto" exit="auto" default="none">
+      <main
+        // The one English page under a zh-Hant root layout (see (site)/layout.tsx).
+        lang="en"
+        // Professional mode is the dark one. The class lands here rather than on
+        // <html> so it can follow client-side state, with `html:has(.dark)` in
+        // globals.css carrying the tokens up to the document element — the same
+        // arrangement an article uses (see (site)/layout.tsx).
+        className={`flex min-h-screen w-full max-w-300 flex-col items-center px-6 pb-10 pt-7 font-garamond${
+          mode === "professional" ? " dark" : ""
+        }`}
+      >
+        <header className="mb-12 flex w-full flex-wrap pb-3 text-sm sm:flex-nowrap">
+          {/* Below sm there isn't room for "Home" beside the toggle (the toggle
             alone is 320px) — and this *is* the home page, so the link is
             redundant there. Hide it and give the toggle the whole row. */}
-        <nav
-          className="relative mx-auto flex w-full items-center justify-between"
-          aria-label="global"
-        >
-          <div className="z-10 hidden flex-1 items-center justify-start pb-8 sm:flex">
-            <NavLink href={pathForMode(mode)}>Home</NavLink>
-          </div>
-          <div className="z-0 flex w-full justify-center">
-            <ModeToggle mode={mode} onChange={switchTo} />
-          </div>
-          <div className="z-10 hidden flex-1 sm:flex" aria-hidden="true" />
-        </nav>
-      </header>
+          <nav
+            className="relative mx-auto flex w-full items-center justify-between"
+            aria-label="global"
+          >
+            <div className="z-10 hidden flex-1 items-center justify-start pb-8 sm:flex">
+              <NavLink href={pathForMode(mode)}>Home</NavLink>
+            </div>
+            <div className="z-0 flex w-full justify-center">
+              <ModeToggle mode={mode} onChange={switchTo} />
+            </div>
+            <div className="z-10 hidden flex-1 sm:flex" aria-hidden="true" />
+          </nav>
+        </header>
 
-      {/* flex-1 lets this block absorb any leftover viewport height so the
+        {/* flex-1 lets this block absorb any leftover viewport height so the
           footer below it stays pinned to the bottom even on sparse pages
           (e.g. personal mode with no posts yet) instead of floating mid-page. */}
-      <div className="flex w-full flex-1 flex-col gap-y-10">
-        <Hero mode={mode} onFlip={() => switchTo(otherMode(mode))} />
-        <AboutSection mode={mode} />
-        <Divider />
-        <PostsSection posts={mode === "professional" ? professionalPosts : personalPosts} />
-        {/* Professional mode only, like Stuff below it: the letter is written
+        <div className="flex w-full flex-1 flex-col gap-y-10">
+          <Hero mode={mode} onFlip={() => switchTo(otherMode(mode))} />
+          <AboutSection mode={mode} />
+          <Divider />
+          <PostsSection posts={mode === "professional" ? professionalPosts : personalPosts} />
+          {/* Professional mode only, like Stuff below it: the letter is written
             about the same work this side of the toggle is about, and personal
             mode is deliberately the sparser of the two. */}
-        {mode === "professional" && (
-          <>
-            {/* The rule belongs to the section, not to the gap: with every
+          {mode === "professional" && (
+            <>
+              {/* The rule belongs to the section, not to the gap: with every
                 Issue still in draft there is nothing to list, and a divider
                 rendered anyway leaves two rules around an empty band. */}
-            {recentIssues.length > 0 && (
-              <>
-                <Divider />
-                <NewsletterSection issues={recentIssues} />
-              </>
-            )}
-            <Divider />
-            <StuffSection />
-          </>
-        )}
-      </div>
+              {recentIssues.length > 0 && (
+                <>
+                  <Divider />
+                  <NewsletterSection issues={recentIssues} />
+                </>
+              )}
+              <Divider />
+              <StuffSection />
+            </>
+          )}
+        </div>
 
-      <Divider className="mt-20" />
-      <Footer />
-    </main>
+        <Divider className="mt-20" />
+        <Footer />
+      </main>
+    </ViewTransition>
   );
 }

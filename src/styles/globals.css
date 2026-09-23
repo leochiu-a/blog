@@ -1410,3 +1410,15 @@ input:-webkit-autofill:focus {
     opacity: 1;
   }
 }
+
+/* The navigation crossfade is the browser's own (see the <ViewTransition>s
+   around each page), and the browser plays it whatever the reader's motion
+   setting. Reduced motion gets an instant swap instead. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

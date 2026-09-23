@@ -49,17 +49,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogLayout({ children }: { children: React.ReactNode }) {
-  // No theme class here: an article's theme depends on which post is being read
-  // (see the `[slug]` page), which a root layout can't know. It lands on <main>
-  // instead, and `html:has(.dark)` in globals.css keeps <html> in step.
+export default function SiteLayout({ children }: { children: React.ReactNode }) {
+  // One root layout for the homepage and everything it links to. Next turns a
+  // navigation across two root layouts into a full page load (see
+  // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route-groups.md),
+  // so the homepage having its own was what made opening a post a reload, with
+  // no view transition to play between the two.
   //
-  // lang is hardcoded rather than derived from the post: this layout has no
-  // `app/layout.tsx` above it, so it's a root layout for its own subtree (see
-  // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/layout.md,
-  // "Root Layout"), and a root layout is prerendered once as the shared
-  // static shell — it never receives the `[slug]` param. Every published
-  // post is Traditional Chinese today; revisit if an English post ships.
+  // No theme class here: an article's theme depends on which post is being read
+  // (see the `[slug]` page), and the homepage's follows its mode. Both land on
+  // <main> instead, and `html:has(.dark)` in globals.css keeps <html> in step.
+  //
+  // lang is the site's language, not the page's: a root layout is prerendered
+  // once as the shared static shell and never learns which route it wraps. A
+  // page in another language says so on its own <main>, as the homepage does.
   return (
     <html lang="zh-Hant" className={fontVariables}>
       <body className="flex justify-center bg-background font-garamond antialiased">

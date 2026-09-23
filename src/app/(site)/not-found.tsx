@@ -14,7 +14,7 @@ import { NOT_FOUND_TITLE } from "@/lib/site";
    `generateMetadata` never runs.
 
    The body only, not a whole document — unlike `global-not-found` this renders
-   inside the (blog) root layout, which already brings the stylesheet, the
+   inside the (site) root layout, which already brings the stylesheet, the
    fonts and <body>. The centring the global file does with body classes has to
    happen here instead: that <body> is laid out for articles and only centres
    horizontally. */

@@ -25,7 +25,7 @@ export function seoTitle(title: string): string {
 
 /**
  * The `<title>` of every 404, wherever it is served from: `global-not-found`
- * for a URL that matches no route, `(blog)/not-found` for one that matches a
+ * for a URL that matches no route, `(site)/not-found` for one that matches a
  * dynamic segment and then turns out to have nothing behind it. Shared so the
  * two cannot drift into looking like two different sites.
  */

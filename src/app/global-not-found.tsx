@@ -6,8 +6,8 @@ import { fontVariables } from "@/lib/fonts";
 import { NOT_FOUND_TITLE } from "@/lib/site";
 
 /* `global-not-found` rather than `not-found`: every route here lives in a group
-   with its own root layout ((home), (blog), (editor)), so there is no single
-   layout a shared 404 could render inside. This file is the whole document —
+   with its own root layout ((site), (editor)), so there is no single layout a
+   shared 404 could render inside. This file is the whole document —
    Next skips rendering the app for an unmatched URL — which is why it imports
    the stylesheet and fonts itself. */
 export const metadata: Metadata = {

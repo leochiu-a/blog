@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import { Footer } from "@/components/Footer";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 
@@ -11,7 +12,7 @@ import { BlogHeader } from "@/components/blog/BlogHeader";
  * seam.
  *
  * `dark` sits on <main>, not <html>: this subtree has no root layout of its own
- * above `(blog)`, and `html:has(.dark)` in globals.css pulls the document
+ * above `(site)`, and `html:has(.dark)` in globals.css pulls the document
  * element into the same tokens. Same mechanism a professional post uses.
  */
 export function DarkPageShell({
@@ -23,19 +24,24 @@ export function DarkPageShell({
   headerActions?: React.ReactNode;
 }) {
   return (
-    <main className="dark flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10">
-      {/* `flex-1` plus `mt-auto` on the footer is the sticky-footer idiom: the
+    // Crossfades this page in and out on a client-side navigation. On the page
+    // rather than a layout, because a layout persists and never enters or
+    // exits. See node_modules/next/dist/docs/01-app/02-guides/view-transitions.md.
+    <ViewTransition enter="auto" exit="auto" default="none">
+      <main className="dark flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10">
+        {/* `flex-1` plus `mt-auto` on the footer is the sticky-footer idiom: the
           column grows to the full `min-h-screen`, and the free space collects
           above the footer instead of below it. Without it a short page — the
           subscribe page with no archive, a confirm landing — leaves the footer
           stranded in the middle of a tall viewport. */}
-      <div className="flex w-full min-w-0 max-w-[45.5rem] flex-1 flex-col">
-        <BlogHeader>{headerActions}</BlogHeader>
-        {children}
-        <div className="mt-auto">
-          <Footer variant="minimal" />
+        <div className="flex w-full min-w-0 max-w-[45.5rem] flex-1 flex-col">
+          <BlogHeader>{headerActions}</BlogHeader>
+          {children}
+          <div className="mt-auto">
+            <Footer variant="minimal" />
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </ViewTransition>
   );
 }

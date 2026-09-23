@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
@@ -37,7 +38,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = reachablePosts.find((p) => p.slug === slug);
   // No post behind the slug: the page below calls `notFound()`, and the 404's
-  // metadata comes from the boundary in `(blog)/not-found.tsx`, not from here.
+  // metadata comes from the boundary in `(site)/not-found.tsx`, not from here.
   if (!post) return {};
 
   const title = seoTitle(post.title);
@@ -130,86 +131,91 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   return (
     <>
       <JsonLd data={jsonLd} />
-      <main
-        className={cn(
-          "flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10",
-          post.category === "professional" && "dark",
-        )}
-      >
-        {/* 728px — Substack's column width, matching `.prose`'s own max-width. */}
-        <div className="w-full min-w-0 max-w-[45.5rem]">
-          <BlogHeader />
+      {/* Crossfades this page in and out on a client-side navigation. On the page
+          rather than a layout, because a layout persists and never enters or
+          exits. See node_modules/next/dist/docs/01-app/02-guides/view-transitions.md. */}
+      <ViewTransition enter="auto" exit="auto" default="none">
+        <main
+          className={cn(
+            "flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10",
+            post.category === "professional" && "dark",
+          )}
+        >
+          {/* 728px — Substack's column width, matching `.prose`'s own max-width. */}
+          <div className="w-full min-w-0 max-w-[45.5rem]">
+            <BlogHeader />
 
-          <article className="wrap-break-word">
-            <div id="blog-hero">
-              {post.draft && <DraftNotice what="post" />}
-              <h1 className="mt-2 font-sans text-3xl font-extrabold leading-[1.15] tracking-tight sm:mb-1 sm:text-4xl sm:leading-tight md:text-5xl">
-                {post.title}
-              </h1>
-              {post.subtitle && (
-                <p className="mt-3 font-sans text-lg leading-snug text-muted-foreground sm:text-xl">
-                  {post.subtitle}
-                </p>
-              )}
-              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <p className="font-sans text-sm text-muted-foreground">
-                  Leo Chiu
-                  {date && (
-                    <>
-                      {" · "}
-                      <time dateTime={post.datetime}>{date}</time>
-                    </>
-                  )}
-                  {post.readTime && ` · ${post.readTime}`}
-                </p>
-                {/* `ms-auto` on the group rather than on either control, so
+            <article className="wrap-break-word">
+              <div id="blog-hero">
+                {post.draft && <DraftNotice what="post" />}
+                <h1 className="mt-2 font-sans text-3xl font-extrabold leading-[1.15] tracking-tight sm:mb-1 sm:text-4xl sm:leading-tight md:text-5xl">
+                  {post.title}
+                </h1>
+                {post.subtitle && (
+                  <p className="mt-3 font-sans text-lg leading-snug text-muted-foreground sm:text-xl">
+                    {post.subtitle}
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <p className="font-sans text-sm text-muted-foreground">
+                    Leo Chiu
+                    {date && (
+                      <>
+                        {" · "}
+                        <time dateTime={post.datetime}>{date}</time>
+                      </>
+                    )}
+                    {post.readTime && ` · ${post.readTime}`}
+                  </p>
+                  {/* `ms-auto` on the group rather than on either control, so
                     the share trigger stays last whether or not the dev-only
                     edit link is beside it. */}
-                <div className="ms-auto flex items-center gap-x-3">
-                  <DevEditLink collection="posts" slug={post.slug} />
-                  <SharePost
-                    title={post.title}
-                    url={postUrl}
-                    image={post.ogImage ?? DEFAULT_OG_IMAGE}
-                  />
+                  <div className="ms-auto flex items-center gap-x-3">
+                    <DevEditLink collection="posts" slug={post.slug} />
+                    <SharePost
+                      title={post.title}
+                      url={postUrl}
+                      image={post.ogImage ?? DEFAULT_OG_IMAGE}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Both read the article out of the DOM below, so they render
+              {/* Both read the article out of the DOM below, so they render
                 after it is there but sit above it in the layout. `PostToc`
                 draws the rail; `SectionArrival` is what a URL naming one
                 section does to the page, and draws nothing. */}
-            <PostToc />
-            <SectionArrival />
+              <PostToc />
+              <SectionArrival />
 
-            <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
-              <Post />
-            </div>
+              <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
+                <Post />
+              </div>
 
-            {/* After the article, because it scrolls to a heading inside it and
+              {/* After the article, because it scrolls to a heading inside it and
                 runs the moment the parser arrives — which is only after the
                 headings exist. */}
-            <SectionLanding />
+              <SectionLanding />
 
-            <SubscribeCta source={post.href} />
+              <SubscribeCta source={post.href} />
 
-            {/* The bio and the read-more list are both post-script matter, so
+              {/* The bio and the read-more list are both post-script matter, so
                 the rhythm lives here rather than in each section: one gap after
                 the article, a tighter one between the two. Owning both spacings
                 in one place is what keeps the bio's band symmetric — 24px above
                 its content and 24px below, instead of 24 above and 48 below. */}
 
-            <div className="mt-12 flex flex-col gap-y-6">
-              <AuthorBio />
-              <RecentPosts slug={post.slug} category={post.category} />
-            </div>
+              <div className="mt-12 flex flex-col gap-y-6">
+                <AuthorBio />
+                <RecentPosts slug={post.slug} category={post.category} />
+              </div>
 
-            <ScrollToTop />
-            <Footer variant="minimal" />
-          </article>
-        </div>
-      </main>
+              <ScrollToTop />
+              <Footer variant="minimal" />
+            </article>
+          </div>
+        </main>
+      </ViewTransition>
     </>
   );
 }
