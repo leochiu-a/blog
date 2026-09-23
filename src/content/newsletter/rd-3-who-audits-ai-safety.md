@@ -1,6 +1,6 @@
 ---
 title: RD#3 誰來驗證 AI 的安全
-subtitle: 77 個模型版本的心理健康評測出爐，而負責評測的機構自己正在被追問獨立性
+subtitle: 首份大規模 AI 心理健康評測，以及背後難解的「監督困境」
 description: RD#3 —— Transluce 的 AI 心理健康評測、第三方評估機構的獨立性困境、GenAI 工具潮與當年一窩蜂學 Netflix 的對比、TypeSafe 主打型別安全的模型 Jev，以及 Linear 12.7 萬人的 AI 使用行為報告。
 datetime: 2026-09-22T00:00:00+08:00
 ---
