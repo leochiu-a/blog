@@ -8,7 +8,6 @@ import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { PostToc } from "@/components/blog/PostToc";
 import { SectionArrival } from "@/components/blog/SectionArrival";
-import { SectionLanding } from "@/components/blog/SectionLanding";
 import { RecentPosts } from "@/components/blog/RecentPosts";
 import { SubscribeCta } from "@/components/newsletter/SubscribeCta";
 import { Footer } from "@/components/Footer";
@@ -191,11 +190,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
                 <Post />
               </div>
-
-              {/* After the article, because it scrolls to a heading inside it and
-                runs the moment the parser arrives — which is only after the
-                headings exist. */}
-              <SectionLanding />
 
               <SubscribeCta source={post.href} />
 

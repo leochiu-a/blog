@@ -19,6 +19,13 @@
  * whether or not React ever hydrates; rendering it from a client component
  * would leave React free to re-create the node and run the scroll a second
  * time, after paint, which is the flash coming back in.
+ *
+ * Rendered by the root layout, after the page, rather than by the post. A
+ * layout is rendered once, on the document load this exists for, and persists
+ * through client-side navigations. From the post page, React would create the
+ * <script> itself whenever a reader navigated in — where it never runs, and
+ * where React warns about it. A client-side navigation needs none of this:
+ * the router scrolls to a fragment itself.
  */
 export const LANDING_SCRIPT = `(function () {
   var raw = location.hash.slice(1);
@@ -44,7 +51,7 @@ export const LANDING_SCRIPT = `(function () {
   if (heading) heading.scrollIntoView();
 })();`;
 
-/** Renders nothing but the script above. Must come after the article it lands in. */
+/** Renders nothing but the script above. Must come after the page it lands in. */
 export function SectionLanding() {
   return <script dangerouslySetInnerHTML={{ __html: LANDING_SCRIPT }} />;
 }

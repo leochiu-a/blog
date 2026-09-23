@@ -2,6 +2,7 @@
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { fontVariables } from "@/lib/fonts";
+import { SectionLanding } from "@/components/blog/SectionLanding";
 import { DEFAULT_OG_IMAGE, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -67,6 +68,9 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-Hant" className={fontVariables}>
       <body className="flex justify-center bg-background font-garamond antialiased">
         {children}
+        {/* After the page, so the heading it scrolls to has been parsed by the
+            time it runs. */}
+        <SectionLanding />
       </body>
     </html>
   );
