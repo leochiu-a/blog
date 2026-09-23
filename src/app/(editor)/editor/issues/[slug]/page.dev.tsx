@@ -16,6 +16,12 @@ export const dynamic = "force-dynamic";
  * no send button at all, which is the answer to "did I already send this?"
  * without pressing anything.
  *
+ * Started here but not awaited. The query crosses the network to the deployed
+ * database — ~0.7s warm, ~9s on the first open after `next dev` starts — and
+ * awaiting it held the whole writing surface back for a button in the corner.
+ * The promise streams to `SendIssueButton`, which suspends on its own while
+ * the rest of the editor is already open.
+ *
  * A failure is a value, not a throw. Reaching the deployed database needs a
  * network and a Wrangler login, and either can be missing on a laptop — the
  * writing surface has to open regardless, with the reason sitting in the send
@@ -43,7 +49,7 @@ export default async function EditIssue({ params }: { params: Promise<{ slug: st
       collection="issues"
       slug={slug}
       initialDocument={parseDocument(source)}
-      sendState={await sendState(slug)}
+      sendState={sendState(slug)}
     />
   );
 }

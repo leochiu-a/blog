@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -174,10 +175,11 @@ export function DocumentEditor({
   /**
    * Issues only, read from the deployed subscriber list by the page: whether
    * this Issue has gone out, and how many people the next send would reach.
-   * A Post has no list to be sent to, so it arrives undefined and the toolbar
-   * shows nothing.
+   * A promise, still in flight when the editor first renders — the send button
+   * waits for it and nothing else does. A Post has no list to be sent to, so
+   * it arrives undefined and the toolbar shows nothing.
    */
-  sendState?: SendState;
+  sendState?: Promise<SendState>;
 }) {
   const takesUploads = acceptsUploads(collection);
   const [frontmatter, setFrontmatter] = useState(initialDocument.frontmatter);
@@ -527,13 +529,24 @@ export function DocumentEditor({
             of you rather than from what the page read off disk, so publishing
             arms this button without a reload. */}
         {collection === "issues" && sendState !== undefined && (
-          <SendIssueButton
-            slug={slug}
-            subject={readText(frontmatter, "subject") || readText(frontmatter, "title")}
-            draft={readFlag(frontmatter, "draft")}
-            state={sendState}
-            onBeforeSend={flush}
-          />
+          // A disabled Send while the deployed list is still being read: the
+          // same size as what replaces it, so the toolbar does not jump, and
+          // not pressable, since the dialog would have no count to show.
+          <Suspense
+            fallback={
+              <Button size="sm" disabled>
+                Send
+              </Button>
+            }
+          >
+            <SendIssueButton
+              slug={slug}
+              subject={readText(frontmatter, "subject") || readText(frontmatter, "title")}
+              draft={readFlag(frontmatter, "draft")}
+              state={sendState}
+              onBeforeSend={flush}
+            />
+          </Suspense>
         )}
         <Button variant="ghost" size="sm" onClick={() => setShowSettings((open) => !open)}>
           Settings

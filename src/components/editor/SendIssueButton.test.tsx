@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { Suspense } from "react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SendIssueButton, type SendState } from "./SendIssueButton";
 
@@ -36,22 +37,32 @@ const RECEIPT = {
   recovered: false,
 };
 
-function renderButton({
+/**
+ * The state arrives as a promise streamed from the page, so the button
+ * suspends before it draws anything. Rendering inside `act` lets that promise
+ * settle before the test starts looking — every test here is about what the
+ * button does once the list has answered.
+ */
+async function renderButton({
   draft = false,
   state = { sentAt: null, recipients: 3 } as SendState,
 }: { draft?: boolean; state?: SendState } = {}) {
   const onBeforeSend = vi.fn(async () => {
     order.push("save");
   });
-  render(
-    <SendIssueButton
-      slug="first"
-      subject="第一期"
-      draft={draft}
-      state={state}
-      onBeforeSend={onBeforeSend}
-    />,
-  );
+  await act(async () => {
+    render(
+      <Suspense fallback={null}>
+        <SendIssueButton
+          slug="first"
+          subject="第一期"
+          draft={draft}
+          state={Promise.resolve(state)}
+          onBeforeSend={onBeforeSend}
+        />
+      </Suspense>,
+    );
+  });
   return { onBeforeSend };
 }
 
@@ -62,8 +73,8 @@ beforeEach(() => {
 });
 
 describe("the send button", () => {
-  it("does not offer to send an Issue that has already gone out", () => {
-    renderButton({ state: { sentAt: RECEIPT.sentAt, recipients: 3 } });
+  it("does not offer to send an Issue that has already gone out", async () => {
+    await renderButton({ state: { sentAt: RECEIPT.sentAt, recipients: 3 } });
 
     expect(screen.getByText(/^Sent · 2026-09-01$/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Send" })).toBeNull();
@@ -76,7 +87,7 @@ describe("the send button", () => {
   it("stays disabled until the slug is typed back", async () => {
     const fetch = stubFetch({ ok: true, status: 200, body: RECEIPT });
     const user = userEvent.setup();
-    renderButton();
+    await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     expect(sendButton().hasAttribute("disabled")).toBe(true);
@@ -97,7 +108,7 @@ describe("the send button", () => {
   it("saves the document before asking for the send", async () => {
     stubFetch({ ok: true, status: 200, body: RECEIPT });
     const user = userEvent.setup();
-    const { onBeforeSend } = renderButton();
+    const { onBeforeSend } = await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
@@ -110,7 +121,7 @@ describe("the send button", () => {
   it("answers the send it just performed, and offers no way to repeat it", async () => {
     const user = userEvent.setup();
     stubFetch({ ok: true, status: 200, body: RECEIPT });
-    renderButton();
+    await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
@@ -134,7 +145,7 @@ describe("the send button", () => {
       status: 409,
       body: { error: "已經寄過了", refusal: "already-sent", sentAt: RECEIPT.sentAt },
     });
-    renderButton();
+    await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
@@ -146,7 +157,7 @@ describe("the send button", () => {
   it("will not send a draft, and says which button to press instead", async () => {
     const fetch = stubFetch({ ok: true, status: 200, body: RECEIPT });
     const user = userEvent.setup();
-    renderButton({ draft: true });
+    await renderButton({ draft: true });
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     expect(screen.getByText(/先 Publish/)).toBeTruthy();
@@ -166,7 +177,7 @@ describe("the send button", () => {
    */
   it("lets the slug be selected out of the label it is written in", async () => {
     const user = userEvent.setup();
-    renderButton();
+    await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
 
@@ -188,7 +199,7 @@ describe("the send button", () => {
    */
   it("will not send when the subscriber list could not be read", async () => {
     const user = userEvent.setup();
-    renderButton({ state: { error: "D1 unreachable" } });
+    await renderButton({ state: { error: "D1 unreachable" } });
 
     await user.click(screen.getByRole("button", { name: "Send" }));
 
@@ -214,7 +225,7 @@ describe("the receipt", () => {
   it("reports the count, the broadcast and what reconciliation moved", async () => {
     const user = userEvent.setup();
     stubFetch({ ok: true, status: 200, body: receipt });
-    renderButton();
+    await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
@@ -233,7 +244,7 @@ describe("the receipt", () => {
   it("leaves the Sent badge behind once the receipt is dismissed", async () => {
     const user = userEvent.setup();
     stubFetch({ ok: true, status: 200, body: receipt });
-    renderButton();
+    await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
@@ -256,7 +267,7 @@ describe("the receipt", () => {
       status: 200,
       body: { ...receipt, recipients: 0, pulledUnsubscribes: 0, recovered: true },
     });
-    renderButton();
+    await renderButton();
 
     await user.click(screen.getByRole("button", { name: "Send" }));
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");

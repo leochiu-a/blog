@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,16 +64,18 @@ export function SendIssueButton({
   slug,
   subject,
   draft,
-  state,
+  state: pending,
   onBeforeSend,
 }: {
   slug: string;
   /** The subject line as the document currently reads, not as it was on disk. */
   subject: string;
   draft: boolean;
-  state: SendState;
+  /** Streamed from the page; suspends until the deployed list has answered. */
+  state: Promise<SendState>;
   onBeforeSend: () => Promise<void>;
 }) {
+  const state = use(pending);
   const [open, setOpen] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   // A send that was refused because the Issue had already gone out: the row was
