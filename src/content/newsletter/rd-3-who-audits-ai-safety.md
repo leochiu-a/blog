@@ -17,13 +17,13 @@ datetime: 2026-09-22T00:00:00+08:00
 
 *Leo Chiu · 4 分鐘*
 
-不知道你有沒有發現升級 Tailwind v4 後，發現滑鼠 hover 在按鈕不會變了 pointer 了？
+最近在研究 Linear 這個產品，使用的時候總覺得有哪裡跟其他的網頁不太一樣，後來發現原來是滑鼠的互動體驗不一樣，他們在能點的元素都沒有加上 `cursor: pointer`，所以就想要研究一下為什麼 Linear 的團隊會這樣選擇。
 
-不知道你有沒有發現 Shadcn UI 的預設行為，也不是 `cursor: pointer` ？
+研究到一半時，突然想到每次用 shadcn UI 做專案時，預設也不會有 `cursor: pointer`。
 
-不知道你有沒有發現 Linear 的整個網站設計，也都沒有使用 `cursor: pointer` ？
+而且，不知道大家有沒有發現，如果有經歷過 Tailwind v3 的專案升級到 v4，按鈕的 `cursor: pointer` 也默默的被拿掉。
 
-這些決策背後的脈絡是什麼？
+這篇文章記錄了來龍去脈。
 
 ## 重磅：AI 安全
 
