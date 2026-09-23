@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { CheckIcon, CircleCheckIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,7 +41,7 @@ function remember(email: string): void {
 type State =
   | { phase: "idle" }
   | { phase: "sending" }
-  | { phase: "sent"; subject: string }
+  | { phase: "sent"; subject: string; at: number }
   | { phase: "error"; message: string };
 
 /**
@@ -79,6 +80,17 @@ export function TestSendButton({
   const form = useRef<HTMLFormElement>(null);
   const [to, setTo] = useState("");
   const [state, setState] = useState<State>({ phase: "idle" });
+  // The button says it went for a moment after each send. A line of grey text
+  // under the field read the same as the hint it replaced, so a send that
+  // worked looked like a click that did nothing.
+  const [justSent, setJustSent] = useState(false);
+  const sentAt = state.phase === "sent" ? state.at : null;
+  useEffect(() => {
+    if (sentAt === null) return;
+    setJustSent(true);
+    const timer = window.setTimeout(() => setJustSent(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, [sentAt]);
 
   const openDialog = () => {
     setTo(remembered());
@@ -107,7 +119,7 @@ export function TestSendButton({
         return;
       }
       remember(to);
-      setState({ phase: "sent", subject: body?.subject ?? "" });
+      setState({ phase: "sent", subject: body?.subject ?? "", at: Date.now() });
     } catch (error) {
       setState({ phase: "error", message: error instanceof Error ? error.message : "寄不出去" });
     }
@@ -134,6 +146,8 @@ export function TestSendButton({
             ref={form}
             onSubmit={(event) => {
               event.preventDefault();
+              // A second click on 已寄出 is a double send, not a request for one.
+              if (justSent) return;
               void send();
             }}
           >
@@ -153,7 +167,13 @@ export function TestSendButton({
                 placeholder="you@example.com"
               />
               {state.phase === "sent" && (
-                <FieldDescription>寄出了：{state.subject}</FieldDescription>
+                <FieldDescription
+                  key={state.at}
+                  className="flex items-center gap-1.5 text-foreground animate-in fade-in-0 slide-in-from-top-1"
+                >
+                  <CircleCheckIcon className="size-4 shrink-0 text-emerald-500" aria-hidden />
+                  寄出了：{state.subject}
+                </FieldDescription>
               )}
               {state.phase === "error" && (
                 <FieldDescription className="text-destructive">{state.message}</FieldDescription>
@@ -173,7 +193,16 @@ export function TestSendButton({
                 關閉
               </Button>
               <Button type="submit" disabled={sending || to.trim() === ""}>
-                {sending ? "寄送中…" : "寄出測試信"}
+                {sending ? (
+                  "寄送中…"
+                ) : justSent ? (
+                  <span className="flex items-center gap-1.5 animate-in fade-in-0 zoom-in-95">
+                    <CheckIcon aria-hidden />
+                    已寄出
+                  </span>
+                ) : (
+                  "寄出測試信"
+                )}
               </Button>
             </div>
           </form>

@@ -87,6 +87,17 @@ describe("the test send button", () => {
     expect(screen.getByLabelText("收件地址")).toHaveProperty("value", "me@example.com");
   });
 
+  /** Grey text under the field read the same as the hint it replaced. */
+  it("says on the button that it went", async () => {
+    stubFetch(ok({ subject: "[測試] 第一期" }));
+    renderButton();
+
+    await openAndSend("me@example.com");
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "已寄出" })).toBeTruthy());
+    expect(screen.getByText(/寄出了：\[測試\] 第一期/)).toBeTruthy();
+  });
+
   it("shows what the route said went wrong", async () => {
     stubFetch({
       ok: false,
