@@ -33,7 +33,6 @@ export function RecentPosts({ slug, category }: { slug: string; category: string
                     src={post.ogImage}
                     alt=""
                     fill
-                    loading="lazy"
                     sizes="(min-width: 640px) 128px, 96px"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />

@@ -139,7 +139,6 @@ export function SharePost({ title, url, image }: SharePostProps) {
               src={image}
               alt=""
               fill
-              loading="lazy"
               sizes="(min-width: 640px) 26rem, 100vw"
               className="object-cover"
             />

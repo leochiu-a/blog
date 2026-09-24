@@ -33,6 +33,9 @@ export default function FlipPhoto({ flipped, onFlip, frontSrc, backSrc }: FlipPh
                 src={frontSrc}
                 alt="Professional profile"
                 fill
+                // Above the fold on the homepage, so skip next/image's default
+                // lazy wait. The back face stays lazy: nobody sees it until a flip.
+                loading="eager"
                 sizes="164px"
                 className="object-cover"
               />

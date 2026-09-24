@@ -22,7 +22,6 @@ export function AuthorBio() {
         alt={`${author.name} 的照片`}
         width={64}
         height={64}
-        loading="lazy"
         className="size-16 shrink-0 rounded-full object-cover"
       />
       <div className="min-w-0">
