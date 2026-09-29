@@ -7,6 +7,7 @@ import { HERO_ATTRIBUTE, supportsHero } from "@/lib/editor/hero";
 import { editableAttributes, isSelfClosing } from "@/lib/editor/mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
 import { LinkCard } from "@/components/mdx/LinkCard";
+import { VideoEmbed } from "@/components/mdx/VideoEmbed";
 import { useSetOgImage } from "./og-image";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +47,12 @@ export function MdxBlockView({
   const selfClosing = isSelfClosing(name);
   const value = (attribute: string) =>
     attributes.find((item) => item.name === attribute)?.value ?? "";
+  // `width={640}` is written as an expression, not a string value.
+  const numeric = (attribute: string) => {
+    const field = attributes.find((item) => item.name === attribute);
+    const parsed = Number(field?.expression ?? field?.value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  };
 
   // The two blocks a preview can be drawn for are the two that carry a caption,
   // and that caption is written under the preview instead of in the form.
@@ -272,6 +279,24 @@ export function MdxBlockView({
               description={value("description") || undefined}
               site={value("site") || undefined}
               image={value("image") || undefined}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* The published player, for the same reason as the card above. Pointer
+          events are off it too: a click inside a cross-origin frame hands focus
+          to the frame, and the keys would go with it — the same trap
+          `selectBlock` describes for a clip. The poster frame and title are
+          enough to tell the right video is linked. */}
+      {name === "VideoEmbed" && value("src") !== "" && (
+        <div contentEditable={false} role="presentation" onClick={selectBlock}>
+          <div className="pointer-events-none">
+            <VideoEmbed
+              src={value("src")}
+              title={value("title") || undefined}
+              width={numeric("width")}
+              height={numeric("height")}
             />
           </div>
         </div>
