@@ -20,10 +20,19 @@ export function VideoEmbed({ src, title, width = 640, height = 360 }: VideoEmbed
         src={src}
         width={width}
         height={height}
+        // Shrink with the column on a phone instead of widening the page,
+        // keeping the width/height ratio and never growing past `width`.
+        className="h-auto w-full"
+        style={{ aspectRatio: `${width} / ${height}`, maxWidth: width }}
         // An embed written before this attribute existed still has to announce
         // as something rather than as nothing.
         title={title || "Embedded video"}
-        sandbox="allow-scripts allow-presentation"
+        // The player reads and writes storage on its own origin, and renders
+        // nothing without `allow-same-origin`. Pairing it with `allow-scripts`
+        // only lets a frame lift its own sandbox when it shares the page's
+        // origin; a YouTube or Vimeo embed does not.
+        // oxlint-disable-next-line react/iframe-missing-sandbox
+        sandbox="allow-scripts allow-presentation allow-same-origin"
         allowFullScreen
       />
     </div>
