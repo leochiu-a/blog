@@ -362,6 +362,11 @@ export const cycleQuote: Command = (state, dispatch) => {
  * figure away, with nothing having named it as the target first. Selecting it
  * shows what the next press will remove, which is what Backspace does over
  * every other block — and it costs the writer one keystroke, not a dialog.
+ *
+ * An empty block goes first, the way Notion and Google Docs take an empty
+ * line under an image. Selecting past it left the line where it was, so the
+ * next press removed the component and the blank line survived both — it
+ * read as a line Backspace could not touch.
  */
 export const selectLeafBackward: Command = (state, dispatch) => {
   const { empty, $from } = state.selection;
@@ -375,8 +380,11 @@ export const selectLeafBackward: Command = (state, dispatch) => {
   if (!before.isAtom || !before.type.isBlock) return false;
 
   if (dispatch) {
-    const position = $from.before($from.depth) - before.nodeSize;
-    dispatch(state.tr.setSelection(NodeSelection.create(state.doc, position)));
+    const start = $from.before($from.depth);
+    const position = start - before.nodeSize;
+    const tr = state.tr;
+    if ($from.parent.content.size === 0) tr.delete(start, $from.after($from.depth));
+    dispatch(tr.setSelection(NodeSelection.create(tr.doc, position)));
   }
   return true;
 };

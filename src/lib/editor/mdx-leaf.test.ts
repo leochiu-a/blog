@@ -116,4 +116,24 @@ describe("a self-closing MDX component is an atom", () => {
 
     expect(shape(press(selected))).toEqual(["paragraph"]);
   });
+
+  /** An empty line under it is what goes first, not the figure. */
+  it("removes an empty line under the figure and selects the figure", () => {
+    const start = stateOf(`${FIGURE}\n\nafter`);
+    const withEmptyLine = start.apply(
+      start.tr.insert(start.doc.child(0).nodeSize, schema.nodes.paragraph.create()),
+    );
+    const cursorInEmptyLine = withEmptyLine.apply(
+      withEmptyLine.tr.setSelection(
+        TextSelection.create(withEmptyLine.doc, withEmptyLine.doc.child(0).nodeSize + 1),
+      ),
+    );
+
+    const once = press(cursorInEmptyLine);
+
+    expect(shape(once)).toEqual(["mdxLeaf(Figure)", "paragraph"]);
+    expect(once.doc.child(1).textContent).toBe("after");
+    expect(once.selection).toBeInstanceOf(NodeSelection);
+    expect(once.selection.$from.nodeAfter?.attrs.name).toBe("Figure");
+  });
 });
