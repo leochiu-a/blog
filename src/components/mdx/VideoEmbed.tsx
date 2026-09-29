@@ -20,10 +20,11 @@ export function VideoEmbed({ src, title, width = 640, height = 360 }: VideoEmbed
         src={src}
         width={width}
         height={height}
-        // Shrink with the column on a phone instead of widening the page,
-        // keeping the width/height ratio and never growing past `width`.
-        className="h-auto w-full"
-        style={{ aspectRatio: `${width} / ${height}`, maxWidth: width }}
+        // Span the column like a Figure does, so the player lines up with the
+        // pictures around it; `width`/`height` only set the ratio. A player
+        // capped at its pixel width sat flush left in a wider column.
+        className="h-auto w-full rounded-sm"
+        style={{ aspectRatio: `${width} / ${height}` }}
         // An embed written before this attribute existed still has to announce
         // as something rather than as nothing.
         title={title || "Embedded video"}
