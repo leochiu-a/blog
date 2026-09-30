@@ -7,7 +7,7 @@ datetime: "2026-09-26"
 readTime: "5 min"
 category: "professional"
 tags: ["CodeReel", "Shiki", "Magic Move", "Next.js", "Side Project"]
-draft: true
+draft: false
 ---
 
 <Figure src="/blog-images/codereel-hero.webp" alt="CodeReel 的封面：左邊是大字 Code that moves.，moves 用粉紅色斜體，右邊是一個傾斜的程式碼框，中間那一行被粉紅色高亮" width={1280} height={720} hero />
