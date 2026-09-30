@@ -3,7 +3,7 @@ title: "CodeReel：讓程式碼自己動起來！打造瀏覽器端的 Code 動�
 subtitle: "不用後端伺服器！聊聊怎麼用 Shiki Magic Move 與 WebCodecs 在前端完成繪製與影片封裝"
 description: "CodeReel 是開源的瀏覽器工具，把程式碼變成逐步轉場動畫，可匯出圖片或 MP4。這篇聊使用方式，以及 Shiki Magic Move 和純前端輸出影片的實作。"
 ogImage: "/blog-images/codereel-hero.webp"
-datetime: "2026-09-26"
+datetime: "2026-09-30"
 readTime: "5 min"
 category: "professional"
 tags: ["CodeReel", "Shiki", "Magic Move", "Next.js", "Side Project"]
