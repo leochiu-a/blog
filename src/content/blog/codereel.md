@@ -64,7 +64,7 @@ draft: true
 
 除了程式碼動畫外，也可以自訂外框 padding、陰影、程式語言，並內建了 30 種配色主題（包含 Dracula、Night Owl，以及仿 Vercel、Tailwind、Prisma 官網的風格）。
 
-> 感謝 [ray.so](https://www.ray.so/)、[https://codeimage.dev/](CodeImage.dev) 等等的開源專案
+> 感謝 [ray.so](https://www.ray.so/)、[CodeImage](https://codeimage.dev/) 等等的開源專案
 
 ### 分享圖片
 
