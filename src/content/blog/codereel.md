@@ -1,6 +1,6 @@
 ---
-title: "CodeReel：把程式碼變成會動的逐步解說"
-subtitle: "寫好每個步驟、按下播放，看程式碼自己滑到定位。順便聊聊怎麼在瀏覽器裡輸出 MP4，以及用到的 Shiki、Magic Move 和 modern-screenshot"
+title: "CodeReel：讓程式碼自己動起來！打造瀏覽器端的 Code 動畫與 MP4 匯出工具"
+subtitle: "不用後端伺服器！聊聊怎麼用 Shiki Magic Move 與 WebCodecs 在前端完成繪製與影片封裝"
 description: "CodeReel 是一個在瀏覽器裡把程式碼做成逐步解說動畫的開源工具：分步驟寫程式碼、高亮重點行、用 Magic Move 播放，再匯出圖片或 MP4 影片。這篇介紹它怎麼用、怎麼在瀏覽器裡輸出影片，以及核心用到的 Shiki、Shiki Magic Move 和 modern-screenshot。"
 ogImage: "/blog-images/codereel-hero.webp"
 datetime: "2026-09-26"
@@ -9,6 +9,8 @@ category: "professional"
 tags: ["CodeReel", "Shiki", "Magic Move", "Next.js", "Side Project"]
 draft: true
 ---
+
+<Figure src="/blog-images/codereel-hero.webp" alt="CodeReel 的封面：左邊是大字 Code that moves.，moves 用粉紅色斜體，右邊是一個傾斜的程式碼框，中間那一行被粉紅色高亮" width={1280} height={720} hero />
 
 ## 前言
 
@@ -56,13 +58,11 @@ draft: true
 }
 ```
 
-播放之後就能看出原本 `min-width` 和 `max-width` 是怎麼變成 range query 的，可以讓使用者一邊建立程式碼步驟，也可以確認動畫效果是否符合預期。
+播放後就能清楚看到語法變更的軌跡，編輯時也可以隨時預覽動畫，確認效果是否符合預期。
 
 <Clip src="/blog-videos/area-2026-09-30-12-35-46.mp4" poster="/blog-images/area-2026-09-30-12-35-46-poster.webp" width={1262} height={720} />
 
-這個工具還提供可以調整 padding、陰影、程式語言...等等。
-
-也提供可以更換 30 種主題，除了 Dracula、Night Owl 這類常見配色，也有仿 Vercel、Tailwind、Prisma 官網的外框。
+除了程式碼動畫外，也可以自訂外框 padding、陰影、程式語言，並內建了 30 種配色主題（包含 Dracula、Night Owl，以及仿 Vercel、Tailwind、Prisma 官網的風格）。
 
 > 感謝 [ray.so](https://www.ray.so/)、[https://codeimage.dev/](CodeImage.dev) 等等的開源專案
 
@@ -118,11 +118,11 @@ const result = highlighter.codeToTokens(code, {
 
 ## 技術挑戰 2：怎麼不靠 Server 就輸出 MP4
 
-一開始想說要用 puppeteer 跟 ffmpeg 在後端生成影片讓使用者下載，但是遇到的難題是伺服器運算資源不夠，而且這樣使用者的程式碼就得傳到後端，在選擇部署服務時就必須要選擇支援雲端運算的服務。
+一開始想說要用 puppeteer 跟 ffmpeg 在後端生成影片讓使用者下載，但這樣不僅吃伺服器資源、部署成本高，還得把使用者的程式碼傳到後端（有隱私疑慮）。
 
-所以第一版當時先選擇不做生成影片，讓使用者自己用錄影工具錄，至少是一個最小可行性產品（Minimum Viable Product, MVP）。
+所以第一版當時先選擇不做生成影片，讓使用者自己用錄影工具錄，至少是一個最小可行性產品（MVP）。
 
-後來第二版我選擇把影片輸出做在前端：
+後來第二版我發現可以把影片輸出做在前端：
 
 1. 在畫面外把動畫一格一格 render 出來，跟圖片匯出一樣，用 [modern-screenshot](https://github.com/qq15725/modern-screenshot) 把每一格畫到 canvas 上
 2. 用瀏覽器內建的 WebCodecs 把 canvas 編碼成影片，再交給 [mediabunny](https://mediabunny.dev) 封裝成 MP4
@@ -139,7 +139,7 @@ const result = highlighter.codeToTokens(code, {
 
 我使用 [mediabunny](https://mediabunny.dev) 負責把編碼好的影片封裝成 MP4，全部都在瀏覽器裡完成，就不需要依靠 puppeteer 跟 ffmpeg。
 
-有兩個小地方值得一提：
+這裡有兩個實作上的小小優化：
 
 - 停留中的步驟每一格長得都一樣，所以只會截一次圖，剩下的直接重複編碼同一張 canvas，省下不少時間
 - 編碼器則會依序挑 H.264、VP9、AV1，看瀏覽器支援哪一個，都不支援才會提示無法匯出
@@ -154,10 +154,20 @@ const result = highlighter.codeToTokens(code, {
 
 <VideoEmbed src="https://www.youtube.com/embed/Ie6jQPVFerE" title="CodeReel 介紹影片" width={640} height={360} />
 
+在做這個宣傳影片時，原本只是想說試試看 Opus 5.5 能做到什麼樣子，但沒想到他生成的效果比我想像中更好。
+
+後續我有持續在微調這個影片，因為 AI 不擅長「看出」或是「聽出」有哪裡不太順，像是節奏感或是視覺流暢度等，所以後續還是需要根據人的感官輔助 AI 看到更多的上下文。
+
 ---
 
 ## 結語
 
-CodeReel 還在持續更新，歡迎到 [codereel.dev](https://codereel.dev) 玩玩看。editor 裡有回饋按鈕，想要的功能或遇到問題都可以直接開 GitHub issue，覺得好用也歡迎到 [GitHub](https://github.com/leochiu-a/code-reel) 給顆星星。
+最初做這個專案，只是想做些吸睛的程式碼動畫發在社群上。
+
+雖然現在已經是 2026 年，大家都直接讓 AI 寫 Code、越來越少人會逐行讀程式碼了 😅，但我還是把這個專案整理出來開源，讓有需要的人玩玩看。
+
+對程式碼動畫有興趣的人歡迎到 [codereel.dev](https://codereel.dev) 玩玩看。
+
+editor 裡有回饋按鈕，想要的功能或遇到問題都可以直接開 GitHub issue，覺得好用也歡迎到 [GitHub](https://github.com/leochiu-a/code-reel) 給顆星星。
 
 <LinkCard href="https://github.com/leochiu-a/code-reel" title="GitHub - leochiu-a/code-reel: Animate code step by step in the browser — no sign-up, no upload." description="Animate code step by step in the browser — no sign-up, no upload. - leochiu-a/code-reel" site="GitHub" image="/blog-images/og-github-com.webp" />
