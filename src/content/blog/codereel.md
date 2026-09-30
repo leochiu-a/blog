@@ -22,7 +22,7 @@ draft: true
 
 像下面這段影片，就是用 CodeReel 做的 ES2026 新 API `getOrInsert(key, defaultValue)` 示範：
 
-<Clip src="/blog-videos/2026-09-26-5-50-16.mp4" poster="/blog-images/2026-09-26-5-50-16-poster.webp" width={1280} height={760} />
+<Clip src="/blog-videos/codereel-showreel-getorinsert.mp4" poster="/blog-images/codereel-showreel-getorinsert-poster.webp" width={1280} height={760} />
 
 如果對實作有興趣，原始碼放在 GitHub 上：
 
@@ -60,7 +60,7 @@ draft: true
 
 播放後就能清楚看到語法變更的軌跡，編輯時也可以隨時預覽動畫，確認效果是否符合預期。
 
-<Clip src="/blog-videos/area-2026-09-30-12-35-46.mp4" poster="/blog-images/area-2026-09-30-12-35-46-poster.webp" width={1262} height={720} />
+<Clip src="/blog-videos/codereel-showreel-media-query.mp4" poster="/blog-images/codereel-showreel-media-query-poster.webp" width={1262} height={720} />
 
 除了程式碼動畫外，也可以自訂外框 padding、陰影、程式語言，並內建了 30 種配色主題（包含 Dracula、Night Owl，以及仿 Vercel、Tailwind、Prisma 官網的風格）。
 
