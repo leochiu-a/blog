@@ -1,7 +1,7 @@
 ---
 title: "CodeReel：讓程式碼自己動起來！打造瀏覽器端的 Code 動畫與 MP4 匯出工具"
 subtitle: "不用後端伺服器！聊聊怎麼用 Shiki Magic Move 與 WebCodecs 在前端完成繪製與影片封裝"
-description: "CodeReel 是一個在瀏覽器裡把程式碼做成逐步解說動畫的開源工具：分步驟寫程式碼、高亮重點行、用 Magic Move 播放，再匯出圖片或 MP4 影片。這篇介紹它怎麼用、怎麼在瀏覽器裡輸出影片，以及核心用到的 Shiki、Shiki Magic Move 和 modern-screenshot。"
+description: "CodeReel 是開源的瀏覽器工具，把程式碼變成逐步轉場動畫，可匯出圖片或 MP4。這篇聊使用方式，以及 Shiki Magic Move 和純前端輸出影片的實作。"
 ogImage: "/blog-images/codereel-hero.webp"
 datetime: "2026-09-26"
 readTime: "5 min"
@@ -12,7 +12,7 @@ draft: true
 
 <Figure src="/blog-images/codereel-hero.webp" alt="CodeReel 的封面：左邊是大字 Code that moves.，moves 用粉紅色斜體，右邊是一個傾斜的程式碼框，中間那一行被粉紅色高亮" width={1280} height={720} hero />
 
-## 前言
+## 為什麼做 CodeReel：讓程式碼動起來
 
 最近開源了一個小工具 [CodeReel](https://codereel.dev)，可以把程式碼做成一步一步會動的動畫。
 
@@ -30,7 +30,7 @@ draft: true
 
 ---
 
-## 產品亮點
+## CodeReel 怎麼用：建立步驟、匯出圖片與 MP4
 
 ### 建立 code steps
 
@@ -99,6 +99,8 @@ CodeReel 不直接用它輸出的 HTML，而是用 `codeToTokens` 拿到每個 t
 動畫的部分用的是 [Shiki Magic Move](https://github.com/shikijs/shiki-magic-move)，它的做法是先用 Shiki 把前後兩段程式碼切成 token，再對兩邊做 diff：配對到的 token 從舊位置滑到新位置，沒配對到的就淡入或淡出。
 
 一般的淡入淡出會把整段程式碼一起換掉，Magic Move 則讓沒改的字留在原地，這也是 CodeReel 想要的效果。
+
+### 遇到的一個合併 token 的問題
 
 接起來之後我遇到一個問題，以前面的 media query 為例，兩邊的 `@media (` 完全沒變，照理說應該留在原地。
 
@@ -171,3 +173,15 @@ const result = highlighter.codeToTokens(code, {
 editor 裡有回饋按鈕，想要的功能或遇到問題都可以直接開 GitHub issue，覺得好用也歡迎到 [GitHub](https://github.com/leochiu-a/code-reel) 給顆星星。
 
 <LinkCard href="https://github.com/leochiu-a/code-reel" title="GitHub - leochiu-a/code-reel: Animate code step by step in the browser — no sign-up, no upload." description="Animate code step by step in the browser — no sign-up, no upload. - leochiu-a/code-reel" site="GitHub" image="/blog-images/og-github-com.webp" />
+
+---
+
+## Reference
+
+- [Shiki](https://shiki.style)
+- [shikijs/shiki-magic-move](https://github.com/shikijs/shiki-magic-move)
+- [qq15725/modern-screenshot](https://github.com/qq15725/modern-screenshot)
+- [bubkoo/html-to-image](https://github.com/bubkoo/html-to-image)
+- [mediabunny](https://mediabunny.dev)
+- [WebCodecs API - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API)
+- [leochiu-a/code-reel](https://github.com/leochiu-a/code-reel)
