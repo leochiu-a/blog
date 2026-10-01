@@ -1,7 +1,7 @@
 ---
 title: "為什麼 Linear 與 Tailwind v4 都不再幫按鈕加上 cursor: pointer？"
 subtitle: "從一個 CSS 細節，看 Web 與 Native App 介面語彙的演進"
-description: "發現升級 Tailwind v4 或用 shadcn 時按鈕都不會變手指游標了嗎？這不是 bug！從 Linear 追求的 Mac 原生手感到 CSS 規格真相，聊聊為什麼按鈕本來就不該是 pointer，以及各大工具是怎麼跟進的。"
+description: "升級 Tailwind v4 或用 shadcn/ui 後，按鈕 hover 不再有 cursor: pointer，這不是 bug。從 Linear 追求的 Mac 原生手感到 CSS 規格，聊聊按鈕為什麼不該是 pointer，並附上官方的 CSS 加回方法與 shadcn 的 --pointer 選項。"
 datetime: "2026-09-21"
 readTime: "4 min"
 category: "professional"
@@ -10,6 +10,8 @@ ogImage: "/blog-images/linear-no-pointer-cursor-hero.webp"
 ---
 
 <Figure src="/blog-images/linear-no-pointer-cursor-hero.webp" alt="線條插畫，白底配橘色點綴。一個人背對畫面坐在電腦前，螢幕中央是一個放大的箭頭游標，右側一排按鈕裡有一個顯示手指游標，並用線連到右邊標示 HTML 與 CSS 的面板" width={2752} height={1536} hero />
+
+升級 Tailwind v4 或用新版 shadcn/ui 之後，按鈕 hover 不再變成手指，這不是 bug：Tailwind v4 把按鈕的 `cursor: pointer` 拿掉了，改回瀏覽器的預設行為。想加回來的話，可以直接看[如何把 cursor: pointer 加回來](#如何把-cursor-pointer-加回來)。
 
 ## Linear 的按鈕都不用 cursor: pointer
 
@@ -129,6 +131,25 @@ npx shadcn@latest init --pointer
 ```
 
 <Figure src="/blog-images/linear-no-pointer-cursor-shadcn-issue-7501.webp" alt="GitHub 上 shadcn 在 5 月 5 日的留言，說已經把它加成 npx shadcn init --pointer 的選項，會觀察一段時間再決定要不要設為預設，並因為重複回報太多而關閉這個 issue" width={1866} height={460} caption="https://github.com/shadcn-ui/ui/issues/7501" />
+
+---
+
+## 如何把 cursor: pointer 加回來
+
+如果你的專案還是想讓按鈕 hover 時變手指，Tailwind 的 [upgrade guide](https://tailwindcss.com/docs/upgrade-guide#buttons-use-the-default-cursor) 給的做法，是在全域 CSS 補一段 base styles：
+
+```css
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+```
+
+`:not(:disabled)` 讓停用的按鈕維持預設游標，不會在 disable 按鈕出現「手指」的狀況。
+
+用 shadcn/ui 的新專案，則可以在初始化時加上 `--pointer`（見上一節）。
 
 ---
 
