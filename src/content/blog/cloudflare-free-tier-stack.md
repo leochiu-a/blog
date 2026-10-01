@@ -23,6 +23,25 @@ tags: ["Cloudflare", "Cloudflare Workers", "D1", "Turnstile", "WAF", "免費方�
 
 ---
 
+## Cloudflare 免費額度一覽（2026 年 9 月）
+
+| 服務 | 免費方案額度 |
+| --- | --- |
+| Workers | 每天 10 萬次請求，每次呼叫 CPU 時間上限 10 毫秒 |
+| Pages | 每月 500 次 build，單站 20,000 個檔案、單檔 25 MiB |
+| Workers Builds | 每月 3,000 分鐘建置時間，每次最多 20 分鐘 |
+| D1 | 每天 500 萬 rows read、10 萬 rows written，總儲存 5 GB |
+| R2 | 10 GB 儲存空間，每月 1000 萬次 B 類讀取 |
+| Image Transformations | 每月 5000 次 unique transformations |
+| Turnstile | 20 個 widget，驗證次數沒有上限 |
+| WAF Rate limiting rules | 1 條規則，計數與封鎖時間都是 10 秒 |
+| Workers Logs | 每天 20 萬個 log event，保留 3 天 |
+| Web Analytics | 免費，不讀寫 Cookie |
+
+各項額度的細節與我踩到的限制，在下面逐一說明。
+
+---
+
 ## DNS
 
 原本我在 Vercel 跟 Cloudflare 之間猶豫，最後選 Cloudflare，主因就是想要「一站式」搞定，不用在不同平台間拼湊資料庫、CDN 跟防護工具。
@@ -40,7 +59,7 @@ tags: ["Cloudflare", "Cloudflare Workers", "D1", "Turnstile", "WAF", "免費方�
 
 ---
 
-## Workers
+## Workers 免費額度與 10ms CPU 限制
 
 如果你想到 Next.js，一定會想到 Vercel，以前我也幾乎都把 Next.js 架在 Vercel 上面，因為 DX 很好，而且又提供免費的 HTTPS 服務。
 
@@ -118,7 +137,7 @@ Workers Builds 是 Cloudflare 內建的 CI 工具。綁定 GitHub 後，只要 `
 
 ---
 
-## D1
+## D1 免費額度：rows read 怎麼算
 
 D1 是 Cloudflare 提供的 Serverless SQLite 資料庫。
 
@@ -243,13 +262,13 @@ Turnstile 專門防機器人，Rate Limiting 則是抓同一個來源在短時�
 
 ---
 
-### Workers Logs
+## Workers Logs
 
 只要在設定中將 `observability.enabled` 打開，Workers Logs 就會開始收 logs。
 
 免費版每天能處理 200,000 個 log event，資料會保留 3 天。
 
-```
+```jsonc
 // wrangler.jsonc
 "observability": {
   "enabled": true,
