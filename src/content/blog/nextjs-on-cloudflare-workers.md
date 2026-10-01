@@ -1,7 +1,7 @@
 ---
-title: "把 Next.js 搬上 Cloudflare Workers：OpenNext 設定指南與 5 個實戰避坑經驗"
+title: "Next.js 部署到 Cloudflare Workers：OpenNext 設定教學與 5 個踩坑"
 subtitle: "從 CPU Time Limit 10ms 超標到 0ms 靜態回應，紀錄 Next.js 搬上 Cloudflare Workers 的架構優化與踩坑過程。"
-description: "用 @opennextjs/cloudflare 把 Next.js 部署到 Cloudflare Workers 的實作筆記：build script 自我遞迴、next dev 拿不到 binding、median CPU 28 毫秒撞上 10 毫秒上限、三層 cache 怎麼分工，以及 prefetchInlining 造成的無窮迴圈。"
+description: "Next.js 部署到 Cloudflare Workers 的 OpenNext 設定教學，用 @opennextjs/cloudflare 實作，記錄五個踩坑：build script 自我遞迴、next dev 拿不到 binding、median CPU 28 毫秒撞上 10 毫秒上限、三層 cache 怎麼分工，以及 prefetchInlining 造成的無窮迴圈。"
 ogImage: "/blog-images/nextjs-on-cloudflare-workers-hero.webp"
 datetime: "2026-09-14"
 readTime: "9 min"
@@ -19,13 +19,15 @@ tags: ["Cloudflare Workers", "OpenNext", "Next.js", "workerd", "Cache", "部署"
 
 ## 前言
 
+Next.js 可以部署到 Cloudflare Workers，但是要靠 `@opennextjs/cloudflare`（OpenNext）把 `next build` 的結果重新打包成 Worker。
+
+免費方案有 10ms 的 CPU 時間上限，沒設 cache 的話，SSG 頁面也會因為重新渲染而超標。
+
 你現在看的這個 blog 是基於 Next.js，跑在 Cloudflare Workers 上。
 
 前一篇 [用 Cloudflare 免費方案架 Blog：服務盤點與免費額度避坑指南](/blog/cloudflare-free-tier-stack/)整理了用了哪些服務和免費額度。
 
-這篇會講到在整合 Next.js 到 Cloudflare Workers 上踩到的坑，如果你以前習慣使用 Vercel 來部署 Next.js 的話，這篇也許對你來說會有幫助。
-
-因為 Cloudflare 在整合 Next.js 上，並沒有像 Vercel 這麼無縫，你可能會在過程中遇到一些問題。而這篇會跟大家分享，在架設這個部落格的過程中，我遇到了哪些問題。
+這篇記錄整合過程中踩到的坑。Cloudflare 對 Next.js 的支援沒有 Vercel 那麼無縫，如果你習慣用 Vercel 部署，這篇應該用得上。
 
 以下是我在架設部落格時的套件版本對照：
 
@@ -79,7 +81,7 @@ const config = defineCloudflareConfig({ /** config */ });
 
 ---
 
-## 踩坑一：build command 無窮迴圈
+## 踩坑一：`opennextjs-cloudflare build` 的 build command 無窮迴圈
 
 沒設定 `buildCommand` 的話，OpenNext 預設會跑去執行 `package.json` 裡的 `build` 指令。
 
@@ -117,7 +119,7 @@ pnpm build
 
 ---
 
-## 踩坑二：開發環境摸不到 Cloudflare Bindings
+## 踩坑二：`next dev` 摸不到 Cloudflare Bindings（D1、R2、KV）
 
 `next dev` 跑在標準 Node.js 環境裡，預設讀不到 `env.NEWSLETTER_DB`、`env.IMAGES` 這些 Cloudflare 專屬的 binding。
 
@@ -221,7 +223,7 @@ const config = defineCloudflareConfig({
 
 ---
 
-## 踩坑四：Prefetch Inlining 導致 Request 無窮迴圈
+## 踩坑四：Next.js 16.3 `prefetchInlining` 導致 Request 無窮迴圈
 
 Next 16.3 預設啟用了 `experimental.prefetchInlining`，這個設定一撞上 OpenNext 的 cache interception 就會出問題：每次發送 `Next-Router-Segment-Prefetch` 請求時，後端都吐回整頁完整的 RSC payload。
 
@@ -249,6 +251,26 @@ Next 16.3 預設啟用了 `experimental.prefetchInlining`，這個設定一撞�
 上面 prefetch 的問題並非特例，而是這套架構的常態：OpenNext 永遠在後面追趕 Next.js 的新版本。當雙方的預設值產生衝突時，通常不會反應在 build 階段的 log 裡，而是要等到部署上線後才會暴露出來。
 
 因此部署完成後，可能需要關注一下 Workers Logs，Workers Logs 免費方案每天能處理 200,000 個 event、資料保留 3 天，3 天對這種情境已相當足夠。
+
+---
+
+## 常見問題
+
+### Next.js 可以部署到 Cloudflare Workers 嗎？
+
+可以，但要透過 `@opennextjs/cloudflare`。Workers 的 runtime 是 workerd，不是 Node.js，所以 Next.js 的 `next start` 沒辦法直接跑，需要 OpenNext 把 build 結果重新打包成 Worker 加一包靜態檔。
+
+### Cloudflare Workers 免費方案的 10ms CPU 限制，Next.js 夠用嗎？
+
+動態渲染不不夠用，我的 blog 在第一版部署時，median CPU 就落在 28 毫秒，連續重新整理幾次就會報 `Exceeded CPU Time Limits`。
+
+把 SSG 頁面的 HTML 放進 Workers Assets，並開啟 `enableCacheInterception`（見[踩坑三](#踩坑三cpu-time-limit-超標10ms-限制與-ssg-快取失效)）之後，命中快取的請求幾乎是 0ms CPU。
+
+### 為什麼 `next dev` 讀不到 `env.XXX` 這類 Cloudflare binding？
+
+`next dev` 跑在標準 Node.js 環境。
+
+在 `next.config.ts` 呼叫 `initOpenNextCloudflareForDev()`，就會在背景啟動 workerd proxy，把 binding 注入回來，D1 則預設指向本機的 SQLite。細節見[踩坑二](#踩坑二next-dev-摸不到-cloudflare-bindingsd1r2kv)。
 
 ---
 
