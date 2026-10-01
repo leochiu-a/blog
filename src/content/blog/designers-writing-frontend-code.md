@@ -1,7 +1,7 @@
 ---
 title: "設計師參與開發，真的能加速前端專案嗎？"
 subtitle: "聊聊我們公司的跨職能開發實驗，以及 Figma 規範帶來的真正效益"
-description: "我們讓三位設計師各自獨立開發一個前端專案，由工程師 Code Review。三個專案都卡在同一件事：設計師大量時間花在非設計的工程問題上。這篇談我們發現的界線，以及 Figma MCP 成熟後更有效率的協作方式。"
+description: "設計師寫前端真的能加速開發嗎？我們讓三位設計師各自獨立開發一個前端專案，由工程師 Code Review。三個專案都卡在同一件事：設計師大量時間花在非設計的工程問題上。這篇談我們發現的界線，以及 Figma MCP 成熟後，設計師與前端更有效率的協作方式。"
 ogImage: "/blog-images/designers-writing-frontend-code-hero.webp"
 datetime: "2026-09-06"
 readTime: "9 min"
@@ -170,7 +170,7 @@ Design System 並不單純是設計師想像中的 Design System，在工程層�
 
 ---
 
-## 對前端來說 Figma 最有幫助的三件事
+## 前端最需要的三份 Figma 規範：Section、Design Token、Component
 
 在 AI 爆發與 Figma MCP 成熟後，設計稿的規範不再只是「方便人類閱讀」，更能直接作為 AI 生成 Code 的精準 Prompt。
 
