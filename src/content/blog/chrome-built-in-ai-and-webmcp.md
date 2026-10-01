@@ -1,7 +1,7 @@
 ---
 title: "Chrome Built-in AI 與 WebMCP 如何重塑 Web 體驗？"
 subtitle: "拆解 Yahoo 落地個案、兩大前端新 API，以及開發者現在該如何佈局"
-description: "從 Yahoo 奇摩拍賣把上架時間從 20 分鐘壓到 2 分鐘的個案出發，整理 Chrome Built-in AI 與 WebMCP 各自解決什麼問題、可以怎麼組合，以及我認為值得先落地的方向。"
+description: "WebMCP 是什麼？Chrome Built-in AI（Gemini Nano、Prompt API）又能做什麼？從 Yahoo 奇摩拍賣把上架時間從 20 分鐘壓到 2 分鐘的個案出發，整理兩者各自解決什麼問題、可以怎麼組合，以及我認為值得先落地的方向。"
 datetime: "2026-08-30"
 readTime: "12 min"
 category: "professional"
@@ -60,7 +60,7 @@ Yahoo 上線的九個功能裡，成效最好的是個人化推薦與預測式�
 
 ---
 
-## Built-in AI
+## Chrome Built-in AI 是什麼？Gemini Nano 與 Prompt API
 
 Chrome 的 [Built-in AI 文件](https://developer.chrome.com/docs/ai/built-in) 有提到底層是同一顆 Gemini Nano，往上提供各式各樣的 API，可以在不同情境使用：
 
@@ -201,7 +201,7 @@ Google 很有野心，在使用者輸入 Prompt 後，Gemini 不只回覆文字�
 
 ---
 
-## WebMCP
+## WebMCP 是什麼？讓網站向 AI agent 宣告 tools
 
 前面不論是 Dynamic View 或是 Apps in ChatGPT，最大的問題都是「搜尋」。
 
@@ -219,7 +219,7 @@ WebMCP 把這件事反轉：
 
 Chrome 的 [WebMCP ](https://developer.chrome.com/docs/ai/webmcp)從 Chrome 149 開始開放 [origin trial](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241)，規格可以在 [W3C 的 WebMCP draft](https://webmachinelearning.github.io/webmcp/)（Web Machine Learning CG 的草案，還不是 Standards Track）與 [explainer](https://github.com/webmachinelearning/webmcp) 看到。
 
-### imperative API
+### imperative API：`document.modelContext.registerTool`
 
 瀏覽器會把這些 tool 宣告，連同頁面的 URL、標題與 origin 權限範圍，一起交給支援 WebMCP 的 agent。
 
@@ -280,7 +280,7 @@ await document.modelContext.registerTool({
 
 像是搜尋、篩選、下訂、預約、送出表單、修改內容，這些都可以讓 agent 很明確知道「何時該觸發這個行為，要給什麼參數，應該要回覆什麼」。
 
-但目前 WebMCP 狀態是 **origin trial**，還不是穩定 API。
+但截至 2026 年 8 月，WebMCP 的狀態是 **origin trial**，還不是穩定 API。
 
 所以 WebMCP 處於「值得投資理解與試作，但關鍵路徑上不值得實作。」
 
