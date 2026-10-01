@@ -1,12 +1,12 @@
 ---
 title: "CodeReel：讓程式碼自己動起來！打造瀏覽器端的 Code 動畫與 MP4 匯出工具"
 subtitle: "不用後端伺服器！聊聊怎麼用 Shiki Magic Move 與 WebCodecs 在前端完成繪製與影片封裝"
-description: "CodeReel 是開源的瀏覽器工具，把程式碼變成逐步轉場動畫，可匯出圖片或 MP4。這篇聊使用方式，以及 Shiki Magic Move 和純前端輸出影片的實作。"
+description: "CodeReel 是開源的程式碼動畫產生器，在瀏覽器裡把程式碼變成逐步轉場動畫，可匯出圖片或 MP4，不用上傳程式碼。這篇聊使用方式，以及 Shiki Magic Move 和用 WebCodecs 純前端輸出影片的實作。"
 ogImage: "/blog-images/codereel-hero.webp"
 datetime: "2026-09-30"
 readTime: "5 min"
 category: "professional"
-tags: ["CodeReel", "Shiki", "Magic Move", "Next.js", "Side Project"]
+tags: ["CodeReel", "Shiki", "Magic Move", "WebCodecs", "程式碼動畫", "Next.js", "Side Project"]
 draft: false
 ---
 
@@ -14,7 +14,7 @@ draft: false
 
 ## 為什麼做 CodeReel：讓程式碼動起來
 
-最近開源了一個小工具 [CodeReel](https://codereel.dev)，可以把程式碼做成一步一步會動的動畫。
+最近開源了一個小工具 [CodeReel](https://codereel.dev)，是一個在瀏覽器裡運作的程式碼動畫產生器，可以把程式碼做成一步一步會動的動畫。
 
 平常想分享一段程式碼，多半會用 [ray.so](https://www.ray.so/) 或 [carbon](https://carbon.now.sh/) 這類工具，把程式碼轉成好看的圖片。但要展示程式碼是怎麼改的時候，只有圖片不太夠，讀的人得在兩張截圖之間來回比對，才看得出到底改了哪裡。
 
@@ -84,7 +84,7 @@ draft: false
 
 ---
 
-## 技術挑戰 1：怎麼讓程式碼動起來
+## 技術挑戰 1：怎麼讓程式碼動起來（Shiki Magic Move）
 
 ### Shiki
 
@@ -118,7 +118,7 @@ const result = highlighter.codeToTokens(code, {
 
 ---
 
-## 技術挑戰 2：怎麼不靠 Server 就輸出 MP4
+## 技術挑戰 2：怎麼不靠 Server，用 WebCodecs 在瀏覽器輸出 MP4
 
 一開始想說要用 puppeteer 跟 ffmpeg 在後端生成影片讓使用者下載，但這樣不僅吃伺服器資源、部署成本高，還得把使用者的程式碼傳到後端（有隱私疑慮）。
 
@@ -129,7 +129,7 @@ const result = highlighter.codeToTokens(code, {
 1. 在畫面外把動畫一格一格 render 出來，跟圖片匯出一樣，用 [modern-screenshot](https://github.com/qq15725/modern-screenshot) 把每一格畫到 canvas 上
 2. 用瀏覽器內建的 WebCodecs 把 canvas 編碼成影片，再交給 [mediabunny](https://mediabunny.dev) 封裝成 MP4
 
-### modern screenshot
+### modern-screenshot：為什麼不用 html-to-image
 
 很多人在找 HTML to image 的套件時，第一時間會找到 [html-to-image](https://github.com/bubkoo/html-to-image) 這個套件，雖然他的星星數比較多，而且下載量較高，但以前使用他的經驗不太好。
 
@@ -137,7 +137,7 @@ const result = highlighter.codeToTokens(code, {
 
 所以後來就選擇它的 fork 版本 [modern-screenshot](https://github.com/qq15725/modern-screenshot)，issue 更少，而且今年還有在維護。
 
-### mediabunny
+### mediabunny：在瀏覽器封裝 MP4
 
 我使用 [mediabunny](https://mediabunny.dev) 負責把編碼好的影片封裝成 MP4，全部都在瀏覽器裡完成，就不需要依靠 puppeteer 跟 ffmpeg。
 
