@@ -258,3 +258,27 @@ delete an `issue_sends` row and re-send the same Issue (the toolbar offers the
 button again, which is the only way back to one), and submit
 the form with the always-failing Turnstile keys (400, and nothing written to the
 list).
+
+## Mailing a Post
+
+A Post can be mailed too, and the buttons are the same ones. Open it in the
+editor, **Publish** it, **deploy** it, then use **Test email** and **Send** in
+the toolbar exactly as for an Issue.
+
+What goes out is not the whole Post: its title and subtitle, the opening (whole
+blocks until about 500 characters of text), and a **閱讀全文** link to the live
+page. A `<Figure>` comes through as an image; other components, imports and
+demos are left out, because an inbox cannot run them. The excerpt is cut by
+`renderPostExcerpt` in `src/lib/newsletter/email.ts`.
+
+Deploy first. The send checks that `/blog/<slug>/` answers on the live site and
+refuses otherwise, since the one thing a Post's email is for is that link.
+
+Sends are recorded in `post_sends`, keyed by slug like `issue_sends`, and a
+Resend broadcast named `post <date> <slug>` is the idempotency key. The table
+comes from `migrations/0002_post_sends.sql`, so apply migrations to the remote
+database before the first send (see step 1 above). To deliberately re-send:
+
+```bash
+pnpm db:remote "DELETE FROM post_sends WHERE post_slug = 'hello'"
+```

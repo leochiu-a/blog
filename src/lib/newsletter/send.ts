@@ -1,12 +1,14 @@
 import type { IssueFrontmatter } from "./issue-frontmatter.ts";
 import type { RemoteBroadcast, RemoteContact } from "./resend.ts";
-import { confirmedCount, issueSentAt } from "./subscribers.ts";
+import { confirmedCount, issueSentAt, postSentAt } from "./subscribers.ts";
 import { parseEmail } from "./subscription.ts";
-import { issueEmail } from "./templates.ts";
+import { issueEmail, postEmail, type RenderedEmail } from "./templates.ts";
+import type { PostFrontmatter } from "../post-frontmatter.ts";
 import { SITE_URL } from "../site.ts";
 
 /**
- * Mailing one Issue to the list — the only irreversible act in the newsletter.
+ * Mailing one Issue or one Post to the list — the only irreversible act in the
+ * newsletter.
  *
  * The counterpart to `test-send.ts`, and deliberately nothing like it: this
  * reads the subscriber list, writes both stores, goes out as a broadcast to
@@ -16,18 +18,18 @@ import { SITE_URL } from "../site.ts";
  *
  * Split in two on purpose. `issueSendState` answers "has this gone out, and to
  * how many" from D1 alone — cheap enough for the editor to read every time an
- * Issue is opened, and what the toolbar draws itself from. `sendIssueToList` is
+ * Issue is opened, and what the toolbar draws itself from. `sendToList` is
  * the act, and it reads that state again rather than trusting what the dialog
  * was showing: the Issue can have gone out from another tab between the
  * question and the answer.
  *
- * The act takes its database and its mail provider as a `SendIssueDeps`, the
+ * The act takes its database and its mail provider as a `SendDeps`, the
  * way `handleSubscribe` does, and the route is wiring. Not for the sake of a
  * seam: this is the one path here that cannot be rehearsed against the real
  * thing — every honest run of it mails the list — so the only way to know the
  * order of operations holds, and that a refused send stops before the
  * broadcast rather than after it, is to run it with both stores faked.
- * `send-issue.test.ts` is that run.
+ * `send.test.ts` is that run.
  */
 
 export interface Issue {
@@ -36,9 +38,86 @@ export interface Issue {
   markdown: string;
 }
 
+export interface Post {
+  slug: string;
+  frontmatter: PostFrontmatter;
+  markdown: string;
+}
+
 /** Where the Issue lives on the web, for the "read in a browser" link. */
 export function issueUrl(slug: string): string {
   return `${SITE_URL}/newsletter/${slug}/`;
+}
+
+/** Where the Post lives on the web, for the "read the full post" link. */
+export function postUrl(slug: string): string {
+  return `${SITE_URL}/blog/${slug}/`;
+}
+
+/**
+ * What the two kinds of mail differ in, and nothing else: how the email is
+ * built, what Resend calls the broadcast, and the words a refusal uses. Who
+ * may be mailed, the order things happen in, and the record that stops a second
+ * send are the same for both — and are written once, below.
+ */
+export type SendKind = "issue" | "post";
+
+const KINDS = {
+  issue: { noun: "這一期", table: "issue_sends" },
+  post: { noun: "這篇文章", table: "post_sends" },
+} as const;
+
+export interface Sendable {
+  kind: SendKind;
+  slug: string;
+  draft: boolean;
+  /** Also Resend's idempotency key: see `sendToList`. */
+  name: string;
+  /** A broadcast is one template for everyone, so the unsubscribe link comes in. */
+  email(unsubscribeUrl: string): RenderedEmail;
+}
+
+// Resend swaps this placeholder for a working unsubscribe link per contact, and
+// `reconcile` pulls the result back into D1 before the next send.
+const BROADCAST_UNSUBSCRIBE = "{{{RESEND_UNSUBSCRIBE_URL}}}";
+
+export function issueSendable(issue: Issue): Sendable {
+  return {
+    kind: "issue",
+    slug: issue.slug,
+    draft: issue.frontmatter.draft === true,
+    name: `${issue.frontmatter.datetime.slice(0, 10)} ${issue.slug}`,
+    email: (unsubscribeUrl) =>
+      issueEmail({
+        title: issue.frontmatter.title,
+        subtitle: issue.frontmatter.subtitle,
+        subject: issue.frontmatter.subject,
+        markdown: issue.markdown,
+        siteUrl: SITE_URL,
+        issueUrl: issueUrl(issue.slug),
+        unsubscribeUrl,
+      }),
+  };
+}
+
+export function postSendable(post: Post): Sendable {
+  return {
+    kind: "post",
+    slug: post.slug,
+    draft: post.frontmatter.draft === true,
+    // Prefixed so a Post can never answer for an Issue's broadcast, or the
+    // reverse, should a slug ever be shared.
+    name: `post ${post.frontmatter.datetime.slice(0, 10)} ${post.slug}`,
+    email: (unsubscribeUrl) =>
+      postEmail({
+        title: post.frontmatter.title,
+        subtitle: post.frontmatter.subtitle,
+        markdown: post.markdown,
+        siteUrl: SITE_URL,
+        postUrl: postUrl(post.slug),
+        unsubscribeUrl,
+      }),
+  };
 }
 
 export interface SendState {
@@ -55,6 +134,11 @@ export interface SendState {
 
 export async function issueSendState(db: D1Database, slug: string): Promise<SendState> {
   const [sentAt, recipients] = await Promise.all([issueSentAt(db, slug), confirmedCount(db)]);
+  return { sentAt, recipients };
+}
+
+export async function postSendState(db: D1Database, slug: string): Promise<SendState> {
+  const [sentAt, recipients] = await Promise.all([postSentAt(db, slug), confirmedCount(db)]);
   return { sentAt, recipients };
 }
 
@@ -80,16 +164,21 @@ export function decideSend({ draft, sentAt, recipients }: SendCandidate): SendRe
   return "send";
 }
 
-export function refusalMessage(refusal: SendRefusal, { sentAt }: SendCandidate): string {
+export function refusalMessage(
+  refusal: SendRefusal,
+  { sentAt }: SendCandidate,
+  kind: SendKind,
+): string {
+  const { noun, table } = KINDS[kind];
   switch (refusal) {
     case "already-sent":
-      return `這一期已經在 ${new Date(sentAt ?? 0).toLocaleString("zh-TW")} 寄出了。要重寄的話，先手動刪掉 issue_sends 那一列。`;
+      return `${noun}已經在 ${new Date(sentAt ?? 0).toLocaleString("zh-TW")} 寄出了。要重寄的話，先手動刪掉 ${table} 那一列。`;
     case "draft":
-      return "這一期還是草稿（draft: true），不會寄給訂閱者。要先看看長什麼樣子的話按 Test email。";
+      return `${noun}還是草稿（draft: true），不會寄給訂閱者。要先看看長什麼樣子的話按 Test email。`;
     case "no-recipients":
       return "線上名單裡沒有已確認的訂閱者，沒有人可以寄。";
     case "half-created":
-      return "Resend 上已經有這一期的 broadcast，但它還沒寄出（status: draft）——上次寄送在建立之後、送出之前斷掉了。到 Resend 上把它送出或刪掉，再回來這裡。";
+      return `Resend 上已經有${noun}的 broadcast，但它還沒寄出（status: draft）——上次寄送在建立之後、送出之前斷掉了。到 Resend 上把它送出或刪掉，再回來這裡。`;
   }
 }
 
@@ -98,8 +187,8 @@ export class SendRefused extends Error {
   /** When the Issue went out, when that is what the refusal is about. */
   readonly sentAt: number | null;
 
-  constructor(refusal: SendRefusal, candidate: SendCandidate) {
-    super(refusalMessage(refusal, candidate));
+  constructor(refusal: SendRefusal, candidate: SendCandidate, kind: SendKind) {
+    super(refusalMessage(refusal, candidate, kind));
     this.name = "SendRefused";
     this.refusal = refusal;
     this.sentAt = candidate.sentAt;
@@ -115,16 +204,16 @@ export interface OutgoingBroadcast {
   name: string;
 }
 
-export interface IssueSent {
-  issueSlug: string;
+export interface Sent {
+  slug: string;
   resendBroadcastId: string;
   recipientCount: number;
   now: number;
 }
 
-export interface SendIssueDeps {
+export interface SendDeps {
   now(): number;
-  sendState(issueSlug: string): Promise<SendState>;
+  sendState(slug: string): Promise<SendState>;
   /** What Resend already holds under this broadcast name, if anything. */
   findBroadcast(name: string): Promise<RemoteBroadcast | null>;
   confirmedEmails(): Promise<string[]>;
@@ -133,7 +222,7 @@ export interface SendIssueDeps {
   markUnsubscribed(emails: string[], now: number): Promise<void>;
   createBroadcast(broadcast: OutgoingBroadcast): Promise<{ id: string }>;
   sendBroadcast(broadcastId: string): Promise<void>;
-  recordSend(record: IssueSent): Promise<void>;
+  recordSend(record: Sent): Promise<void>;
 }
 
 /**
@@ -144,7 +233,7 @@ export interface SendIssueDeps {
  * anyone confirmed in D1 but missing from the segment — a contact creation that
  * failed at confirmation time — is pushed up so they are not skipped forever.
  */
-async function reconcile(deps: SendIssueDeps, now: number) {
+async function reconcile(deps: SendDeps, now: number) {
   const remote = await deps.listContacts();
   const known = new Set(remote.map((contact) => contact.email.toLowerCase()));
 
@@ -180,7 +269,7 @@ export interface SendReceipt {
   pushedToResend: number;
   /**
    * True when this call mailed nobody: Resend had already sent this Issue, and
-   * what happened here was writing that down. See `sendIssueToList`.
+   * what happened here was writing that down. See `sendToList`.
    */
   recovered: boolean;
 }
@@ -210,43 +299,33 @@ export interface SendReceipt {
  * a template built from a file that has since changed — so it is refused with
  * what to go and look at.
  */
-export async function sendIssueToList(issue: Issue, deps: SendIssueDeps): Promise<SendReceipt> {
+export async function sendToList(item: Sendable, deps: SendDeps): Promise<SendReceipt> {
   const candidate: SendCandidate = {
-    draft: issue.frontmatter.draft === true,
-    ...(await deps.sendState(issue.slug)),
+    draft: item.draft,
+    ...(await deps.sendState(item.slug)),
   };
   const decision = decideSend(candidate);
-  if (decision !== "send") throw new SendRefused(decision, candidate);
+  if (decision !== "send") throw new SendRefused(decision, candidate, item.kind);
 
-  const email = issueEmail({
-    title: issue.frontmatter.title,
-    subtitle: issue.frontmatter.subtitle,
-    subject: issue.frontmatter.subject,
-    markdown: issue.markdown,
-    siteUrl: SITE_URL,
-    issueUrl: issueUrl(issue.slug),
-    // A broadcast is one template for everyone, so it cannot carry a
-    // per-recipient token. Resend swaps this placeholder for a working
-    // unsubscribe link per contact, and `reconcile` pulls the result back into
-    // D1 before the next send.
-    unsubscribeUrl: "{{{RESEND_UNSUBSCRIBE_URL}}}",
-  });
+  // A broadcast is one template for everyone, so it cannot carry a
+  // per-recipient token: the placeholder is Resend's to fill in.
+  const email = item.email(BROADCAST_UNSUBSCRIBE);
 
   const now = deps.now();
-  const name = `${issue.frontmatter.datetime.slice(0, 10)} ${issue.slug}`;
+  const { name } = item;
 
   // Before anything is written or created: whatever our own database says, a
   // broadcast under this name means this Issue has been through here before.
   const existing = await deps.findBroadcast(name);
   if (existing !== null) {
     if (existing.status === "draft") {
-      throw new SendRefused("half-created", candidate);
+      throw new SendRefused("half-created", candidate, item.kind);
     }
 
     // Sent or queued: the mail is gone, and the row is what is missing.
     const sentAt = existing.sentAt ?? now;
     await deps.recordSend({
-      issueSlug: issue.slug,
+      slug: item.slug,
       resendBroadcastId: existing.id,
       // Resend's list does not carry a recipient count, and inventing one would
       // put a wrong number in a record kept for auditing what went out. The
@@ -269,7 +348,8 @@ export async function sendIssueToList(issue: Issue, deps: SendIssueDeps): Promis
   const { recipients, pulledUnsubscribes, pushedToResend } = await reconcile(deps, now);
   // Reconciliation can empty a list D1 said had people on it: everyone left
   // through Resend since the last send.
-  if (recipients === 0) throw new SendRefused("no-recipients", { ...candidate, recipients: 0 });
+  if (recipients === 0)
+    throw new SendRefused("no-recipients", { ...candidate, recipients: 0 }, item.kind);
 
   const { id } = await deps.createBroadcast({
     subject: email.subject,
@@ -280,7 +360,7 @@ export async function sendIssueToList(issue: Issue, deps: SendIssueDeps): Promis
   await deps.sendBroadcast(id);
 
   await deps.recordSend({
-    issueSlug: issue.slug,
+    slug: item.slug,
     resendBroadcastId: id,
     recipientCount: recipients,
     now,

@@ -12,10 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { apiPath, type CollectionName } from "@/lib/editor/collections";
 
 /**
  * What the page read out of the deployed subscriber list, or why it could not.
- * Mirrors `SendState` in `src/lib/newsletter/send-issue.ts`.
+ * Mirrors `SendState` in `src/lib/newsletter/send.ts`.
  */
 export type SendState = { sentAt: number | null; recipients: number } | { error: string };
 
@@ -45,7 +46,7 @@ const stamp = (sentAt: number) => new Date(sentAt).toLocaleString("zh-TW", { hou
 const broadcastUrl = (id: string) => `https://resend.com/broadcasts/${id}`;
 
 /**
- * Sends the Issue in front of you to the list.
+ * Sends the Issue or Post in front of you to the list.
  *
  * The one irreversible action in the whole newsletter, so the dialog is a
  * review rather than a confirmation: the subject line that will land in an
@@ -60,13 +61,15 @@ const broadcastUrl = (id: string) => `https://resend.com/broadcasts/${id}`;
  * something got past every check above it — but the badge is what answers "did
  * I already send this?" without pressing anything and reading the error.
  */
-export function SendIssueButton({
+export function SendButton({
+  collection,
   slug,
   subject,
   draft,
   state: pending,
   onBeforeSend,
 }: {
+  collection: CollectionName;
   slug: string;
   /** The subject line as the document currently reads, not as it was on disk. */
   subject: string;
@@ -76,6 +79,8 @@ export function SendIssueButton({
   onBeforeSend: () => Promise<void>;
 }) {
   const state = use(pending);
+  // What this document is called to the person sending it.
+  const noun = collection === "issues" ? "這一期" : "這篇文章";
   const [open, setOpen] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   // A send that was refused because the Issue had already gone out: the row was
@@ -106,7 +111,7 @@ export function SendIssueButton({
   // Why the send is not available, in the order the server decides it. `null`
   // means it is.
   const blocked = draft
-    ? "這一期還是草稿（draft: true）。先 Publish 才寄得出去。"
+    ? `${noun}還是草稿（draft: true）。先 Publish 才寄得出去。`
     : unreachable !== null
       ? `讀不到線上的訂閱名單，所以還不能寄：${unreachable}`
       : recipients === 0
@@ -122,7 +127,7 @@ export function SendIssueButton({
       // paragraph just written — and this is the one send that cannot be taken
       // back.
       await onBeforeSend();
-      const response = await fetch(`/api/editor/issues/${slug}/send/`, {
+      const response = await fetch(`${apiPath(collection, slug)}send/`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ confirm }),
@@ -176,11 +181,11 @@ export function SendIssueButton({
               就收不回來了" over a send that has happened is asking about
               something that is no longer in front of you. */}
           <DialogHeader>
-            <DialogTitle>{receipt === null ? "把這一期寄給訂閱者" : "寄出了"}</DialogTitle>
+            <DialogTitle>{receipt === null ? `把${noun}寄給訂閱者` : "寄出了"}</DialogTitle>
             <DialogDescription>
               {receipt === null
                 ? "寄出去就收不回來了。寄的是硬碟上的檔案，不是瀏覽器裡還沒存的東西。"
-                : "這一期已經記成寄出過了，不會再寄第二次。"}
+                : `${noun}已經記成寄出過了，不會再寄第二次。`}
             </DialogDescription>
           </DialogHeader>
 
@@ -230,7 +235,7 @@ export function SendIssueButton({
             <div className="mt-4">
               <p className="text-sm text-muted-foreground">
                 {receipt.recovered
-                  ? "這一期在 Resend 上早就寄出去了，只是我們這邊沒記到——剛剛把紀錄補上了，沒有再寄給任何人。"
+                  ? `${noun}在 Resend 上早就寄出去了，只是我們這邊沒記到——剛剛把紀錄補上了，沒有再寄給任何人。`
                   : "Resend 收下了。信有沒有真的進到收件匣、有沒有退信，上面那個連結看得到。"}
               </p>
               <div className="mt-4 flex justify-end">
@@ -274,7 +279,7 @@ export function SendIssueButton({
                     has to arrive in the field and the send has to be pressed
                     after it; carrying it across by hand was never the part that
                     made anybody think twice. */}
-                <FieldLabel htmlFor="send-issue-confirm" className="block select-text">
+                <FieldLabel htmlFor="send-confirm" className="block select-text">
                   輸入{" "}
                   <code className="font-mono select-all" title="點一下就整段選取">
                     {slug}
@@ -282,7 +287,7 @@ export function SendIssueButton({
                   以確認
                 </FieldLabel>
                 <Input
-                  id="send-issue-confirm"
+                  id="send-confirm"
                   ref={field}
                   required
                   autoComplete="off"
@@ -297,7 +302,7 @@ export function SendIssueButton({
                   <FieldDescription className="text-destructive">{blocked}</FieldDescription>
                 )}
                 {error === null && blocked === null && (
-                  <FieldDescription>寄出後這一期會記成已寄出，不會再寄第二次。</FieldDescription>
+                  <FieldDescription>寄出後{noun}會記成已寄出，不會再寄第二次。</FieldDescription>
                 )}
               </Field>
 

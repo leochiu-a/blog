@@ -4,14 +4,16 @@ import {
   SendRefused,
   decideSend,
   refusalMessage,
-  sendIssueToList,
+  issueSendable,
+  postSendable,
+  sendToList,
   type Issue,
-  type IssueSent,
   type OutgoingBroadcast,
+  type Sent,
   type SendCandidate,
-  type SendIssueDeps,
+  type SendDeps,
   type SendState,
-} from "./send-issue";
+} from "./send";
 
 /**
  * The gate in front of the one irreversible action here. Three states refuse a
@@ -46,7 +48,7 @@ describe("decideSend", () => {
     const sent = { draft: true, sentAt: Date.UTC(2026, 8, 1), recipients: 0 };
 
     expect(decideSend(sent)).toBe("already-sent");
-    expect(refusalMessage("already-sent", sent)).toContain("issue_sends");
+    expect(refusalMessage("already-sent", sent, "issue")).toContain("issue_sends");
   });
 });
 
@@ -89,11 +91,11 @@ function deps({
   const calls: string[] = [];
   const names: string[] = [];
   const broadcasts: OutgoingBroadcast[] = [];
-  const recorded: IssueSent[] = [];
+  const recorded: Sent[] = [];
   const created: string[] = [];
   const unsubscribed: string[][] = [];
 
-  const dependencies: SendIssueDeps = {
+  const dependencies: SendDeps = {
     now: () => NOW,
     sendState: async () => {
       calls.push("sendState");
@@ -141,7 +143,7 @@ describe("sending an Issue to the list", () => {
   it("reconciles, creates the broadcast, sends it, and records it — in that order", async () => {
     const fake = deps();
 
-    const receipt = await sendIssueToList(issue, fake.dependencies);
+    const receipt = await sendToList(issueSendable(issue), fake.dependencies);
 
     expect(fake.calls).toEqual([
       "sendState",
@@ -167,7 +169,7 @@ describe("sending an Issue to the list", () => {
   it("labels the broadcast by date and slug, and hands Resend its unsubscribe placeholder", async () => {
     const fake = deps();
 
-    await sendIssueToList(issue, fake.dependencies);
+    await sendToList(issueSendable(issue), fake.dependencies);
 
     const [broadcast] = fake.broadcasts;
     expect(broadcast?.name).toBe("2026-09-01 first");
@@ -185,7 +187,7 @@ describe("sending an Issue to the list", () => {
   it("refuses an Issue that has gone out without touching Resend at all", async () => {
     const fake = deps({ state: { sentAt: NOW - 86_400_000, recipients: 2 } });
 
-    await expect(sendIssueToList(issue, fake.dependencies)).rejects.toThrow(SendRefused);
+    await expect(sendToList(issueSendable(issue), fake.dependencies)).rejects.toThrow(SendRefused);
     expect(fake.calls).toEqual(["sendState"]);
   });
 
@@ -198,12 +200,12 @@ describe("sending an Issue to the list", () => {
       ],
     });
 
-    const receipt = await sendIssueToList(issue, fake.dependencies);
+    const receipt = await sendToList(issueSendable(issue), fake.dependencies);
 
     expect(fake.unsubscribed).toEqual([["b@example.com"]]);
     expect(receipt.recipients).toBe(1);
     expect(fake.recorded).toEqual([
-      { issueSlug: "first", resendBroadcastId: "bc_1", recipientCount: 1, now: NOW },
+      { slug: "first", resendBroadcastId: "bc_1", recipientCount: 1, now: NOW },
     ]);
   });
 
@@ -211,7 +213,7 @@ describe("sending an Issue to the list", () => {
     // b@ confirmed, but the contact creation failed at confirmation time.
     const fake = deps({ contacts: [{ email: "a@example.com", unsubscribed: false }] });
 
-    await sendIssueToList(issue, fake.dependencies);
+    await sendToList(issueSendable(issue), fake.dependencies);
 
     expect(fake.created).toEqual(["b@example.com"]);
     expect(fake.calls.indexOf("createContact")).toBeLessThan(fake.calls.indexOf("createBroadcast"));
@@ -230,7 +232,7 @@ describe("sending an Issue to the list", () => {
       ],
     });
 
-    await expect(sendIssueToList(issue, fake.dependencies)).rejects.toThrow(
+    await expect(sendToList(issueSendable(issue), fake.dependencies)).rejects.toThrow(
       /沒有已確認的訂閱者|沒有人可以寄/,
     );
     expect(fake.calls).not.toContain("createBroadcast");
@@ -241,8 +243,8 @@ describe("sending an Issue to the list", () => {
     const fake = deps();
 
     await expect(
-      sendIssueToList(
-        { ...issue, frontmatter: { ...issue.frontmatter, draft: true } },
+      sendToList(
+        issueSendable({ ...issue, frontmatter: { ...issue.frontmatter, draft: true } }),
         fake.dependencies,
       ),
     ).rejects.toThrow(/草稿/);
@@ -259,7 +261,7 @@ describe("sending an Issue to the list", () => {
     const sentAt = Date.UTC(2026, 8, 1, 0, 30, 0);
     const fake = deps({ existing: { id: "bc_old", status: "sent", sentAt } });
 
-    const receipt = await sendIssueToList(issue, fake.dependencies);
+    const receipt = await sendToList(issueSendable(issue), fake.dependencies);
 
     expect(receipt.recovered).toBe(true);
     expect(receipt.broadcastId).toBe("bc_old");
@@ -267,7 +269,7 @@ describe("sending an Issue to the list", () => {
     // the mail went out, and that was earlier.
     expect(receipt.sentAt).toBe(sentAt);
     expect(fake.recorded).toEqual([
-      { issueSlug: "first", resendBroadcastId: "bc_old", recipientCount: 0, now: sentAt },
+      { slug: "first", resendBroadcastId: "bc_old", recipientCount: 0, now: sentAt },
     ]);
     expect(fake.calls).toEqual(["sendState", "findBroadcast", "recordSend"]);
   });
@@ -275,7 +277,7 @@ describe("sending an Issue to the list", () => {
   it("looks Resend up by the name it gives the broadcast, before writing anything", async () => {
     const fake = deps({ existing: { id: "bc_old", status: "queued", sentAt: null } });
 
-    await sendIssueToList(issue, fake.dependencies);
+    await sendToList(issueSendable(issue), fake.dependencies);
 
     expect(fake.names).toEqual(["2026-09-01 first"]);
     // Nothing reconciled, nothing created: a queued broadcast is already on its
@@ -292,8 +294,49 @@ describe("sending an Issue to the list", () => {
   it("refuses when Resend holds an unsent draft under this Issue's name", async () => {
     const fake = deps({ existing: { id: "bc_draft", status: "draft", sentAt: null } });
 
-    await expect(sendIssueToList(issue, fake.dependencies)).rejects.toThrow(/status: draft/);
+    await expect(sendToList(issueSendable(issue), fake.dependencies)).rejects.toThrow(
+      /status: draft/,
+    );
     expect(fake.recorded).toEqual([]);
     expect(fake.calls).toEqual(["sendState", "findBroadcast"]);
+  });
+});
+
+describe("sending a Post to the list", () => {
+  const post = {
+    slug: "hello",
+    frontmatter: {
+      title: "你好",
+      datetime: "2026-09-02",
+      readTime: "3 min",
+      category: "professional" as const,
+    },
+    markdown: "開頭一段。\n",
+  };
+
+  it("goes through the same gate and records under the Post's slug", async () => {
+    const fake = deps();
+
+    const receipt = await sendToList(postSendable(post), fake.dependencies);
+
+    expect(receipt.subject).toBe("你好");
+    expect(fake.recorded).toEqual([
+      { slug: "hello", resendBroadcastId: "bc_1", recipientCount: 2, now: NOW },
+    ]);
+  });
+
+  it("names the broadcast so a Post can never answer for an Issue", async () => {
+    const fake = deps();
+
+    await sendToList(postSendable(post), fake.dependencies);
+
+    expect(fake.broadcasts[0]?.name).toBe("post 2026-09-02 hello");
+  });
+
+  it("refuses a Post that has gone out, naming its own table", async () => {
+    const fake = deps({ state: { sentAt: NOW - 1000, recipients: 2 } });
+
+    await expect(sendToList(postSendable(post), fake.dependencies)).rejects.toThrow(/post_sends/);
+    expect(fake.calls).toEqual(["sendState"]);
   });
 });

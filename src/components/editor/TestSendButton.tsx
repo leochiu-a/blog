@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { apiPath, type CollectionName } from "@/lib/editor/collections";
 
 /**
  * Where the address is kept between sends. A test goes to your own inbox
@@ -45,12 +46,12 @@ type State =
   | { phase: "error"; message: string };
 
 /**
- * Sends the Issue in front of you to one address, the way Substack's "Send
+ * Sends the Issue or Post in front of you to one address, the way Substack's "Send
  * test email" does.
  *
  * Next to Preview rather than next to Send: checking a draft in a real inbox is
  * worth doing several times while writing, and it costs one email to yourself.
- * `SendIssueButton` is the other kind of send — the list, once, and no way
+ * `SendButton` is the other kind of send — the list, once, and no way
  * back.
  *
  * Which is why the label is a noun. "Send test" and "Send" sit a click apart
@@ -63,9 +64,11 @@ type State =
  * the single most confusing outcome this button could have.
  */
 export function TestSendButton({
+  collection,
   slug,
   onBeforeSend,
 }: {
+  collection: CollectionName;
   slug: string;
   onBeforeSend: () => Promise<void>;
 }) {
@@ -102,7 +105,7 @@ export function TestSendButton({
     setState({ phase: "sending" });
     try {
       await onBeforeSend();
-      const response = await fetch(`/api/editor/issues/${slug}/test-send/`, {
+      const response = await fetch(`${apiPath(collection, slug)}test-send/`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ to }),
@@ -138,7 +141,8 @@ export function TestSendButton({
           <DialogHeader>
             <DialogTitle>寄一封測試信</DialogTitle>
             <DialogDescription>
-              把這一期寄到一個信箱，主旨會加上 [測試]。不會碰到訂閱名單，也不算寄出過。
+              把{collection === "issues" ? "這一期" : "這篇文章"}寄到一個信箱，主旨會加上
+              [測試]。不會碰到訂閱名單，也不算寄出過。
             </DialogDescription>
           </DialogHeader>
 

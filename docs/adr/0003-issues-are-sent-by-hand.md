@@ -27,7 +27,7 @@ allowed a button while the real send was not. Two paths that render the same
 Issue and mail it can disagree, and the one that could not be checked in an
 inbox first was the terminal's. Keeping both would have meant maintaining a
 second way to do the irreversible thing; the editor now does it, and
-`src/lib/newsletter/send-issue.ts` is the only code that mails an Issue to the
+`src/lib/newsletter/send.ts` is the only code that mails an Issue to the
 list.
 
 `issue_sends` has `issue_slug` as its primary key, so a second send of the same

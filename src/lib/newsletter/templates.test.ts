@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { issueEmail } from "./templates";
+import { issueEmail, postEmail } from "./templates";
 
 const issue = {
   title: "第一期",
@@ -37,5 +37,31 @@ describe("an Issue's closing links", () => {
       html.lastIndexOf(issue.issueUrl),
     );
     expect(text.trimEnd().endsWith(issue.unsubscribeUrl)).toBe(true);
+  });
+});
+
+describe("a Post's email", () => {
+  const post = {
+    title: "你好",
+    subtitle: "副標",
+    markdown: "開頭一段。\n",
+    siteUrl: "https://leochiu.com",
+    postUrl: "https://leochiu.com/blog/hello/",
+    unsubscribeUrl: "https://leochiu.com/newsletter/unsubscribe/",
+  };
+
+  it("sends the title, the opening, and a link to the whole Post", () => {
+    const { subject, html, text } = postEmail(post);
+
+    expect(subject).toBe("你好");
+    expect(html).toContain("開頭一段。");
+    expect(html).toContain(`href="${post.postUrl}"`);
+    expect(text).toContain(`閱讀全文：${post.postUrl}`);
+  });
+
+  it("closes with the unsubscribe link, as every email to the list does", () => {
+    const { text } = postEmail(post);
+
+    expect(text.trimEnd().endsWith(post.unsubscribeUrl)).toBe(true);
   });
 });

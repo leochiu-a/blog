@@ -1,4 +1,4 @@
-import { EMAIL_COLORS, escapeHtml, renderIssueEmail } from "./email.ts";
+import { EMAIL_COLORS, escapeHtml, renderIssueEmail, renderPostExcerpt } from "./email.ts";
 
 /**
  * The shell every outgoing email shares, and the two emails this app sends.
@@ -41,6 +41,14 @@ const FOOTER_LINK_STYLE = `color:${MUTED};text-decoration:underline;`;
  */
 const READ_ONLINE_STYLE = `margin:40px 0 0;text-align:right;font-size:14px;line-height:1.7;color:${MUTED};`;
 const READ_ONLINE_LINK_STYLE = `color:${ACCENT};text-decoration:none;`;
+const CONTINUE_STYLE = "margin:36px 0 0;";
+/**
+ * A button, because it is the one thing the email asks of the reader. The
+ * background rides on the `<a>` itself with padding, rather than on a wrapper:
+ * Outlook ignores padding on block wrappers but honours it on an inline-block
+ * link, and the accent colour is the same one the site's links wear.
+ */
+const CONTINUE_LINK_STYLE = `display:inline-block;padding:12px 28px;background:${ACCENT};border-radius:8px;color:#ffffff;font-size:16px;font-weight:700;line-height:1.4;text-decoration:none;`;
 /** Set apart from the line above it: leaving is a decision of its own. */
 const UNSUBSCRIBE_STYLE = "margin:20px 0 0;";
 
@@ -99,6 +107,18 @@ ${confirmUrl}
   };
 }
 
+/** What every email to the list closes with: why it arrived, and the way out. */
+function subscriberFooterHtml(unsubscribeUrl: string): string {
+  return `你收到這封信，是因為你訂閱了 Leo Chiu 的電子報。
+<p style="${UNSUBSCRIBE_STYLE}">不想再收到的話，<a href="${unsubscribeUrl}" style="${FOOTER_LINK_STYLE}">點這裡退訂</a>。</p>`;
+}
+
+function subscriberFooterText(unsubscribeUrl: string): string {
+  return `你收到這封信，是因為你訂閱了 Leo Chiu 的電子報。
+
+不想再收到的話，從這裡退訂：${unsubscribeUrl}`;
+}
+
 export interface IssueEmailOptions {
   title: string;
   subtitle?: string;
@@ -128,8 +148,7 @@ ${subtitle ? `<p style="${SUBTITLE_STYLE}">${escapeHtml(subtitle)}</p>` : ""}
 ${body.html}
 <p style="${READ_ONLINE_STYLE}"><a href="${issueUrl}" style="${READ_ONLINE_LINK_STYLE}">在瀏覽器閱讀這一期</a>。</p>`;
 
-  const footerHtml = `你收到這封信，是因為你訂閱了 Leo Chiu 的電子報。
-<p style="${UNSUBSCRIBE_STYLE}">不想再收到的話，<a href="${unsubscribeUrl}" style="${FOOTER_LINK_STYLE}">點這裡退訂</a>。</p>`;
+  const footerHtml = subscriberFooterHtml(unsubscribeUrl);
 
   const text = `${title}
 ${subtitle ? `${subtitle}\n` : ""}
@@ -138,13 +157,67 @@ ${body.text}
 在瀏覽器閱讀這一期：${issueUrl}
 
 ---
-你收到這封信，是因為你訂閱了 Leo Chiu 的電子報。
-
-不想再收到的話，從這裡退訂：${unsubscribeUrl}`;
+${subscriberFooterText(unsubscribeUrl)}`;
 
   return {
     subject: subject ?? title,
     html: shell({ preheader: subtitle ?? title, contentHtml, footerHtml }),
+    text,
+  };
+}
+
+export interface PostEmailOptions {
+  title: string;
+  subtitle?: string;
+  markdown: string;
+  siteUrl: string;
+  /** Where the whole Post lives — the email carries only its opening. */
+  postUrl: string;
+  unsubscribeUrl: string;
+}
+
+/**
+ * A Post as an email: its title, its opening, and a way to the rest.
+ *
+ * Not the whole Post. A Post is written for the site — components, demos,
+ * highlighted code — and an inbox can show none of that, so the email is the
+ * invitation and the site is the article. The link is the point of the message,
+ * which is why it is a line of its own in the accent colour rather than a
+ * footnote.
+ */
+export function postEmail({
+  title,
+  subtitle,
+  markdown,
+  siteUrl,
+  postUrl,
+  unsubscribeUrl,
+}: PostEmailOptions): RenderedEmail {
+  const body = renderPostExcerpt({ markdown, siteUrl });
+
+  const contentHtml = `<div style="${MASTHEAD_STYLE}">
+<h1 style="${TITLE_STYLE}">${escapeHtml(title)}</h1>
+${subtitle ? `<p style="${SUBTITLE_STYLE}">${escapeHtml(subtitle)}</p>` : ""}
+</div>
+${body.html}
+<p style="${CONTINUE_STYLE}"><a href="${postUrl}" style="${CONTINUE_LINK_STYLE}">閱讀全文 →</a></p>`;
+
+  const text = `${title}
+${subtitle ? `${subtitle}\n` : ""}
+${body.text}
+
+閱讀全文：${postUrl}
+
+---
+${subscriberFooterText(unsubscribeUrl)}`;
+
+  return {
+    subject: title,
+    html: shell({
+      preheader: subtitle ?? title,
+      contentHtml,
+      footerHtml: subscriberFooterHtml(unsubscribeUrl),
+    }),
     text,
   };
 }

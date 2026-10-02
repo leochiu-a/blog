@@ -38,7 +38,7 @@ function renderButton() {
   const onBeforeSend = vi.fn(async () => {
     order.push("save");
   });
-  render(<TestSendButton slug="first" onBeforeSend={onBeforeSend} />);
+  render(<TestSendButton collection="issues" slug="first" onBeforeSend={onBeforeSend} />);
   return { onBeforeSend };
 }
 
@@ -62,6 +62,18 @@ describe("the test send button", () => {
     expect(order).toEqual(["save", "fetch"]);
   });
 
+  it("posts the address to the Post's endpoint when the document is a Post", async () => {
+    const fetch = stubFetch(ok({ to: "me@example.com", subject: "[測試] 你好", id: "e_1" }));
+    render(<TestSendButton collection="posts" slug="first" onBeforeSend={async () => {}} />);
+
+    await openAndSend("me@example.com");
+
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    expect((fetch.mock.calls[0] as unknown as [string])[0]).toBe(
+      "/api/editor/posts/first/test-send/",
+    );
+  });
+
   it("posts the address to this Issue's endpoint", async () => {
     const fetch = stubFetch(ok({ subject: "[測試] 第一期" }));
     renderButton();
@@ -76,12 +88,14 @@ describe("the test send button", () => {
 
   it("remembers the address for the next look at a draft", async () => {
     stubFetch(ok({ subject: "[測試] 第一期" }));
-    const { unmount } = render(<TestSendButton slug="first" onBeforeSend={async () => {}} />);
+    const { unmount } = render(
+      <TestSendButton collection="issues" slug="first" onBeforeSend={async () => {}} />,
+    );
     await openAndSend("me@example.com");
     await waitFor(() => expect(screen.getByText(/寄出了/)).toBeTruthy());
     unmount();
 
-    render(<TestSendButton slug="first" onBeforeSend={async () => {}} />);
+    render(<TestSendButton collection="issues" slug="first" onBeforeSend={async () => {}} />);
     await userEvent.setup().click(screen.getByRole("button", { name: "Test email" }));
 
     expect(screen.getByLabelText("收件地址")).toHaveProperty("value", "me@example.com");

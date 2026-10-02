@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseIssueSource } from "./issue-source";
+import { parseIssueSource, parsePostSource } from "./issue-source";
 
 const FRONTMATTER = `---
 title: 第一期
@@ -42,5 +42,27 @@ draft: true
 
     expect(issue.ok).toBe(false);
     if (!issue.ok) expect(issue.error).toContain("broken.md 的 frontmatter 有問題");
+  });
+});
+
+describe("parsePostSource", () => {
+  const post = `---
+title: 你好
+datetime: "2026-09-01"
+readTime: 3 min
+category: professional
+---
+
+內文。
+`;
+
+  it("reads a Post's frontmatter against the Post schema", () => {
+    expect(parsePostSource("hello", post)).toMatchObject({ ok: true, markdown: "內文。\n" });
+  });
+
+  it("refuses frontmatter a Post could not be published with", () => {
+    expect(parsePostSource("hello", "---\ntitle: 你好\n---\n\n內文。")).toMatchObject({
+      ok: false,
+    });
   });
 });

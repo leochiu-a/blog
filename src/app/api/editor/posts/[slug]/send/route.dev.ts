@@ -6,5 +6,5 @@ import { handleSend } from "@/lib/editor/send-routes";
  */
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return handleSend("issue", slug, request);
+  return handleSend("post", slug, request);
 }

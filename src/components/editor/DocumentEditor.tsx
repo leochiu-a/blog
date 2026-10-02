@@ -53,7 +53,7 @@ import { acceptsUploads } from "./insert-options";
 import { MdxBlockView } from "./MdxBlockView";
 import { PublishButton } from "./PublishButton";
 import { SettingsPanel } from "./SettingsPanel";
-import { SendIssueButton, type SendState } from "./SendIssueButton";
+import { SendButton, type SendState } from "./SendButton";
 import { TestSendButton } from "./TestSendButton";
 import { UnknownBlockView } from "./UnknownBlockView";
 import { UploadProgress } from "./UploadProgress";
@@ -507,13 +507,14 @@ export function DocumentEditor({
         >
           Preview
         </Button>
-        {/* Issues only: a Post has no inbox to be checked in. Beside Preview,
-            because it is the same act — looking at the thing before anyone
-            else does — in the medium this document is actually for. */}
-        {collection === "issues" && <TestSendButton slug={slug} onBeforeSend={flush} />}
+        {/* Beside Preview, because it is the same act — looking at the thing
+            before anyone else does — in the medium this document is actually
+            for. A Post is mailed as an excerpt, and what that looks like in an
+            inbox is not something Preview can show. */}
+        <TestSendButton collection={collection} slug={slug} onBeforeSend={flush} />
         {/* The bar has two halves, and this is the seam: looking at the
             document on the left, changing what the world can see of it on the
-            right. It earns its keep on an Issue, where Test email and Send are
+            right. It earns its keep where Test email and Send are
             a click apart and differ by everything — one lands in your own
             inbox, the other in everyone's, once. A label is a thin way to carry
             that difference; being in a different group is not. */}
@@ -528,7 +529,7 @@ export function DocumentEditor({
             all. The subject and the draft flag come from the document in front
             of you rather than from what the page read off disk, so publishing
             arms this button without a reload. */}
-        {collection === "issues" && sendState !== undefined && (
+        {sendState !== undefined && (
           // A disabled Send while the deployed list is still being read: the
           // same size as what replaces it, so the toolbar does not jump, and
           // not pressable, since the dialog would have no count to show.
@@ -539,7 +540,8 @@ export function DocumentEditor({
               </Button>
             }
           >
-            <SendIssueButton
+            <SendButton
+              collection={collection}
               slug={slug}
               subject={readText(frontmatter, "subject") || readText(frontmatter, "title")}
               draft={readFlag(frontmatter, "draft")}

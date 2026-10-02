@@ -12,12 +12,18 @@ _Avoid_: Article, entry, blog
 
 **Issue**:
 One edition of the newsletter. Written for email, and independent of any Post —
-an Issue may link to several Posts, or to none. Mailing a Post would add nothing
-a feed reader does not already give; an Issue is the part written for the people
-who subscribed, so it is modelled as its own document rather than as a Post in
-an envelope.
+an Issue may link to several Posts, or to none. It is the part written for the
+people who subscribed, so it is modelled as its own document rather than as a
+Post in an envelope.
 _Avoid_: Newsletter (that is the publication, not one edition), campaign,
 broadcast
+
+**Post Mailing**:
+A Post sent to the Subscribers as an excerpt — its title, its opening, and a
+link to the full page. It is a send of a Post, not a second kind of Issue: it
+has no document of its own, and it is recorded in `post_sends` rather than
+`issue_sends`. See docs/adr/0005-a-post-is-mailed-as-an-excerpt.md.
+_Avoid_: Post newsletter, article email
 
 **Subscriber**:
 A person who has asked to receive Issues by email, together with the record of

@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import { parseDocument } from "@/lib/editor/document";
 import { EditorError, issueStore } from "@/lib/editor/store";
 import { remoteEnv } from "@/lib/newsletter/remote-env";
-import { issueSendState } from "@/lib/newsletter/send-issue";
+import { issueSendState } from "@/lib/newsletter/send";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
-import type { SendState } from "@/components/editor/SendIssueButton";
+import type { SendState } from "@/components/editor/SendButton";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  * Started here but not awaited. The query crosses the network to the deployed
  * database — ~0.7s warm, ~9s on the first open after `next dev` starts — and
  * awaiting it held the whole writing surface back for a button in the corner.
- * The promise streams to `SendIssueButton`, which suspends on its own while
+ * The promise streams to `SendButton`, which suspends on its own while
  * the rest of the editor is already open.
  *
  * A failure is a value, not a throw. Reaching the deployed database needs a

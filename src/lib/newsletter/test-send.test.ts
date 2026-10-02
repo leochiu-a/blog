@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SITE_URL } from "../site";
-import { testIssueEmail } from "./test-send";
+import { issueSendable, postSendable } from "./send";
+import { testEmail } from "./test-send";
 
 const issue = {
   slug: "first",
@@ -8,16 +9,18 @@ const issue = {
   markdown: "哈囉。\n",
 };
 
-describe("testIssueEmail", () => {
+describe("testEmail for an Issue", () => {
   it("marks the subject, so a test is never mistaken for the Issue itself", () => {
-    expect(testIssueEmail(issue).subject).toBe("[測試] 第一期");
+    expect(testEmail(issueSendable(issue)).subject).toBe("[測試] 第一期");
   });
 
   it("marks the subject line an Issue overrode the title with", () => {
-    const email = testIssueEmail({
-      ...issue,
-      frontmatter: { ...issue.frontmatter, subject: "本週：三件事" },
-    });
+    const email = testEmail(
+      issueSendable({
+        ...issue,
+        frontmatter: { ...issue.frontmatter, subject: "本週：三件事" },
+      }),
+    );
 
     expect(email.subject).toBe("[測試] 本週：三件事");
   });
@@ -28,7 +31,7 @@ describe("testIssueEmail", () => {
    * placeholder would arrive verbatim as a dead link.
    */
   it("links the unsubscribe page rather than a placeholder Resend never sees", () => {
-    const { html, text } = testIssueEmail(issue);
+    const { html, text } = testEmail(issueSendable(issue));
 
     for (const body of [html, text]) {
       expect(body).toContain(`${SITE_URL}/newsletter/unsubscribe/`);
@@ -37,6 +40,29 @@ describe("testIssueEmail", () => {
   });
 
   it("still points at where the Issue will live on the web", () => {
-    expect(testIssueEmail(issue).html).toContain(`${SITE_URL}/newsletter/first/`);
+    expect(testEmail(issueSendable(issue)).html).toContain(`${SITE_URL}/newsletter/first/`);
+  });
+});
+
+describe("testEmail for a Post", () => {
+  const post = {
+    slug: "hello",
+    frontmatter: {
+      title: "你好",
+      datetime: "2026-09-01",
+      readTime: "3 min",
+      category: "professional" as const,
+    },
+    markdown: "開頭。\n",
+  };
+
+  it("marks the subject and links the full Post, never a placeholder", () => {
+    const { subject, html, text } = testEmail(postSendable(post));
+
+    expect(subject).toBe("[測試] 你好");
+    for (const body of [html, text]) {
+      expect(body).toContain(`${SITE_URL}/blog/hello/`);
+      expect(body).not.toContain("RESEND_UNSUBSCRIBE_URL");
+    }
   });
 });

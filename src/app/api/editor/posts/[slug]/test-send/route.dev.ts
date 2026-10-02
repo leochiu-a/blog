@@ -1,4 +1,4 @@
-import { handleSend } from "@/lib/editor/send-routes";
+import { handleTestSend } from "@/lib/editor/send-routes";
 
 /**
  * `.dev.ts` — a route only while `next dev` is running. The behaviour, and why
@@ -6,5 +6,5 @@ import { handleSend } from "@/lib/editor/send-routes";
  */
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return handleSend("issue", slug, request);
+  return handleTestSend("post", slug, request);
 }

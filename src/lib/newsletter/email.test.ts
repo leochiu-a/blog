@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderIssueEmail } from "./email";
+import { renderIssueEmail, renderPostExcerpt } from "./email";
 
 const render = (markdown: string) => renderIssueEmail({ markdown, siteUrl: "https://leochiu.com" });
 
@@ -104,5 +104,53 @@ describe("rendering an issue for email", () => {
 
     expect(text).toContain("- 一");
     expect(text).toContain("- 二");
+  });
+});
+
+describe("rendering the opening of a Post for email", () => {
+  const excerpt = (markdown: string) =>
+    renderPostExcerpt({ markdown, siteUrl: "https://leochiu.com" });
+  const paragraph = (n: number) => `${"字".repeat(300)}${n}\n\n`;
+
+  it("carries a Figure as an image, and leaves other components out", () => {
+    const { html } = excerpt(
+      [
+        '<Figure src="/blog-images/hero.webp" alt="封面" width={100} height={50} hero />',
+        '<LinkCard href="/blog/other/" />',
+        "開頭一段。",
+      ].join("\n\n"),
+    );
+
+    expect(html).toContain('<img src="https://leochiu.com/blog-images/hero.webp" alt="封面"');
+    expect(html).toContain("開頭一段。");
+    expect(html).not.toContain("LinkCard");
+  });
+
+  it("reads a Figure whose tag spans several lines", () => {
+    const { html } = excerpt('<Figure\n  src="/blog-images/a.webp"\n  alt="圖"\n/>\n\n文字。');
+
+    expect(html).toContain("https://leochiu.com/blog-images/a.webp");
+  });
+
+  it("drops imports and exports rather than printing them", () => {
+    const { html, text } = excerpt('import Demo from "@/components/Demo";\n\n文字。');
+
+    expect(html).not.toContain("import");
+    expect(text).toBe("文字。");
+  });
+
+  it("stops after about 500 characters, on a block boundary", () => {
+    const { text } = excerpt(paragraph(1) + paragraph(2) + paragraph(3));
+
+    // Two paragraphs reach the budget; the third is the site's to show.
+    expect(text).toContain("字1");
+    expect(text).toContain("字2");
+    expect(text).not.toContain("字3");
+  });
+
+  it("never ends on a heading with nothing under it", () => {
+    const { html } = excerpt(`${paragraph(1)}${paragraph(2)}## 下一節\n\n${paragraph(3)}`);
+
+    expect(html).not.toContain("下一節");
   });
 });

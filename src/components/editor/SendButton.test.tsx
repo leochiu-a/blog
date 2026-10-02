@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Suspense } from "react";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SendIssueButton, type SendState } from "./SendIssueButton";
+import type { CollectionName } from "@/lib/editor/collections";
+import { SendButton, type SendState } from "./SendButton";
 
 afterEach(() => {
   cleanup();
@@ -44,16 +45,18 @@ const RECEIPT = {
  * button does once the list has answered.
  */
 async function renderButton({
+  collection = "issues",
   draft = false,
   state = { sentAt: null, recipients: 3 } as SendState,
-}: { draft?: boolean; state?: SendState } = {}) {
+}: { collection?: CollectionName; draft?: boolean; state?: SendState } = {}) {
   const onBeforeSend = vi.fn(async () => {
     order.push("save");
   });
   await act(async () => {
     render(
       <Suspense fallback={null}>
-        <SendIssueButton
+        <SendButton
+          collection={collection}
           slug="first"
           subject="第一期"
           draft={draft}
@@ -98,6 +101,20 @@ describe("the send button", () => {
     await user.type(screen.getByLabelText("輸入 first 以確認"), "t");
     expect(sendButton().hasAttribute("disabled")).toBe(false);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("sends a Post through the Post endpoint, in the Post's own words", async () => {
+    const fetch = stubFetch({ ok: true, status: 200, body: RECEIPT });
+    const user = userEvent.setup();
+    await renderButton({ collection: "posts" });
+
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    expect(screen.getByText("把這篇文章寄給訂閱者")).toBeTruthy();
+    await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
+    await user.click(sendButton());
+
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    expect((fetch.mock.calls[0] as unknown as [string])[0]).toBe("/api/editor/posts/first/send/");
   });
 
   /**
@@ -188,8 +205,8 @@ describe("the send button", () => {
     const label = shown.closest("label");
     expect(label?.className).toContain("select-text");
     // Still the field's label — every other test finds the input through it.
-    expect(label?.getAttribute("for")).toBe("send-issue-confirm");
-    expect(screen.getByLabelText("輸入 first 以確認").id).toBe("send-issue-confirm");
+    expect(label?.getAttribute("for")).toBe("send-confirm");
+    expect(screen.getByLabelText("輸入 first 以確認").id).toBe("send-confirm");
   });
 
   /**

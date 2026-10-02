@@ -1,5 +1,6 @@
 import type { BlockContent, DefinitionContent, PhrasingContent, RootContent } from "mdast";
 import remarkGfm from "remark-gfm";
+import remarkMdx from "remark-mdx";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
 
@@ -269,4 +270,67 @@ export function renderIssueEmail({ markdown, siteUrl }: RenderOptions): Rendered
     html: blockHtml(tree.children, origin),
     text: blockText(tree.children, origin),
   };
+}
+
+/** How much of a Post's text an email carries before it hands over to the site. */
+const EXCERPT_CHARS = 500;
+
+/** The plain text a block contributes, for deciding where the excerpt ends. */
+function textLength(node: AnyContent): number {
+  if ("value" in node && typeof node.value === "string") return node.value.length;
+  return "children" in node
+    ? (node.children as AnyContent[]).reduce((sum, child) => sum + textLength(child), 0)
+    : 0;
+}
+
+function attribute(node: { attributes: unknown[] }, name: string): string | undefined {
+  const found = (node.attributes as { type: string; name?: string; value?: unknown }[]).find(
+    (attr) => attr.type === "mdxJsxAttribute" && attr.name === name,
+  );
+  return typeof found?.value === "string" ? found.value : undefined;
+}
+
+/**
+ * A Post is MDX, and an inbox knows Markdown and nothing else. `<Figure>` is
+ * the one component worth carrying — it is the hero and every picture the
+ * post's argument leans on — so it becomes an ordinary image. Everything else
+ * (demos, link cards, clips, imports) has nothing to show without the site's
+ * JavaScript and is left out of the excerpt rather than rendered as a hole.
+ */
+function postBlocks(blocks: RootContent[]): RootContent[] {
+  return blocks.flatMap((node): RootContent[] => {
+    if (node.type === "mdxJsxFlowElement") {
+      const src = node.name === "Figure" ? attribute(node, "src") : undefined;
+      if (src === undefined) return [];
+      return [
+        {
+          type: "paragraph",
+          children: [{ type: "image", url: src, alt: attribute(node, "alt") ?? "" }],
+        },
+      ];
+    }
+    return node.type === "mdxjsEsm" || node.type === "mdxFlowExpression" ? [] : [node];
+  });
+}
+
+/**
+ * The opening of a Post as an email body: whole blocks from the top until about
+ * `EXCERPT_CHARS` of text have been shown, never a block cut in half and never
+ * a heading left dangling over nothing. The rest is what the "read the full
+ * post" link is for.
+ */
+export function renderPostExcerpt({ markdown, siteUrl }: RenderOptions): RenderedIssue {
+  const tree = unified().use(remarkParse).use(remarkGfm).use(remarkMdx).parse(markdown);
+  const origin = siteUrl.replace(/\/$/, "");
+
+  const excerpt: RootContent[] = [];
+  let shown = 0;
+  for (const block of postBlocks(tree.children)) {
+    if (shown >= EXCERPT_CHARS) break;
+    excerpt.push(block);
+    shown += textLength(block);
+  }
+  while (excerpt.at(-1)?.type === "heading") excerpt.pop();
+
+  return { html: blockHtml(excerpt, origin), text: blockText(excerpt, origin) };
 }

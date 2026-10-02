@@ -213,30 +213,54 @@ export async function markUnsubscribedInBulk(
   return results.reduce((changed, result) => changed + (result.meta.changes ?? 0), 0);
 }
 
-export async function issueSentAt(db: D1Database, issueSlug: string): Promise<number | null> {
+export async function issueSentAt(db: D1Database, slug: string): Promise<number | null> {
   const row = await db
     .prepare("SELECT sent_at FROM issue_sends WHERE issue_slug = ?")
-    .bind(issueSlug)
+    .bind(slug)
     .first<{ sent_at: number }>();
 
   return row?.sent_at ?? null;
 }
 
+export interface SendRecord {
+  slug: string;
+  resendBroadcastId: string;
+  recipientCount: number;
+  now: number;
+}
+
 export async function recordIssueSend(
   db: D1Database,
-  {
-    issueSlug,
-    resendBroadcastId,
-    recipientCount,
-    now,
-  }: { issueSlug: string; resendBroadcastId: string; recipientCount: number; now: number },
+  { slug, resendBroadcastId, recipientCount, now }: SendRecord,
 ): Promise<void> {
   await db
     .prepare(
       `INSERT INTO issue_sends (issue_slug, resend_broadcast_id, recipient_count, sent_at)
        VALUES (?, ?, ?, ?)`,
     )
-    .bind(issueSlug, resendBroadcastId, recipientCount, now)
+    .bind(slug, resendBroadcastId, recipientCount, now)
+    .run();
+}
+
+export async function postSentAt(db: D1Database, slug: string): Promise<number | null> {
+  const row = await db
+    .prepare("SELECT sent_at FROM post_sends WHERE post_slug = ?")
+    .bind(slug)
+    .first<{ sent_at: number }>();
+
+  return row?.sent_at ?? null;
+}
+
+export async function recordPostSend(
+  db: D1Database,
+  { slug, resendBroadcastId, recipientCount, now }: SendRecord,
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO post_sends (post_slug, resend_broadcast_id, recipient_count, sent_at)
+       VALUES (?, ?, ?, ?)`,
+    )
+    .bind(slug, resendBroadcastId, recipientCount, now)
     .run();
 }
 

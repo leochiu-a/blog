@@ -8,7 +8,9 @@ import {
   countConfirmationsOnDay,
   findSubscriber,
   markUnsubscribedInBulk,
+  postSentAt,
   prunePending,
+  recordPostSend,
   recordConfirmationSent,
   subscriberCounts,
   unsubscribeSubscriber,
@@ -240,5 +242,26 @@ describe("the recipient count the editor reads", () => {
 
   it("is zero on an empty list", async () => {
     expect(await confirmedCount(db)).toBe(0);
+  });
+});
+
+describe("post sends", () => {
+  const record = { slug: "hello", resendBroadcastId: "bc_1", recipientCount: 3, now: NOW };
+
+  it("remembers when a Post went out, and says nothing for one that has not", async () => {
+    expect(await postSentAt(db, "hello")).toBeNull();
+
+    await recordPostSend(db, record);
+
+    expect(await postSentAt(db, "hello")).toBe(NOW);
+    expect(await postSentAt(db, "other")).toBeNull();
+  });
+
+  // The guard under the Sent badge: two sends that both got past every check
+  // end with one row and one refusal from SQLite, not two broadcasts.
+  it("refuses to record the same Post twice", async () => {
+    await recordPostSend(db, record);
+
+    await expect(recordPostSend(db, { ...record, resendBroadcastId: "bc_2" })).rejects.toThrow();
   });
 });
