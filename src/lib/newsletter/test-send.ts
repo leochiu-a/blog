@@ -1,6 +1,6 @@
 import { FROM_ADDRESS, REPLY_TO_ADDRESS } from "./constants.ts";
 import { sendEmail } from "./resend.ts";
-import type { Sendable } from "./send.ts";
+import type { Sendable } from "./sendable.ts";
 import type { RenderedEmail } from "./templates.ts";
 import { SITE_URL } from "../site.ts";
 

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { apiPath, type CollectionName } from "@/lib/editor/collections";
+import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
 
 /**
  * Where the address is kept between sends. A test goes to your own inbox
@@ -141,7 +141,7 @@ export function TestSendButton({
           <DialogHeader>
             <DialogTitle>寄一封測試信</DialogTitle>
             <DialogDescription>
-              把{collection === "issues" ? "這一期" : "這篇文章"}寄到一個信箱，主旨會加上
+              把{collectionOf(collection).sendNoun}寄到一個信箱，主旨會加上
               [測試]。不會碰到訂閱名單，也不算寄出過。
             </DialogDescription>
           </DialogHeader>

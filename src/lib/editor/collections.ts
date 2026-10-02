@@ -26,6 +26,8 @@ export interface Collection {
    * of these.
    */
   itemLabel: string;
+  /** What a send dialog calls this document: "把這一期寄給訂閱者". */
+  sendNoun: string;
   /** Where the files live, relative to the project root. */
   directory: string;
   /**
@@ -73,6 +75,7 @@ export const COLLECTIONS: Record<CollectionName, Collection> = {
     name: "posts",
     label: "Posts",
     itemLabel: "Post",
+    sendNoun: "這篇文章",
     directory: "src/content/blog",
     requiredKeys: requiredKeys(postFrontmatterSchema.shape),
     previewBase: "/blog",
@@ -92,6 +95,7 @@ export const COLLECTIONS: Record<CollectionName, Collection> = {
     name: "issues",
     label: "Issues",
     itemLabel: "Issue",
+    sendNoun: "這一期",
     directory: "src/content/newsletter",
     requiredKeys: requiredKeys(issueFrontmatterSchema.shape),
     previewBase: "/newsletter",

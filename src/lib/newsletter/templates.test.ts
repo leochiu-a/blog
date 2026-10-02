@@ -64,4 +64,19 @@ describe("a Post's email", () => {
 
     expect(text.trimEnd().endsWith(post.unsubscribeUrl)).toBe(true);
   });
+
+  it("refuses a Post whose opening has nothing to show in an inbox", () => {
+    expect(() =>
+      postEmail({ ...post, markdown: 'import Demo from "@/components/Demo";\n\n<Demo />\n' }),
+    ).toThrow(/沒有文字/);
+  });
+
+  it("carries only the opening of a long Post", () => {
+    const long = Array.from({ length: 6 }, (_, i) => `${"字".repeat(300)}${i}`).join("\n\n");
+
+    const { text } = postEmail({ ...post, markdown: long });
+
+    expect(text).toContain("字0");
+    expect(text).not.toContain("字5");
+  });
 });

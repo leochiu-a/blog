@@ -9,23 +9,13 @@ import {
   listContacts,
   sendBroadcast,
 } from "@/lib/newsletter/resend";
-import {
-  SendRefused,
-  issueSendState,
-  issueSendable,
-  postSendState,
-  postSendable,
-  postUrl,
-  sendToList,
-  type SendDeps,
-  type SendKind,
-  type Sendable,
-} from "@/lib/newsletter/send";
+import { SendRefused, sendState, sendToList, type SendDeps } from "@/lib/newsletter/send";
+import { issueSendable, postSendable, postUrl, type Sendable } from "@/lib/newsletter/sendable";
 import {
   confirmedEmails,
   markUnsubscribedInBulk,
-  recordIssueSend,
-  recordPostSend,
+  recordSend,
+  type SendKind,
 } from "@/lib/newsletter/subscribers";
 import { sendTestEmail } from "@/lib/newsletter/test-send";
 import { parseEmail } from "@/lib/newsletter/subscription";
@@ -46,6 +36,27 @@ import { EditorError, issueStore, postStore } from "./store";
  * out is what is saved on disk. The dialogs flush the editor's autosave before
  * asking, which is what makes those the bytes you were just looking at.
  */
+
+/**
+ * Whether this document has already been mailed, from the deployed subscriber
+ * list, for the page to hand to the toolbar.
+ *
+ * A failure is a value, not a throw. Reaching the deployed database needs a
+ * network and a Wrangler login, and either can be missing on a laptop — the
+ * writing surface has to open regardless, with the reason sitting in the send
+ * dialog where it matters.
+ */
+export async function readSendState(
+  kind: SendKind,
+  slug: string,
+): Promise<{ sentAt: number | null; recipients: number } | { error: string }> {
+  try {
+    const env = await remoteEnv();
+    return await sendState(env.NEWSLETTER_DB, kind, slug);
+  } catch (cause) {
+    return { error: cause instanceof Error ? cause.message : String(cause) };
+  }
+}
 
 /** Reads and validates the document on disk as something that can be mailed. */
 async function load(kind: SendKind, slug: string): Promise<Sendable> {
@@ -119,7 +130,7 @@ export async function handleTestSend(
  */
 async function assertPostIsLive(slug: string): Promise<void> {
   const url = postUrl(slug);
-  const live = await fetch(url, { method: "HEAD" }).then(
+  const live = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(10_000) }).then(
     (response) => response.ok,
     () => false,
   );
@@ -143,12 +154,10 @@ export async function handleSend(kind: SendKind, slug: string, request: Request)
     if (!apiKey || !segmentId) {
       throw new EditorError("`.dev.vars` 需要 RESEND_API_KEY 和 RESEND_SEGMENT_ID", 500);
     }
-    if (kind === "post" && !item.draft) await assertPostIsLive(slug);
 
     const deps: SendDeps = {
       now: () => Date.now(),
-      sendState: (itemSlug) =>
-        kind === "issue" ? issueSendState(db, itemSlug) : postSendState(db, itemSlug),
+      sendState: (itemSlug) => sendState(db, kind, itemSlug),
       findBroadcast: (name) => findBroadcastByName(apiKey, name),
       confirmedEmails: () => confirmedEmails(db),
       listContacts: () => listContacts(apiKey, segmentId),
@@ -168,8 +177,9 @@ export async function handleSend(kind: SendKind, slug: string, request: Request)
       sendBroadcast: async (broadcastId) => {
         await sendBroadcast(apiKey, broadcastId);
       },
-      recordSend: (record) =>
-        kind === "issue" ? recordIssueSend(db, record) : recordPostSend(db, record),
+      preflight: (sendable) =>
+        sendable.kind === "post" ? assertPostIsLive(sendable.slug) : Promise.resolve(),
+      recordSend: (record) => recordSend(db, kind, record),
     };
 
     return Response.json(await sendToList(item, deps));

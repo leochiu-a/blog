@@ -65,4 +65,13 @@ category: professional
       ok: false,
     });
   });
+
+  it("reads a draft Post rather than refusing it", () => {
+    const draft = parsePostSource(
+      "wip",
+      post.replace("category: professional", "category: professional\ndraft: true"),
+    );
+
+    expect(draft.ok && draft.frontmatter.draft).toBe(true);
+  });
 });

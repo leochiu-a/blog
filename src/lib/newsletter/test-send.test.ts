@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SITE_URL } from "../site";
-import { issueSendable, postSendable } from "./send";
+import { issueSendable, postSendable } from "./sendable";
 import { testEmail } from "./test-send";
 
 const issue = {

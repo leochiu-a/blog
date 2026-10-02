@@ -4,16 +4,14 @@ import {
   SendRefused,
   decideSend,
   refusalMessage,
-  issueSendable,
-  postSendable,
   sendToList,
-  type Issue,
   type OutgoingBroadcast,
-  type Sent,
   type SendCandidate,
   type SendDeps,
   type SendState,
 } from "./send";
+import { issueSendable, postSendable, type Issue } from "./sendable";
+import type { SendRecord } from "./subscribers";
 
 /**
  * The gate in front of the one irreversible action here. Three states refuse a
@@ -80,18 +78,21 @@ function deps({
     { email: "b@example.com", unsubscribed: false },
   ],
   existing = null,
+  preflight = async () => {},
 }: {
   state?: SendState;
   confirmed?: string[];
   contacts?: RemoteContact[];
   /** What Resend already holds under this Issue's broadcast name. */
   existing?: RemoteBroadcast | null;
+  /** What the send checks about the world before it writes anything. */
+  preflight?: () => Promise<void>;
 } = {}) {
   /** Every call the send made, in order — which is most of what is under test. */
   const calls: string[] = [];
   const names: string[] = [];
   const broadcasts: OutgoingBroadcast[] = [];
-  const recorded: Sent[] = [];
+  const recorded: SendRecord[] = [];
   const created: string[] = [];
   const unsubscribed: string[][] = [];
 
@@ -105,6 +106,10 @@ function deps({
       calls.push("findBroadcast");
       names.push(name);
       return existing;
+    },
+    preflight: async () => {
+      calls.push("preflight");
+      await preflight();
     },
     confirmedEmails: async () => {
       calls.push("confirmedEmails");
@@ -148,6 +153,7 @@ describe("sending an Issue to the list", () => {
     expect(fake.calls).toEqual([
       "sendState",
       "findBroadcast",
+      "preflight",
       "listContacts",
       "confirmedEmails",
       "markUnsubscribed",
@@ -338,5 +344,53 @@ describe("sending a Post to the list", () => {
 
     await expect(sendToList(postSendable(post), fake.dependencies)).rejects.toThrow(/post_sends/);
     expect(fake.calls).toEqual(["sendState"]);
+  });
+});
+
+/**
+ * The check a Post's send makes of the live site. It guards the link in the
+ * email, so it belongs after every refusal and after the repair of a send
+ * Resend already made — those mail nobody, and an outage of the site must not
+ * stand between a person and finding out that the Post has gone out.
+ */
+describe("the preflight check", () => {
+  const post = {
+    slug: "hello",
+    frontmatter: {
+      title: "你好",
+      datetime: "2026-09-02",
+      readTime: "3 min",
+      category: "professional" as const,
+    },
+    markdown: "開頭一段。\n",
+  };
+  const down = async () => {
+    throw new Error("site is down");
+  };
+
+  it("stops the send before anything is reconciled, created or recorded", async () => {
+    const fake = deps({ preflight: down });
+
+    await expect(sendToList(postSendable(post), fake.dependencies)).rejects.toThrow("site is down");
+    expect(fake.calls).toEqual(["sendState", "findBroadcast", "preflight"]);
+    expect(fake.recorded).toEqual([]);
+  });
+
+  it("does not stand between a person and learning a Post has already gone out", async () => {
+    const fake = deps({ state: { sentAt: NOW - 1000, recipients: 2 }, preflight: down });
+
+    await expect(sendToList(postSendable(post), fake.dependencies)).rejects.toThrow(SendRefused);
+  });
+
+  it("does not block repairing a send Resend already made", async () => {
+    const fake = deps({
+      existing: { id: "bc_old", status: "sent", sentAt: NOW - 1000 },
+      preflight: down,
+    });
+
+    const receipt = await sendToList(postSendable(post), fake.dependencies);
+
+    expect(receipt.recovered).toBe(true);
+    expect(fake.calls).not.toContain("preflight");
   });
 });

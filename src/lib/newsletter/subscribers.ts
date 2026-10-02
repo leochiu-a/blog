@@ -213,14 +213,18 @@ export async function markUnsubscribedInBulk(
   return results.reduce((changed, result) => changed + (result.meta.changes ?? 0), 0);
 }
 
-export async function issueSentAt(db: D1Database, slug: string): Promise<number | null> {
-  const row = await db
-    .prepare("SELECT sent_at FROM issue_sends WHERE issue_slug = ?")
-    .bind(slug)
-    .first<{ sent_at: number }>();
+/**
+ * Where each kind of send is recorded. A table per kind, keyed by slug, so a
+ * second send of the same document fails on the key rather than on anyone
+ * remembering. The names are constants and never come from a request, which is
+ * what makes interpolating them into SQL below safe.
+ */
+export const SEND_TABLES = {
+  issue: { table: "issue_sends", column: "issue_slug" },
+  post: { table: "post_sends", column: "post_slug" },
+} as const;
 
-  return row?.sent_at ?? null;
-}
+export type SendKind = keyof typeof SEND_TABLES;
 
 export interface SendRecord {
   slug: string;
@@ -229,35 +233,25 @@ export interface SendRecord {
   now: number;
 }
 
-export async function recordIssueSend(
-  db: D1Database,
-  { slug, resendBroadcastId, recipientCount, now }: SendRecord,
-): Promise<void> {
-  await db
-    .prepare(
-      `INSERT INTO issue_sends (issue_slug, resend_broadcast_id, recipient_count, sent_at)
-       VALUES (?, ?, ?, ?)`,
-    )
-    .bind(slug, resendBroadcastId, recipientCount, now)
-    .run();
-}
-
-export async function postSentAt(db: D1Database, slug: string): Promise<number | null> {
+export async function sentAt(db: D1Database, kind: SendKind, slug: string): Promise<number | null> {
+  const { table, column } = SEND_TABLES[kind];
   const row = await db
-    .prepare("SELECT sent_at FROM post_sends WHERE post_slug = ?")
+    .prepare(`SELECT sent_at FROM ${table} WHERE ${column} = ?`)
     .bind(slug)
     .first<{ sent_at: number }>();
 
   return row?.sent_at ?? null;
 }
 
-export async function recordPostSend(
+export async function recordSend(
   db: D1Database,
+  kind: SendKind,
   { slug, resendBroadcastId, recipientCount, now }: SendRecord,
 ): Promise<void> {
+  const { table, column } = SEND_TABLES[kind];
   await db
     .prepare(
-      `INSERT INTO post_sends (post_slug, resend_broadcast_id, recipient_count, sent_at)
+      `INSERT INTO ${table} (${column}, resend_broadcast_id, recipient_count, sent_at)
        VALUES (?, ?, ?, ?)`,
     )
     .bind(slug, resendBroadcastId, recipientCount, now)

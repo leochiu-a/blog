@@ -194,6 +194,14 @@ export function postEmail({
   unsubscribeUrl,
 }: PostEmailOptions): RenderedEmail {
   const body = renderPostExcerpt({ markdown, siteUrl });
+  // A Post that opens on nothing but components has no text to show, and an
+  // email of a title over a button invites a click on something nobody has
+  // described. Refused here, where both the test send and the real one pass.
+  if (body.text.trim() === "") {
+    throw new Error(
+      "這篇文章的開頭沒有文字可以放進信裡（只有元件或 import）。在前面加一段文字再寄。",
+    );
+  }
 
   const contentHtml = `<div style="${MASTHEAD_STYLE}">
 <h1 style="${TITLE_STYLE}">${escapeHtml(title)}</h1>

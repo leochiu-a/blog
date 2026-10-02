@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { apiPath, type CollectionName } from "@/lib/editor/collections";
+import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
 
 /**
  * What the page read out of the deployed subscriber list, or why it could not.
@@ -80,7 +80,7 @@ export function SendButton({
 }) {
   const state = use(pending);
   // What this document is called to the person sending it.
-  const noun = collection === "issues" ? "這一期" : "這篇文章";
+  const { sendNoun: noun } = collectionOf(collection);
   const [open, setOpen] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   // A send that was refused because the Issue had already gone out: the row was

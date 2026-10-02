@@ -1,41 +1,23 @@
 import { notFound } from "next/navigation";
 import { parseDocument } from "@/lib/editor/document";
+import { readSendState } from "@/lib/editor/send-routes";
 import { EditorError, issueStore } from "@/lib/editor/store";
-import { remoteEnv } from "@/lib/newsletter/remote-env";
-import { issueSendState } from "@/lib/newsletter/send";
 import { DocumentEditor } from "@/components/editor/DocumentEditor";
-import type { SendState } from "@/components/editor/SendButton";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Whether this Issue has already gone out, from the deployed subscriber list.
- *
- * Read with the page rather than from the browser, so the toolbar draws itself
- * right the first time: an Issue that has been sent shows a **Sent** badge and
- * no send button at all, which is the answer to "did I already send this?"
- * without pressing anything.
+/*
+ * Whether this Issue has already gone out is read with the page, not from the
+ * browser, so the toolbar draws itself right the first time: an Issue that has
+ * been sent shows a **Sent** badge and no send button at all, which is the
+ * answer to "did I already send this?" without pressing anything.
  *
  * Started here but not awaited. The query crosses the network to the deployed
  * database — ~0.7s warm, ~9s on the first open after `next dev` starts — and
  * awaiting it held the whole writing surface back for a button in the corner.
- * The promise streams to `SendButton`, which suspends on its own while
- * the rest of the editor is already open.
- *
- * A failure is a value, not a throw. Reaching the deployed database needs a
- * network and a Wrangler login, and either can be missing on a laptop — the
- * writing surface has to open regardless, with the reason sitting in the send
- * dialog where it matters.
+ * The promise streams to `SendButton`, which suspends on its own while the rest
+ * of the editor is already open.
  */
-async function sendState(slug: string): Promise<SendState> {
-  try {
-    const env = await remoteEnv();
-    return await issueSendState(env.NEWSLETTER_DB, slug);
-  } catch (cause) {
-    return { error: cause instanceof Error ? cause.message : String(cause) };
-  }
-}
-
 export default async function EditIssue({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
@@ -49,7 +31,7 @@ export default async function EditIssue({ params }: { params: Promise<{ slug: st
       collection="issues"
       slug={slug}
       initialDocument={parseDocument(source)}
-      sendState={sendState(slug)}
+      sendState={readSendState("issue", slug)}
     />
   );
 }

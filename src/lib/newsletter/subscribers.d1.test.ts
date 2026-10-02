@@ -8,9 +8,9 @@ import {
   countConfirmationsOnDay,
   findSubscriber,
   markUnsubscribedInBulk,
-  postSentAt,
   prunePending,
-  recordPostSend,
+  recordSend,
+  sentAt,
   recordConfirmationSent,
   subscriberCounts,
   unsubscribeSubscriber,
@@ -245,23 +245,34 @@ describe("the recipient count the editor reads", () => {
   });
 });
 
-describe("post sends", () => {
+describe("send records", () => {
   const record = { slug: "hello", resendBroadcastId: "bc_1", recipientCount: 3, now: NOW };
 
   it("remembers when a Post went out, and says nothing for one that has not", async () => {
-    expect(await postSentAt(db, "hello")).toBeNull();
+    expect(await sentAt(db, "post", "hello")).toBeNull();
 
-    await recordPostSend(db, record);
+    await recordSend(db, "post", record);
 
-    expect(await postSentAt(db, "hello")).toBe(NOW);
-    expect(await postSentAt(db, "other")).toBeNull();
+    expect(await sentAt(db, "post", "hello")).toBe(NOW);
+    expect(await sentAt(db, "post", "other")).toBeNull();
   });
 
   // The guard under the Sent badge: two sends that both got past every check
   // end with one row and one refusal from SQLite, not two broadcasts.
-  it("refuses to record the same Post twice", async () => {
-    await recordPostSend(db, record);
+  it("refuses to record the same document twice, and says it is the key that refused", async () => {
+    await recordSend(db, "post", record);
 
-    await expect(recordPostSend(db, { ...record, resendBroadcastId: "bc_2" })).rejects.toThrow();
+    await expect(recordSend(db, "post", { ...record, resendBroadcastId: "bc_2" })).rejects.toThrow(
+      /UNIQUE|PRIMARY KEY|constraint/i,
+    );
+  });
+
+  // An Issue and a Post can share a slug without one answering for the other:
+  // each kind has a table of its own.
+  it("keeps the two kinds apart", async () => {
+    await recordSend(db, "issue", record);
+
+    expect(await sentAt(db, "issue", "hello")).toBe(NOW);
+    expect(await sentAt(db, "post", "hello")).toBeNull();
   });
 });
