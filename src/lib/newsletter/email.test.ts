@@ -27,6 +27,14 @@ describe("rendering an issue for email", () => {
     expect(html).toContain('href="https://developers.cloudflare.com/d1/"');
   });
 
+  it("renders an image as an img with an absolute src and its alt text", () => {
+    const { html, text } = render("![架構圖](/blog-images/arch.webp)");
+
+    expect(html).toContain('<img src="https://leochiu.com/blog-images/arch.webp" alt="架構圖"');
+    expect(html).toContain("max-width:100%");
+    expect(text).toContain("架構圖 (https://leochiu.com/blog-images/arch.webp)");
+  });
+
   it("renders a bullet list as a list", () => {
     const { html } = render("- 第一點\n- 第二點");
 

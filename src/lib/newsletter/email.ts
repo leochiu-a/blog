@@ -22,11 +22,13 @@ import { unified } from "unified";
  * stringifier produces. Revisit if an Issue ever needs constructs this does not
  * cover, not to shorten the file.
  *
- * An Issue is prose and links: images and fenced code are not part of what the
- * format supports. Neither is dropped, because silently losing something an
- * author wrote is worse than rendering it plainly — an image becomes a link,
- * and a fence gets a monospace block with wrapping so a long line cannot break
- * the layout. Neither is a reason to start putting code in an Issue.
+ * An Issue is prose, links and images. An image is an `<img>` pointing at its
+ * absolute URL on the site, not an attachment: the client fetches it when the
+ * message is opened, and shows `alt` where it blocks remote images. Fenced code
+ * is not part of what the format supports, but it is not dropped either —
+ * silently losing something an author wrote is worse than rendering it plainly,
+ * so a fence gets a monospace block with wrapping so a long line cannot break
+ * the layout. That is not a reason to start putting code in an Issue.
  */
 
 interface RenderOptions {
@@ -93,6 +95,8 @@ const STYLE = {
   headingLink: `color:${ACCENT};text-decoration:none;`,
   code: `padding:0.15em 0.35em;background:#f4f4f4;border-radius:3px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;color:${INK};`,
   pre: `margin:0 0 16px;padding:0.9em 1em;background:#f4f4f4;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.6;color:${INK};white-space:pre-wrap;word-break:break-word;`,
+  /** `height:auto` keeps the aspect ratio when `max-width` shrinks it on a phone. */
+  image: `display:block;max-width:100%;height:auto;margin:0 auto;border:0;border-radius:6px;`,
   hr: `margin:2em 0;border:0;border-top:1px solid ${RULE};`,
 } as const;
 
@@ -141,10 +145,8 @@ function inlineHtml(
           return `<code style="${STYLE.code}">${escapeHtml(node.value)}</code>`;
         case "link":
           return `<a href="${escapeHtml(absoluteUrl(node.url, siteUrl))}" style="${linkStyle}">${inlineHtml(node.children, siteUrl, linkStyle)}</a>`;
-        // Images are not displayed, but the author put something there — keep it
-        // reachable as a link rather than dropping it.
         case "image":
-          return `<a href="${escapeHtml(absoluteUrl(node.url, siteUrl))}" style="${linkStyle}">${escapeHtml(node.alt || node.url)}</a>`;
+          return `<img src="${escapeHtml(absoluteUrl(node.url, siteUrl))}" alt="${escapeHtml(node.alt ?? "")}" style="${STYLE.image}" />`;
         case "break":
           return "<br />";
         default:
