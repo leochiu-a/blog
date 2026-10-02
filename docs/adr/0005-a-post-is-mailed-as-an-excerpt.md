@@ -15,7 +15,12 @@ does not answer on the live site yet. A published-but-undeployed Post would go
 to everyone with a 404 behind its only call to action, and a send cannot be
 recalled.
 
-The excerpt keeps `<Figure>` as an image and drops every other component. It
+The excerpt carries each component that has something to show without the
+site's JavaScript in a form an inbox can hold: `<Figure>` as an image, `<Clip>`
+as its poster linked to the post, a YouTube `<VideoEmbed>` as its thumbnail
+linked to the video, and `<LinkCard>` as a bordered card without its picture.
+Dropping them left the sentence that introduced them ending on a colon over
+nothing. Demos and every other component are still left out. It
 stops at a block boundary after about 500 characters of text, and never leaves a
 heading hanging over nothing. It reuses the Issue renderer for everything it
 does keep, so the two cannot drift on what a paragraph looks like.

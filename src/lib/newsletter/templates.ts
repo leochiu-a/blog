@@ -193,7 +193,7 @@ export function postEmail({
   postUrl,
   unsubscribeUrl,
 }: PostEmailOptions): RenderedEmail {
-  const body = renderPostExcerpt({ markdown, siteUrl });
+  const body = renderPostExcerpt({ markdown, siteUrl, postUrl });
   // A Post that opens on nothing but components has no text to show, and an
   // email of a title over a button invites a click on something nobody has
   // described. Refused here, where both the test send and the real one pass.

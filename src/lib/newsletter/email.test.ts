@@ -109,21 +109,61 @@ describe("rendering an issue for email", () => {
 
 describe("rendering the opening of a Post for email", () => {
   const excerpt = (markdown: string) =>
-    renderPostExcerpt({ markdown, siteUrl: "https://leochiu.com" });
+    renderPostExcerpt({
+      markdown,
+      siteUrl: "https://leochiu.com",
+      postUrl: "https://leochiu.com/blog/hello/",
+    });
   const paragraph = (n: number) => `${"字".repeat(300)}${n}\n\n`;
 
-  it("carries a Figure as an image, and leaves other components out", () => {
+  it("carries a Figure as an image, and leaves demos out", () => {
     const { html } = excerpt(
       [
         '<Figure src="/blog-images/hero.webp" alt="封面" width={100} height={50} hero />',
-        '<LinkCard href="/blog/other/" />',
+        "<Demo />",
         "開頭一段。",
       ].join("\n\n"),
     );
 
     expect(html).toContain('<img src="https://leochiu.com/blog-images/hero.webp" alt="封面"');
     expect(html).toContain("開頭一段。");
-    expect(html).not.toContain("LinkCard");
+    expect(html).not.toContain("Demo");
+  });
+
+  it("carries a Clip as its poster, linked to the post", () => {
+    const { html, text } = excerpt(
+      '<Clip src="/blog-videos/a.mp4" poster="/blog-images/a-poster.webp" width={1280} height={760} />\n\n文字。',
+    );
+
+    expect(html).toContain(
+      '<a href="https://leochiu.com/blog/hello/"><img src="https://leochiu.com/blog-images/a-poster.webp"',
+    );
+    expect(html).not.toContain("<video");
+    expect(text).toContain("到網站上看影片 (https://leochiu.com/blog/hello/)");
+  });
+
+  it("carries a YouTube embed as its thumbnail, linked to the video", () => {
+    const { html } = excerpt(
+      '<VideoEmbed src="https://www.youtube.com/embed/Ie6jQPVFerE" title="介紹影片" />\n\n文字。',
+    );
+
+    expect(html).toContain('href="https://www.youtube.com/watch?v=Ie6jQPVFerE"');
+    expect(html).toContain('src="https://img.youtube.com/vi/Ie6jQPVFerE/hqdefault.jpg"');
+    expect(html).toContain("介紹影片");
+    expect(html).not.toContain("<iframe");
+  });
+
+  it("carries a LinkCard as a card of its title, summary and site", () => {
+    const { html, text } = excerpt(
+      '<LinkCard href="https://github.com/a/b" title="a/b" description="一個工具" site="GitHub" image="/x.webp" />\n\n文字。',
+    );
+
+    expect(html).toContain("<table");
+    expect(html).toContain('<a href="https://github.com/a/b"');
+    expect(html).toContain("一個工具");
+    expect(html).toContain("GitHub");
+    expect(html).not.toContain("x.webp");
+    expect(text).toContain("a/b — GitHub (https://github.com/a/b)");
   });
 
   it("reads a Figure whose tag spans several lines", () => {

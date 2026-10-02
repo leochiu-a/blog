@@ -38,6 +38,11 @@ interface RenderOptions {
   siteUrl: string;
 }
 
+interface PostRenderOptions extends RenderOptions {
+  /** Where a clip's thumbnail sends the reader, since the inbox cannot play it. */
+  postUrl: string;
+}
+
 export interface RenderedIssue {
   html: string;
   text: string;
@@ -99,6 +104,17 @@ const STYLE = {
   /** `height:auto` keeps the aspect ratio when `max-width` shrinks it on a phone. */
   image: `display:block;max-width:100%;height:auto;margin:0 auto;border:0;border-radius:6px;`,
   hr: `margin:2em 0;border:0;border-top:1px solid ${RULE};`,
+  /**
+   * A table, not a bordered div: Outlook's Word engine ignores padding and
+   * borders on a div but honours them on a cell.
+   */
+  card: `margin:0 0 16px;border:1px solid ${RULE};border-radius:8px;border-collapse:separate;`,
+  cardCell: "padding:14px 16px;",
+  cardTitle: `margin:0;font-size:16px;font-weight:700;line-height:1.5;`,
+  cardDescription: `margin:4px 0 0;font-size:14px;line-height:1.6;color:${MUTED};`,
+  cardSite: `margin:6px 0 0;font-size:12px;line-height:1.5;color:${MUTED};`,
+  videoImage: "margin:0 0 8px;",
+  videoLabel: `margin:0 0 16px;font-size:14px;line-height:1.6;text-align:center;`,
 } as const;
 
 export const EMAIL_COLORS = { INK, BODY, MUTED, ACCENT, RULE } as const;
@@ -123,7 +139,28 @@ function absoluteUrl(href: string, siteUrl: string): string {
   }
 }
 
-type AnyContent = RootContent | BlockContent | DefinitionContent;
+/**
+ * The two shapes a Post's components take on their way into an inbox. They are
+ * not Markdown, so they never come out of the parser — only `postBlocks` makes
+ * them.
+ */
+interface LinkCardNode {
+  type: "linkCard";
+  href: string;
+  title: string;
+  description?: string;
+  site?: string;
+}
+
+/** A video as its still frame, linked to somewhere it can actually play. */
+interface VideoNode {
+  type: "video";
+  href: string;
+  poster: string;
+  label: string;
+}
+
+type AnyContent = RootContent | BlockContent | DefinitionContent | LinkCardNode | VideoNode;
 
 function inlineHtml(
   nodes: PhrasingContent[],
@@ -204,6 +241,19 @@ function blockHtml(nodes: AnyContent[], siteUrl: string): string {
           return `<pre style="${STYLE.pre}">${escapeHtml(node.value)}</pre>`;
         case "thematicBreak":
           return `<hr style="${STYLE.hr}" />`;
+        case "linkCard": {
+          const href = escapeHtml(absoluteUrl(node.href, siteUrl));
+          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="${STYLE.card}"><tr><td style="${STYLE.cardCell}">
+<p style="${STYLE.cardTitle}"><a href="${href}" style="${STYLE.headingLink}">${escapeHtml(node.title)}</a></p>
+${node.description ? `<p style="${STYLE.cardDescription}">${escapeHtml(node.description)}</p>` : ""}
+${node.site ? `<p style="${STYLE.cardSite}">${escapeHtml(node.site)}</p>` : ""}
+</td></tr></table>`;
+        }
+        case "video": {
+          const href = escapeHtml(absoluteUrl(node.href, siteUrl));
+          return `<p style="${STYLE.videoImage}"><a href="${href}"><img src="${escapeHtml(absoluteUrl(node.poster, siteUrl))}" alt="${escapeHtml(node.label)}" style="${STYLE.image}" /></a></p>
+<p style="${STYLE.videoLabel}"><a href="${href}" style="${STYLE.link}">${escapeHtml(node.label)}</a></p>`;
+        }
         default:
           return "children" in node ? blockHtml(node.children as AnyContent[], siteUrl) : "";
       }
@@ -254,6 +304,10 @@ function blockText(nodes: AnyContent[], siteUrl: string): string {
           return node.value;
         case "thematicBreak":
           return "---";
+        case "linkCard":
+          return `${node.title}${node.site ? ` — ${node.site}` : ""} (${absoluteUrl(node.href, siteUrl)})`;
+        case "video":
+          return `${node.label} (${absoluteUrl(node.href, siteUrl)})`;
         default:
           return "children" in node ? blockText(node.children as AnyContent[], siteUrl) : "";
       }
@@ -290,24 +344,77 @@ function attribute(node: { attributes: unknown[] }, name: string): string | unde
   return typeof found?.value === "string" ? found.value : undefined;
 }
 
+/** `https://www.youtube.com/embed/<id>` → `<id>`, or `undefined` for any other player. */
+function youTubeId(src: string): string | undefined {
+  return /youtube(?:-nocookie)?\.com\/embed\/([\w-]+)/.exec(src)?.[1];
+}
+
 /**
- * A Post is MDX, and an inbox knows Markdown and nothing else. `<Figure>` is
- * the one component worth carrying — it is the hero and every picture the
- * post's argument leans on — so it becomes an ordinary image. Everything else
- * (demos, link cards, clips, imports) has nothing to show without the site's
- * JavaScript and is left out of the excerpt rather than rendered as a hole.
+ * A Post is MDX, and an inbox knows Markdown and nothing else, so each
+ * component that has something to show without the site's JavaScript is turned
+ * into what an email can carry:
+ *
+ * - `<Figure>` becomes an ordinary image.
+ * - `<Clip>` becomes its poster, linked to the post: no client but Apple Mail
+ *   plays `<video>`, so the still frame is what Substack and Ghost send too.
+ * - `<VideoEmbed>` does the same with YouTube's own thumbnail, linked to the
+ *   video. Another player has no thumbnail to ask for, and is left out.
+ * - `<LinkCard>` becomes a bordered card of its title, summary and site. Its
+ *   picture is not carried: a two-column table is what breaks first on a
+ *   phone's Gmail, and the text already says where the link goes.
+ *
+ * Dropping these left the sentence introducing them ending on a colon over
+ * nothing. Everything else (demos, imports) is left out of the excerpt rather
+ * than rendered as a hole.
  */
-function postBlocks(blocks: RootContent[]): RootContent[] {
-  return blocks.flatMap((node): RootContent[] => {
+function postBlocks(blocks: RootContent[], postUrl: string): AnyContent[] {
+  return blocks.flatMap((node): AnyContent[] => {
     if (node.type === "mdxJsxFlowElement") {
-      const src = node.name === "Figure" ? attribute(node, "src") : undefined;
-      if (src === undefined) return [];
-      return [
-        {
-          type: "paragraph",
-          children: [{ type: "image", url: src, alt: attribute(node, "alt") ?? "" }],
-        },
-      ];
+      const src = attribute(node, "src");
+      switch (node.name) {
+        case "Figure":
+          if (src === undefined) return [];
+          return [
+            {
+              type: "paragraph",
+              children: [{ type: "image", url: src, alt: attribute(node, "alt") ?? "" }],
+            },
+          ];
+        case "Clip": {
+          const poster = attribute(node, "poster");
+          if (poster === undefined) return [];
+          return [{ type: "video", href: postUrl, poster, label: "▶ 到網站上看影片" }];
+        }
+        case "VideoEmbed": {
+          const id = src && youTubeId(src);
+          if (!id) return [];
+          return [
+            {
+              type: "video",
+              href: `https://www.youtube.com/watch?v=${id}`,
+              poster: `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
+              label: `▶ 在 YouTube 上看${attribute(node, "title") ? `：${attribute(node, "title")}` : "影片"}`,
+            },
+          ];
+        }
+        case "LinkCard": {
+          const href = attribute(node, "href");
+          if (href === undefined) return [];
+          return [
+            {
+              type: "linkCard",
+              href,
+              // An internal card may leave its title to the post collection,
+              // which the email has no access to; the address is still a link.
+              title: attribute(node, "title") ?? href,
+              description: attribute(node, "description"),
+              site: attribute(node, "site"),
+            },
+          ];
+        }
+        default:
+          return [];
+      }
     }
     return node.type === "mdxjsEsm" || node.type === "mdxFlowExpression" ? [] : [node];
   });
@@ -319,13 +426,17 @@ function postBlocks(blocks: RootContent[]): RootContent[] {
  * a heading left dangling over nothing. The rest is what the "read the full
  * post" link is for.
  */
-export function renderPostExcerpt({ markdown, siteUrl }: RenderOptions): RenderedIssue {
+export function renderPostExcerpt({
+  markdown,
+  siteUrl,
+  postUrl,
+}: PostRenderOptions): RenderedIssue {
   const tree = unified().use(remarkParse).use(remarkGfm).use(remarkMdx).parse(markdown);
   const origin = siteUrl.replace(/\/$/, "");
 
-  const excerpt: RootContent[] = [];
+  const excerpt: AnyContent[] = [];
   let shown = 0;
-  for (const block of postBlocks(tree.children)) {
+  for (const block of postBlocks(tree.children, postUrl)) {
     if (shown >= EXCERPT_CHARS) break;
     excerpt.push(block);
     shown += textLength(block);
