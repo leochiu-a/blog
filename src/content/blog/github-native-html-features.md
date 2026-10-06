@@ -7,7 +7,6 @@ readTime: "6 min"
 category: "professional"
 tags: ["GitHub", "HTML", "CSS", "Popover API", "Anchor Positioning"]
 ogImage: "/blog-images/github-native-html-features-hero.webp"
-draft: true
 ---
 
 import { PopoverTooltipDemo } from "@/components/mdx/PopoverTooltipDemo";
