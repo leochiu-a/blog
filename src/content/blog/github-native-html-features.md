@@ -1,8 +1,8 @@
 ---
-title: "GitHub 怎麼用 Popover API、Anchor Positioning 等原生 HTML/CSS 功能"
-subtitle: "tooltip 用 popover 但位置靠 JS，選單用 Anchor Positioning 但沒進 top layer"
-description: "我打開 GitHub 的 repo、Issues、PR 頁面，檢查用了哪些原生 HTML/CSS 功能。tooltip 用 Popover API 進 top layer，位置是 JS 算的；選單用 Anchor Positioning 定位，但沒進 top layer，dialog 也還是 div 加 ARIA。附截圖，以及 @starting-style、View Transitions、content-visibility 的 demo。"
-datetime: "2026-10-01"
+title: "拆解 GitHub 前端：Popover API、Anchor Positioning 能取代套件嗎？"
+subtitle: "從 tooltip 的 Popover 到選單的 Anchor Positioning：GitHub 挑選低風險元件漸進升級的實戰觀察"
+description: "還不能完全取代。GitHub 的 tooltip 用 Popover API 進 top layer，位置卻靠 JS 算；選單用 Anchor Positioning 定位，但沒進 top layer；dialog 仍是 div 加 ARIA。附截圖與可操作的 demo。"
+datetime: "2026-10-06"
 readTime: "6 min"
 category: "professional"
 tags: ["GitHub", "HTML", "CSS", "Popover API", "Anchor Positioning"]
@@ -28,9 +28,11 @@ import { DialogDemo } from "@/components/mdx/DialogDemo";
 
 ---
 
-## Popover API：主要用在 tooltip
+## GitHub 的 tooltip 是用 Popover API 做的嗎？
 
-GitHub 的許多頁面都能看到 `popover` 這個屬性，repo 首頁、Issue 頁面、PR Files，只要是 tooltip，基本上都是使用 popover。
+Popover API 是瀏覽器內建的浮層機制，元素加上 `popover` 屬性就會進 [top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer)，不用自己處理 `z-index`，`popover="auto"` 還會在點外面或按 Esc 時自動關閉。
+
+會。GitHub 的許多頁面都能看到 `popover` 這個屬性，repo 首頁、Issue 頁面、PR Files，只要是 tooltip，基本上都是使用 popover。
 
 它們的來源有兩種：
 
@@ -102,9 +104,9 @@ GitHub 的 stylesheet 裡也有這套寫法，寫在 `IssueViewer` 頂部的標�
 
 ---
 
-## Anchor Positioning：不用 JS 算位置
+## Anchor Positioning 是什麼？不用 JS 也能對齊按鈕
 
-以前做 tooltip 或選單，通常要用 JS 去量按鈕座標，不然就是直接載入 Floating UI。Anchor Positioning 讓 CSS 能直接綁定目標元素：
+Anchor Positioning 是 CSS 的定位機制，讓浮層直接對齊指定的元素。以前做 tooltip 或選單，通常要用 JS 去量按鈕座標，不然就是載入 Floating UI，現在用 CSS 就能綁定目標元素：
 
 ```css
 .trigger {
