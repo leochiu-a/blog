@@ -70,29 +70,6 @@ tooltip 的位置也是用 JS 算的，在 Issues 列表上打開「Compact disp
 
 ---
 
-## 選單用的是 Anchor Positioning
-
-Issues 列表上的篩選選單，兩邊底層是同一套 Primer 元件。
-
-點開看裡面的 DOM 結構：
-
-- 容器用 `<div role="dialog" aria-labelledby>`，沒用原生 `<dialog>`
-- 樣式是 `position: fixed`，**不在 top layer**（`:popover-open` 和 `:modal` 都沒中）
-- 有設 `position-anchor`，所以定位用了 Anchor Positioning
-- 裡面用 `role="combobox"` 的 input 配 `listbox` / `option`，沒用 `<select>` 或 `<datalist>`
-
-<Figure src="/blog-images/github-native-html-features-menu.webp" alt="GitHub Issues 列表的 Labels 篩選選單展開，列出 bug、platform:macos 等標籤。選單被橘框圈起" width={873} height={894} caption="Labels 篩選選單：用 position-anchor 對齊按鈕，但沒進 top layer" />
-
-等於它跟 tooltip 剛好相反，用 Anchor Positioning 算位置，但沒進 [top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer)。
-
-沒進 top layer 會遇到什麼問題，看下面這個實驗就清楚了，兩邊選單都包在 `overflow: hidden` 裡面：
-
-<TopLayerDemo />
-
-左邊的 `position: absolute` 選單直接被容器裁掉，右邊的 popover 被拉到 [top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer)，不受容器限制，點外面或按 Esc 也會自己關閉。
-
----
-
 ## @starting-style：讓元素從 display: none 淡入
 
 popover 平常掛著 `display: none`，打開瞬間才變成 `display: block`。
@@ -154,24 +131,43 @@ GitHub 的 stylesheet 裡也有這套寫法，寫在 `IssueViewer` 頂部的標�
 ```
 
 - `top`、`bottom`、`left`、`right`：靠在該側，對齊 anchor 的中心線。
-- `top span-right`：貼在上方，並從 anchor 左緣往右延伸，選單很常見這種對齊（前面 `TopLayerDemo` 的 popover 選單就是 `bottom span-right`）。
+- `top span-right`：貼在上方，並從 anchor 左緣往右延伸，選單很常見這種對齊（後面 `TopLayerDemo` 的 popover 選單就是 `bottom span-right`）。
 - `block-start`、`inline-end` 這類邏輯屬性也支援，碰到 RTL 語系會自動翻面。
 
-`position-try-fallbacks` 是空間不夠時的備案，像是 `flip-block` 會垂直翻轉，`flip-inline` 會水平翻轉。tooltip 靠在螢幕邊緣會自己換邊，靠的就是這個機制。
+`position-try-fallbacks` 是空間不夠時的備案，像是 `flip-block` 會垂直翻轉，`flip-inline` 會水平翻轉。
+
+>> tooltip 靠在螢幕邊緣會自己換邊，靠的就是 `position-try-fallbacks` 這個機制
 
 點右邊九宮格可以看左邊方塊對應的位置變化，全程沒有寫任何 JS 算座標：
 
 <PositionAreaDemo />
 
-GitHub 的 tooltip 沒用這套，前面截圖已經看到座標是 JS 算的。真正用到 anchor 的是選單：Issues 頁上有 `anchor-name` 的元素共 9 個，8 個是 Labels、Newest 這類選單的觸發按鈕，剩下一個在 SegmentedControl 裡。repo 首頁 stylesheet 裡跟 anchor 有關的規則，也都屬於 Overlay（選單）、SegmentedControl 和導覽列，沒有一條是給 tooltip 的。
+點開 Issues 列表上的篩選選單，看裡面的 DOM 結構：
 
-不過選單也沒用到九宮格。我量到它的 `position-area` computed 值是 `none`，所以它具體怎麼靠 anchor 排位置，我沒有確認。
+- 容器用 `<div role="dialog" aria-labelledby>`，沒用原生 `<dialog>`
+- 樣式是 `position: fixed`，**不在 top layer**（`:popover-open` 和 `:modal` 都沒中）
+- 有設 `position-anchor`，所以定位用了 Anchor Positioning
+- 裡面用 `role="combobox"` 的 input 配 `listbox` / `option`，沒用 `<select>` 或 `<datalist>`
+
+<Figure src="/blog-images/github-native-html-features-menu.webp" alt="GitHub Issues 列表的 Labels 篩選選單展開，列出 bug、platform:macos 等標籤。選單被橘框圈起" width={873} height={894} caption="Labels 篩選選單：用 position-anchor 對齊按鈕，但沒進 top layer" />
+
+等於它跟 tooltip 剛好相反，用 Anchor Positioning 算位置，但沒進 [top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer)。
+
+沒進 top layer 會遇到什麼問題，看下面這個實驗就清楚了，兩邊選單都包在 `overflow: hidden` 裡面：
+
+<TopLayerDemo />
+
+左邊的 `position: absolute` 選單直接被容器裁掉，右邊的 popover 被拉到 [top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer)，不受容器限制，點外面或按 Esc 也會自己關閉。
+
+另外選單也沒用到九宮格。我量到它的 `position-area` computed 值是 `none`，所以它具體怎麼靠 anchor 排位置，我沒有確認。
 
 ---
 
 ## View Transitions：DOM 改變時自動補動畫
 
-View Transitions 的機制是讓瀏覽器在 DOM 改變前後各抓一張快照，自動補上過渡動畫。同一頁裡的 DOM 更新用 `document.startViewTransition()` 包起來，多頁之間的跳轉則可以用 `@view-transition { navigation: auto }` 直接套用。
+View Transitions 的機制是讓瀏覽器在 DOM 改變前後各抓一張快照，自動補上過渡動畫。
+
+同一頁裡的 DOM 更新用 `document.startViewTransition()` 包起來，多頁之間的跳轉則可以用 `@view-transition { navigation: auto }` 直接套用。
 
 ```css
 @view-transition {
@@ -183,7 +179,7 @@ View Transitions 的機制是讓瀏覽器在 DOM 改變前後各抓一張快照�
 }
 ```
 
-GitHub 這四頁實際上沒用到。stylesheet 裡唯一實際設定的 `view-transition-name` 在 Copilot 的 `DashboardListView` 上，頁面裡沒有對應的元素，也沒有任何 `@view-transition` 規則。我包住 `document.startViewTransition` 再從 Issues 列表點進單一 Issue，它一次都沒有被呼叫。另外掃到的幾條是 `all: unset` 展開出來的 `view-transition-name: unset`，不算使用。
+stylesheet 裡唯一實際設定的 `view-transition-name` 在 Copilot 的 `DashboardListView` 上。
 
 下面做了一個洗牌的對照，可以切換看有沒有開 `startViewTransition` 的效果。每個方塊都給了獨立的 `view-transition-name`，瀏覽器才能認出順序改變並做出平移：
 
@@ -197,7 +193,9 @@ PR Files 的每個檔案區塊都加了 `content-visibility: auto`，讓畫面�
 
 <Figure src="/blog-images/github-native-html-features-content-visibility.webp" alt="GitHub PR 的 Files changed 頁面，左側檔案樹與右側一個檔案的 diff 都被橘框圈起" width={1332} height={607} caption="檔案區塊和檔案樹的每一列都是 content-visibility: auto" />
 
-`content-visibility: auto` 對效能的影響很直觀。下面 demo 會把 4000 列內容渲染兩次，記錄瀏覽器排版花了多久。數字是你當前設備的實測結果，因為畫面外的節點不需要排版，列數越多差距越明顯：
+`content-visibility: auto` 對效能的影響很直觀。
+
+下面 demo 會把 4000 列內容渲染兩次，記錄瀏覽器排版花了多久。數字是你當前設備的實測結果，因為畫面外的節點不需要排版，列數越多差距越明顯：
 
 <ContentVisibilityDemo />
 
@@ -205,10 +203,13 @@ PR Files 的每個檔案區塊都加了 `content-visibility: auto`，讓畫面�
 
 ## 其他用到的 CSS
 
-- `@container`、`:has()`、`@layer`、`subgrid`、`color-mix()`、`field-sizing`：四個頁面都有
-- `animation-timeline`：stylesheet 裡有看到規則
-
-這幾頁沒掃到的是 `@scope`、`light-dark()`、`oklch()`、原生 CSS nesting 和 `::details-content`。
+- `@container`：依元件所在容器的寬度調整樣式，同一張卡片放側欄排直的、放主內容區排橫的
+- `:has()`：依裡面有什麼設定外層樣式，例如表單有錯誤欄位時整個外框變紅
+- `@layer`：宣告樣式的優先順序，不用靠選擇器權重和 `!important` 互相壓
+- `subgrid`：讓子元素沿用父層 grid 的欄列線，一排卡片的標題和按鈕能橫向對齊
+- `color-mix()`：直接在 CSS 混色，hover 色和淺色變體可以從主色衍生
+- `field-sizing`：讓 `<textarea>` 隨輸入內容自動變高，不用 JS 算 `scrollHeight`
+- `animation-timeline`：讓動畫進度綁定捲動位置，不是時間，閱讀進度條不用監聽 scroll
 
 ---
 
@@ -250,7 +251,9 @@ PR Files 的每個檔案區塊都加了 `content-visibility: auto`，讓畫面�
 
 GitHub 的 stylesheet 裡有 `::backdrop` 規則，但這幾頁的 DOM 裡沒有任何 `<dialog>`，推測多半是給 popover 用的（popover 自己也有 `::backdrop`）。
 
-其他沒用到的標籤像 `<details>`、`<search>`、`inert`、`hidden="until-found"` 也是類似狀況，瀏覽器本來就已經處理好焦點、鍵盤與無障礙。GitHub 沒用，我的猜測是歷史包袱加上對跨瀏覽器相容性的保守考量。選單現有的鍵盤控制、搜尋、多選、非同步載入，在 React 元件裡都已經寫好了，換成原生等於整套重寫。這只是推測，單看掃描數據看不出具體原因。
+其他沒用到的標籤像 `<details>`、`<search>`、`inert`、`hidden="until-found"` 也是類似狀況，瀏覽器本來就已經處理好焦點、鍵盤與無障礙。
+
+GitHub 沒用，我的猜測是歷史包袱加上對跨瀏覽器相容性的保守考量。選單現有的鍵盤控制、搜尋、多選、非同步載入，在 React 元件裡都已經寫好了，換成原生等於整套重寫。這只是推測，單看掃描數據看不出具體原因。
 
 ---
 
@@ -261,6 +264,6 @@ GitHub 的 stylesheet 裡有 `::backdrop` 規則，但這幾頁的 DOM 裡沒有
 - **沒用到的原生 HTML**：`<dialog>`、`<details>`、`<select>` 都沒出現，選單和對話框還是 `div` 加 ARIA
 - **CSS**：`content-visibility` 確實套在 PR 的檔案區塊和檔案樹上，`@starting-style` 和 View Transitions 的規則寫在 IssueViewer 和 Copilot 的元件裡，這四頁沒有渲染出來
 
-看起來 GitHub 是挑風險小的地方先換。tooltip 換成 popover 幾乎沒有副作用；選單和 dialog 牽涉焦點、鍵盤操作和既有的 React 元件，就還沒動。這是我從掃描結果推測的，GitHub 沒有公開說明。
+看起來 GitHub 是挑風險小的地方先換。tooltip 換成 popover 幾乎沒有副作用；選單和 dialog 牽涉焦點、鍵盤操作和既有的 React 元件，就還沒動。
 
 想在自己的專案導入的話，可以照同樣的順序：先用 popover 做 tooltip，再用 Anchor Positioning 拿掉定位用的 JS，最後才考慮把選單換成原生 `<dialog>`。
