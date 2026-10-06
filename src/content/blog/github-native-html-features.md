@@ -17,26 +17,31 @@ import { PositionAreaDemo } from "@/components/mdx/PositionAreaDemo";
 import { ViewTransitionDemo } from "@/components/mdx/ViewTransitionDemo";
 import { ContentVisibilityDemo } from "@/components/mdx/ContentVisibilityDemo";
 import { DialogDemo } from "@/components/mdx/DialogDemo";
-import { BrowserSupportCheck } from "@/components/mdx/BrowserSupportCheck";
 
 <Figure src="/blog-images/github-native-html-features-hero.webp" alt="線條插畫，白底配橘色點綴。一個人坐在桌前用電腦，螢幕上是一個網頁介面，周圍浮著幾個小的介面面板" width={2752} height={1536} hero />
 
-為了看 GitHub 現在用了哪些原生 HTML / CSS 新功能，我打開 `anthropics/claude-code` 的四個頁面（repo 首頁、Issues 列表、單一 Issue、PR 的 Files changed），跑腳本檢查 DOM 和 stylesheet，也手動點開選單看結構。stylesheet 比對只能確認規則有寫，不代表頁面真的用到，結果也只代表這四個頁面，不是整個 GitHub。
+現在原生的 HTML/CSS 越來越完整，以前需要搭配許多套件、JS 才能實現 dialog、popover 等等的功能，現在這些原生 HTML/CSS 都已經過 baseline，平常開發已經可以正常使用。
 
-先說結論，**tooltip 用 Popover API 進 top layer，位置靠 JS 算；選單反過來，用 Anchor Positioning 定位，但沒進 top layer。** dialog 也還是 `div` 加 ARIA 自己做，新的 CSS 倒是用得滿兇的。
+>> 但我就好奇現在業界會選擇使用原生的寫法，還是仍然使用套件？
+
+所以我以 GitHub 當作標竿，看一下 GitHub 有用到哪些原生的 HTML 跟 CSS。
+
+---
 
 ## Popover API：主要用在 tooltip
 
-這四個頁面都能數到 `popover` 屬性，數量跟頁面內容長度成正比：repo 首頁 30 個，單一 Issue 37 個，PR Files 57 個，每個有 tooltip 的元素就配一個。
+GitHub 的許多頁面都能看到 `popover` 這個屬性，repo 首頁、Issue 頁面、PR Files，只要是 tooltip，基本上都是使用 popover。
 
 它們的來源有兩種：
 
 - Primer 的 `TooltipV2`，包成一個 `<span popover="auto">`
 - 自家的 `<tool-tip>` web component，設成 `popover="manual"` 再配 `sr-only`
 
-這兩種都沒用 `popovertarget`。因為 tooltip 都是 hover 觸發，宣告式屬性處理不來，只能靠 JS 呼叫 `showPopover()`。
+這兩種都沒用 `popovertarget`，這個屬性可以讓按鈕不寫 JS 就開關 popover，但只認「點擊」。
 
-位置也是 JS 算的。在 Issues 列表上打開「Compact display density」按鈕的 tooltip，它的 computed `position-anchor` 是 `normal`，座標是打開時寫進 inline style 的 `top` / `left`：
+tooltip 是滑鼠移上去才出現，所以 GitHub 得自己監聽 hover，再用 JS 呼叫 `showPopover()` 把它打開。
+
+tooltip 的位置也是用 JS 算的，在 Issues 列表上打開「Compact display density」按鈕的 tooltip，它的 computed `position-anchor` 是 `normal`，座標是打開時寫進 inline style 的 `top` / `left`：
 
 <Figure src="/blog-images/github-native-html-features-tooltip.webp" alt="GitHub Issues 列表右上角的顯示密度切換按鈕，下方浮著 Compact display density 的 tooltip，tooltip 被橘框圈起" width={762} height={200} caption="tooltip 進了 top layer，但座標是 JS 寫進 inline style 的" />
 
@@ -61,7 +66,9 @@ import { BrowserSupportCheck } from "@/components/mdx/BrowserSupportCheck";
 </span>
 ```
 
-進出場動畫用 `@starting-style` 搭配 `transition-behavior: allow-discrete`。因為 popover 平常是 `display: none`，一般的 transition 接不到進場狀態。
+這個 demo 的進出場動畫用 `@starting-style` 搭配 `transition-behavior: allow-discrete`。因為 popover 平常是 `display: none`，一般的 transition 接不到進場狀態。
+
+---
 
 ## 選單用的是 Anchor Positioning
 
@@ -88,7 +95,9 @@ import { BrowserSupportCheck } from "@/components/mdx/BrowserSupportCheck";
 
 掃 stylesheet 抓到的新 CSS 比 HTML 多很多，下面四個都附上可以操作的 demo。
 
-## @starting-style：讓 popover 能淡入
+---
+
+## @starting-style：讓元素從 display: none 淡入
 
 popover 平常掛著 `display: none`，打開瞬間才變成 `display: block`。因為元素一出現就已經是最終樣式，中間沒有過渡起點，一般的 `transition` 做不出進場動畫。`@starting-style` 就是用來補這段，告訴瀏覽器元素剛出現時要從哪組樣式開始過渡。
 
@@ -110,9 +119,11 @@ popover 平常掛著 `display: none`，打開瞬間才變成 `display: block`。
 }
 ```
 
-`allow-discrete` 讓 `display` 和 `overlay` 這種離散屬性也能參與 transition，退場時會等淡出動畫跑完才收掉。GitHub 的 stylesheet 裡有 `@starting-style` 配 `allow-discrete`，但我只有在 repo 首頁掃到，PR Files 那頁沒有。下面 demo 用的就是這套寫法，把勾選取消就能看到少了 `@starting-style` 時的差別：
+`allow-discrete` 讓 `display` 和 `overlay` 這種離散屬性也能參與 transition，退場時會等淡出動畫跑完才收掉。GitHub 的 stylesheet 裡也有這套寫法，寫在 `IssueViewer` 頂部的標籤列（`topContainerChips`）：用 `display … allow-discrete` 配 `@starting-style` 讓它淡入，再為 `prefers-reduced-motion` 關掉動畫。不過我掃的這四頁都沒有渲染出這個元素，它實際出現在哪個畫面我沒有確認。下面 demo 用的也是這套寫法，把勾選取消就能看到少了 `@starting-style` 時的差別：
 
 <StartingStyleDemo />
+
+---
 
 ## Anchor Positioning：不用 JS 算位置
 
@@ -156,6 +167,8 @@ GitHub 的 tooltip 沒用這套，前面截圖已經看到座標是 JS 算的。
 
 不過選單也沒用到九宮格。我量到它的 `position-area` computed 值是 `none`，所以它具體怎麼靠 anchor 排位置，我沒有確認。
 
+---
+
 ## View Transitions：DOM 改變時自動補動畫
 
 View Transitions 的機制是讓瀏覽器在 DOM 改變前後各抓一張快照，自動補上過渡動畫。同一頁裡的 DOM 更新用 `document.startViewTransition()` 包起來，多頁之間的跳轉則可以用 `@view-transition { navigation: auto }` 直接套用。
@@ -170,11 +183,13 @@ View Transitions 的機制是讓瀏覽器在 DOM 改變前後各抓一張快照�
 }
 ```
 
-這四個頁面的 stylesheet 都能找到 `view-transition` 相關規則。不過我只能確認規則存在，沒有量到實際切換頁面時有沒有觸發，所以不能說 GitHub 的導覽「有」用 View Transitions，只能說它準備好了。
+GitHub 這四頁實際上沒用到。stylesheet 裡唯一實際設定的 `view-transition-name` 在 Copilot 的 `DashboardListView` 上，頁面裡沒有對應的元素，也沒有任何 `@view-transition` 規則。我包住 `document.startViewTransition` 再從 Issues 列表點進單一 Issue，它一次都沒有被呼叫。另外掃到的幾條是 `all: unset` 展開出來的 `view-transition-name: unset`，不算使用。
 
 下面做了一個洗牌的對照，可以切換看有沒有開 `startViewTransition` 的效果。每個方塊都給了獨立的 `view-transition-name`，瀏覽器才能認出順序改變並做出平移：
 
 <ViewTransitionDemo />
+
+---
 
 ## content-visibility：畫面外先不 render
 
@@ -186,12 +201,16 @@ PR Files 的每個檔案區塊都加了 `content-visibility: auto`，讓畫面�
 
 <ContentVisibilityDemo />
 
+---
+
 ## 其他用到的 CSS
 
 - `@container`、`:has()`、`@layer`、`subgrid`、`color-mix()`、`field-sizing`：四個頁面都有
 - `animation-timeline`：stylesheet 裡有看到規則
 
 這幾頁沒掃到的是 `@scope`、`light-dark()`、`oklch()`、原生 CSS nesting 和 `::details-content`。
+
+---
 
 ## 沒用到的原生 HTML
 
@@ -233,19 +252,14 @@ GitHub 的 stylesheet 裡有 `::backdrop` 規則，但這幾頁的 DOM 裡沒有
 
 其他沒用到的標籤像 `<details>`、`<search>`、`inert`、`hidden="until-found"` 也是類似狀況，瀏覽器本來就已經處理好焦點、鍵盤與無障礙。GitHub 沒用，我的猜測是歷史包袱加上對跨瀏覽器相容性的保守考量。選單現有的鍵盤控制、搜尋、多選、非同步載入，在 React 元件裡都已經寫好了，換成原生等於整套重寫。這只是推測，單看掃描數據看不出具體原因。
 
-## 瀏覽器支援度
-
-下面是在你目前瀏覽器即時偵測的結果，把 GitHub 有用和沒用的功能各列了一半：
-
-<BrowserSupportCheck />
-
+---
 
 ## 小結
 
 - **Popover API**：tooltip 幾乎都用了，hover 時由 JS 呼叫 `showPopover()`，位置也是 JS 算好寫進 inline style
 - **Anchor Positioning**：用在選單，讓選單對齊觸發按鈕，但選單本身沒進 top layer
 - **沒用到的原生 HTML**：`<dialog>`、`<details>`、`<select>` 都沒出現，選單和對話框還是 `div` 加 ARIA
-- **CSS**：`content-visibility` 確實套在 PR 的檔案區塊和檔案樹上，`@starting-style` 和 View Transitions 則只確認 stylesheet 裡有規則
+- **CSS**：`content-visibility` 確實套在 PR 的檔案區塊和檔案樹上，`@starting-style` 和 View Transitions 的規則寫在 IssueViewer 和 Copilot 的元件裡，這四頁沒有渲染出來
 
 看起來 GitHub 是挑風險小的地方先換。tooltip 換成 popover 幾乎沒有副作用；選單和 dialog 牽涉焦點、鍵盤操作和既有的 React 元件，就還沒動。這是我從掃描結果推測的，GitHub 沒有公開說明。
 
