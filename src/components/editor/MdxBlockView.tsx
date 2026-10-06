@@ -6,7 +6,7 @@ import type { MdxAttribute } from "@/lib/editor/types";
 import { HERO_ATTRIBUTE, supportsHero } from "@/lib/editor/hero";
 import { editableAttributes, isSelfClosing } from "@/lib/editor/mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
-import { LinkCard } from "@/components/mdx/LinkCard";
+import { EditorLinkCard } from "./EditorLinkCard";
 import { VideoEmbed } from "@/components/mdx/VideoEmbed";
 import { useSetOgImage } from "./og-image";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -273,7 +273,7 @@ export function MdxBlockView({
                 and an empty string is a value — it would win that fallback and
                 draw an empty card. In a published post the absent attributes
                 simply are not there, which is why this only shows here. */}
-            <LinkCard
+            <EditorLinkCard
               href={value("href")}
               title={value("title") || undefined}
               description={value("description") || undefined}

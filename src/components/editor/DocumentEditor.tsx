@@ -34,7 +34,6 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Separator } from "@/components/ui/separator";
 import { readFlag, readText, withField } from "@/lib/editor/frontmatter-fields";
-import { postAt } from "@/lib/post-at";
 import { SetOgImageContext } from "./og-image";
 import { type UploadProgress as Progress, uploadFile } from "@/lib/editor/upload";
 import {
@@ -420,9 +419,9 @@ export function DocumentEditor({
       // block records is where it points — in the collection's own spelling,
       // so a path typed without its trailing slash still matches later.
       if (url.startsWith("/")) {
-        const post = postAt(url);
-        if (!post) throw new Error(`站內找不到這篇：${url}`);
-        insert({ href: post.href });
+        const found = await fetch(`/api/editor/links/?href=${encodeURIComponent(url)}`);
+        if (!found.ok) throw new Error(`站內找不到這篇：${url}`);
+        insert({ href: ((await found.json()) as { href: string }).href });
         return;
       }
 

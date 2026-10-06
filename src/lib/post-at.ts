@@ -1,4 +1,5 @@
 import { allPosts, type Post } from "content-collections";
+import type { PostDefaults } from "@/components/mdx/LinkCardView";
 
 /**
  * The post a site-relative link points at, or `undefined` when it points at
@@ -25,4 +26,16 @@ export function postAt(href: string): Post | undefined {
   const path = href.split(/[?#]/)[0]!;
   const normalised = path.endsWith("/") ? path : `${path}/`;
   return allPosts.find((post) => post.href === normalised);
+}
+
+/** What the post lends a link card that does not spell it out itself. */
+export function postDefaults(post: Post): PostDefaults {
+  return {
+    title: post.title,
+    description: post.description ?? post.subtitle,
+    // Its own date and length, rather than this site's name repeated under
+    // every card — the reader already knows where they are.
+    site: `${post.date} · ${post.readTime}`,
+    image: post.ogImage,
+  };
 }
