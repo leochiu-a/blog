@@ -2,6 +2,13 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
+ * Where a demo sits: past the text column on both sides, with room above and
+ * below. Exported so the editor's frame around a demo block can take the same
+ * box, instead of drawing its outline around the column the demo spills out of.
+ */
+export const DEMO_PLACEMENT = "-mx-3 my-10 sm:-mx-6 lg:-mx-12";
+
+/**
  * The frame every interactive demo in a post sits in.
  *
  * It bleeds past the 728px text column, and a labelled header strip sets it
@@ -22,7 +29,12 @@ export function Demo({
   children: ReactNode;
 }) {
   return (
-    <figure className="not-prose -mx-3 my-10 rounded-xl border border-border bg-background font-sans text-sm shadow-sm sm:-mx-6 lg:-mx-12">
+    <figure
+      className={cn(
+        "not-prose rounded-xl border border-border bg-background font-sans text-sm shadow-sm",
+        DEMO_PLACEMENT,
+      )}
+    >
       <figcaption className="flex items-center gap-2 rounded-t-xl border-b border-border bg-muted px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
         {label}

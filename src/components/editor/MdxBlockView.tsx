@@ -6,6 +6,7 @@ import type { MdxAttribute } from "@/lib/editor/types";
 import { HERO_ATTRIBUTE, supportsHero } from "@/lib/editor/hero";
 import { editableAttributes, isSelfClosing } from "@/lib/editor/mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
+import { DEMO_PLACEMENT } from "@/components/mdx/Demo";
 import { isDemo } from "@/components/mdx/demos";
 import { EditorDemo } from "./EditorDemo";
 import { EditorLinkCard } from "./EditorLinkCard";
@@ -82,6 +83,8 @@ export function MdxBlockView({
       // component reads.
       field.name !== HERO_ATTRIBUTE,
   );
+
+  const demo = isDemo(name);
 
   const isHero = attributes.some((attribute) => attribute.name === HERO_ATTRIBUTE);
 
@@ -188,7 +191,11 @@ export function MdxBlockView({
         // absolutely: neither takes up layout space, so at rest the block
         // occupies exactly the box it will occupy on the published page. The
         // frame is an editing affordance — it may not push the content around.
-        "group relative my-6 rounded-lg outline-offset-8 transition-[outline-color]",
+        "group relative rounded-lg outline-offset-8 transition-[outline-color]",
+        // A demo bleeds past the column on its own. The block takes that box
+        // instead and the demo's margins go to zero inside it, so the outline
+        // follows the demo's edges rather than the column's.
+        demo ? cn(DEMO_PLACEMENT, "rounded-xl") : "my-6",
         selected
           ? "outline outline-1 outline-blog-accent"
           : "outline outline-1 outline-transparent hover:outline-dashed hover:outline-border",
@@ -308,8 +315,8 @@ export function MdxBlockView({
           played with, and a frozen first frame would not show whether it
           works. Its controls are its own — ProseMirror leaves events inside
           a non-editable node view alone. */}
-      {isDemo(name) && (
-        <div contentEditable={false}>
+      {demo && (
+        <div contentEditable={false} className="[&>figure]:m-0">
           <EditorDemo name={name} />
         </div>
       )}
