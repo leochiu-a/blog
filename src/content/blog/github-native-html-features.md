@@ -215,7 +215,7 @@ PR Files 的每個檔案區塊都加了 `content-visibility: auto`，讓畫面�
 
 ## 沒用到的原生 HTML
 
-把四個頁面加上點開的選單看過一輪，底下這些都沒出現：
+我把 GitHub 的頁面和點開的選單看過一輪，底下這些都沒出現：
 
 - `<dialog>`、`<details>`、`<select>`、`<search>`、`<progress>`
 - Invoker Commands（`command` / `commandfor`）和 `interestfor`
@@ -249,7 +249,7 @@ PR Files 的每個檔案區塊都加了 `content-visibility: auto`，讓畫面�
 
 <DialogDemo />
 
-GitHub 的 stylesheet 裡有 `::backdrop` 規則，但這幾頁的 DOM 裡沒有任何 `<dialog>`，推測多半是給 popover 用的（popover 自己也有 `::backdrop`）。
+GitHub 的 stylesheet 裡有 `::backdrop` 規則，但 DOM 裡沒有任何 `<dialog>`，推測多半是給 popover 用的（popover 自己也有 `::backdrop`）。
 
 其他沒用到的標籤像 `<details>`、`<search>`、`inert`、`hidden="until-found"` 也是類似狀況，瀏覽器本來就已經處理好焦點、鍵盤與無障礙。
 
@@ -262,12 +262,11 @@ GitHub 沒用，我的猜測是歷史包袱加上對跨瀏覽器相容性的保�
 - **Popover API**：tooltip 幾乎都用了，hover 時由 JS 呼叫 `showPopover()`，位置也是 JS 算好寫進 inline style
 - **Anchor Positioning**：用在選單，讓選單對齊觸發按鈕，但選單本身沒進 top layer
 - **沒用到的原生 HTML**：`<dialog>`、`<details>`、`<select>` 都沒出現，選單和對話框還是 `div` 加 ARIA
-- **CSS**：`content-visibility` 確實套在 PR 的檔案區塊和檔案樹上，`@starting-style` 和 View Transitions 的規則寫在 IssueViewer 和 Copilot 的元件裡，這四頁沒有渲染出來
+- **CSS**：`content-visibility` 確實套在 PR 的檔案區塊和檔案樹上，`@starting-style` 和 View Transitions 的規則寫在 IssueViewer 和 Copilot 的元件裡，我沒有看到它們實際渲染出來
 
 看起來 GitHub 是挑風險小的地方先換。tooltip 換成 popover 幾乎沒有副作用；選單和 dialog 牽涉焦點、鍵盤操作和既有的 React 元件，就還沒動。
 
 想在自己的專案導入的話，可以照同樣的順序：先用 popover 做 tooltip，再用 Anchor Positioning 拿掉定位用的 JS，最後才考慮把選單換成原生 `<dialog>`。
-
 
 ---
 
