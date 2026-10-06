@@ -19,7 +19,7 @@ import { DialogDemo } from "@/components/mdx/DialogDemo";
 
 <Figure src="/blog-images/github-native-html-features-hero.webp" alt="線條插畫，白底配橘色點綴。一個人坐在桌前用電腦，螢幕上是一個網頁介面，周圍浮著幾個小的介面面板" width={2752} height={1536} hero />
 
-現在原生的 HTML/CSS 越來越完整，以前需要搭配許多套件、JS 才能實現 dialog、popover 等等的功能，現在這些原生 HTML/CSS 都已經過 baseline，平常開發已經可以正常使用。
+現在原生的 HTML/CSS 越來越完整，以前需要搭配許多套件、JS 才能實現 dialog、popover 等功能，現在這些原生 HTML/CSS 都已經進入 Baseline，平常開發已經可以正常使用。
 
 >> 但我就好奇現在業界會選擇使用原生的寫法，還是仍然使用套件？
 
@@ -137,13 +137,13 @@ Anchor Positioning 是 CSS 的定位機制，讓浮層直接對齊指定的元�
 
 `position-try-fallbacks` 是空間不夠時的備案，像是 `flip-block` 會垂直翻轉，`flip-inline` 會水平翻轉。
 
->> tooltip 靠在螢幕邊緣會自己換邊，靠的就是 `position-try-fallbacks` 這個機制
+>> tooltip 靠在螢幕邊緣會自己換邊，靠的就是 `position-try-fallbacks` 這個機制。
 
 點右邊九宮格可以看左邊方塊對應的位置變化，全程沒有寫任何 JS 算座標：
 
 <PositionAreaDemo />
 
-點開 Issues 列表上的篩選選單，看裡面的 DOM 結構：
+那 GitHub 自己用在哪？是選單。點開 Issues 列表上的篩選選單，看裡面的 DOM 結構：
 
 - 容器用 `<div role="dialog" aria-labelledby>`，沒用原生 `<dialog>`
 - 樣式是 `position: fixed`，**不在 top layer**（`:popover-open` 和 `:modal` 都沒中）
@@ -254,7 +254,7 @@ GitHub 的 stylesheet 裡有 `::backdrop` 規則，但 DOM 裡沒有任何 `<dia
 
 其他沒用到的標籤像 `<details>`、`<search>`、`inert`、`hidden="until-found"` 也是類似狀況，瀏覽器本來就已經處理好焦點、鍵盤與無障礙。
 
-GitHub 沒用，我的猜測是歷史包袱加上對跨瀏覽器相容性的保守考量。選單現有的鍵盤控制、搜尋、多選、非同步載入，在 React 元件裡都已經寫好了，換成原生等於整套重寫。這只是推測，單看掃描數據看不出具體原因。
+GitHub 沒換成原生 `<dialog>`，我的猜測是歷史包袱加上對跨瀏覽器相容性的保守考量。選單現有的鍵盤控制、搜尋、多選、非同步載入，在 React 元件裡都已經寫好了，換成原生等於整套重寫。這只是推測，單看掃描數據看不出具體原因。
 
 ---
 
