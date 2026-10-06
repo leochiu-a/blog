@@ -6,6 +6,8 @@ import type { MdxAttribute } from "@/lib/editor/types";
 import { HERO_ATTRIBUTE, supportsHero } from "@/lib/editor/hero";
 import { editableAttributes, isSelfClosing } from "@/lib/editor/mdx-blocks";
 import { MediaPreview } from "./MediaPreview";
+import { isDemo } from "@/components/mdx/demos";
+import { EditorDemo } from "./EditorDemo";
 import { EditorLinkCard } from "./EditorLinkCard";
 import { VideoEmbed } from "@/components/mdx/VideoEmbed";
 import { useSetOgImage } from "./og-image";
@@ -299,6 +301,16 @@ export function MdxBlockView({
               height={numeric("height")}
             />
           </div>
+        </div>
+      )}
+
+      {/* Live, unlike the card and the player above: a demo is there to be
+          played with, and a frozen first frame would not show whether it
+          works. Its controls are its own — ProseMirror leaves events inside
+          a non-editable node view alone. */}
+      {isDemo(name) && (
+        <div contentEditable={false}>
+          <EditorDemo name={name} />
         </div>
       )}
 
