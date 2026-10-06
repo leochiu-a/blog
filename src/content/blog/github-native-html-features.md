@@ -45,7 +45,7 @@ tooltip 的位置也是用 JS 算的，在 Issues 列表上打開「Compact disp
 
 <Figure src="/blog-images/github-native-html-features-tooltip.webp" alt="GitHub Issues 列表右上角的顯示密度切換按鈕，下方浮著 Compact display density 的 tooltip，tooltip 被橘框圈起" width={762} height={200} caption="tooltip 進了 top layer，但座標是 JS 寫進 inline style 的" />
 
-我照 GitHub 的標記做了一個 demo，不過位置改用 CSS Anchor Positioning 決定，靠邊時會自己翻面：
+我照 GitHub 的標記做了一個 demo，不過位置改用 CSS Anchor Positioning 決定，搭配 `position-try-fallbacks` 可以在撞到邊緣時自動位移，避免跑版：
 
 <PopoverTooltipDemo />
 
@@ -72,7 +72,7 @@ tooltip 的位置也是用 JS 算的，在 Issues 列表上打開「Compact disp
 
 ## 選單用的是 Anchor Positioning
 
-我原本想看 Issue 側欄的 Assignees 和 Labels，但我沒有這個 repo 的 triage 權限，側欄只能讀，就改開 Issues 列表上同名的篩選選單，兩邊底層是同一套 Primer 元件。
+Issues 列表上的篩選選單，兩邊底層是同一套 Primer 元件。
 
 點開看裡面的 DOM 結構：
 
@@ -83,23 +83,21 @@ tooltip 的位置也是用 JS 算的，在 Issues 列表上打開「Compact disp
 
 <Figure src="/blog-images/github-native-html-features-menu.webp" alt="GitHub Issues 列表的 Labels 篩選選單展開，列出 bug、platform:macos 等標籤。選單被橘框圈起" width={873} height={894} caption="Labels 篩選選單：用 position-anchor 對齊按鈕，但沒進 top layer" />
 
-等於它跟 tooltip 剛好相反，用 Anchor Positioning 算位置，但沒進 top layer。
-
-我看到的唯一例外，是未登入、視窗寬 1024px 時 repo 導覽列的「…」溢出選單。它是 Primer ViewComponents 的 `<anchored-position popover="auto">`，由按鈕上的 `popovertarget` 打開。登入後在寬視窗下這顆按鈕不會出現。
+等於它跟 tooltip 剛好相反，用 Anchor Positioning 算位置，但沒進 [top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer)。
 
 沒進 top layer 會遇到什麼問題，看下面這個實驗就清楚了，兩邊選單都包在 `overflow: hidden` 裡面：
 
 <TopLayerDemo />
 
-左邊的 `position: absolute` 選單直接被容器裁掉；右邊的 popover 被拉到 top layer，不受容器限制，點外面或按 Esc 也會自己關閉。
-
-掃 stylesheet 抓到的新 CSS 比 HTML 多很多，下面四個都附上可以操作的 demo。
+左邊的 `position: absolute` 選單直接被容器裁掉，右邊的 popover 被拉到 [top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer)，不受容器限制，點外面或按 Esc 也會自己關閉。
 
 ---
 
 ## @starting-style：讓元素從 display: none 淡入
 
-popover 平常掛著 `display: none`，打開瞬間才變成 `display: block`。因為元素一出現就已經是最終樣式，中間沒有過渡起點，一般的 `transition` 做不出進場動畫。`@starting-style` 就是用來補這段，告訴瀏覽器元素剛出現時要從哪組樣式開始過渡。
+popover 平常掛著 `display: none`，打開瞬間才變成 `display: block`。
+
+因為元素一出現就已經是最終樣式，中間沒有過渡起點，一般的 `transition` 做不出進場動畫。`@starting-style` 就是用來補這段，告訴瀏覽器元素剛出現時要從哪組樣式開始過渡。
 
 ```css
 .tooltip {
@@ -119,7 +117,9 @@ popover 平常掛著 `display: none`，打開瞬間才變成 `display: block`。
 }
 ```
 
-`allow-discrete` 讓 `display` 和 `overlay` 這種離散屬性也能參與 transition，退場時會等淡出動畫跑完才收掉。GitHub 的 stylesheet 裡也有這套寫法，寫在 `IssueViewer` 頂部的標籤列（`topContainerChips`）：用 `display … allow-discrete` 配 `@starting-style` 讓它淡入，再為 `prefers-reduced-motion` 關掉動畫。不過我掃的這四頁都沒有渲染出這個元素，它實際出現在哪個畫面我沒有確認。下面 demo 用的也是這套寫法，把勾選取消就能看到少了 `@starting-style` 時的差別：
+`allow-discrete` 讓 `display` 和 `overlay` 這種離散屬性也能參與 transition，退場時會等淡出動畫跑完才收掉。
+
+GitHub 的 stylesheet 裡也有這套寫法，寫在 `IssueViewer` 頂部的標籤列（`topContainerChips`）：用 `display … allow-discrete` 配 `@starting-style` 讓它淡入，再為 `prefers-reduced-motion` 關掉動畫。
 
 <StartingStyleDemo />
 
