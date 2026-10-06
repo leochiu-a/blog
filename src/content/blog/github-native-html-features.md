@@ -267,3 +267,18 @@ GitHub 沒用，我的猜測是歷史包袱加上對跨瀏覽器相容性的保�
 看起來 GitHub 是挑風險小的地方先換。tooltip 換成 popover 幾乎沒有副作用；選單和 dialog 牽涉焦點、鍵盤操作和既有的 React 元件，就還沒動。
 
 想在自己的專案導入的話，可以照同樣的順序：先用 popover 做 tooltip，再用 Anchor Positioning 拿掉定位用的 JS，最後才考慮把選單換成原生 `<dialog>`。
+
+
+---
+
+## Reference
+
+- [Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API) — MDN
+- [Top layer](https://developer.mozilla.org/en-US/docs/Glossary/Top_layer) — MDN
+- [CSS anchor positioning](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_anchor_positioning) — MDN
+- [position-area](https://developer.mozilla.org/en-US/docs/Web/CSS/position-area) — MDN
+- [position-try-fallbacks](https://developer.mozilla.org/en-US/docs/Web/CSS/position-try-fallbacks) — MDN
+- [@starting-style](https://developer.mozilla.org/en-US/docs/Web/CSS/@starting-style) — MDN
+- [View Transition API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) — MDN
+- [content-visibility](https://developer.mozilla.org/en-US/docs/Web/CSS/content-visibility) — MDN
+- [`<dialog>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog) — MDN
