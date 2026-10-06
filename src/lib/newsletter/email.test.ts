@@ -52,6 +52,20 @@ describe("rendering an issue for email", () => {
     expect(html).toContain("有人說過的話");
   });
 
+  it("renders a >> pull quote as one quote, not a quote inside a quote", () => {
+    const { html } = render(">> 但我就好奇？");
+
+    expect(html.match(/<blockquote/g)).toHaveLength(1);
+    expect(html).toContain("但我就好奇？");
+  });
+
+  it("leaves no gap under the last paragraph of a quote", () => {
+    const { html } = render("> 第一段\n>\n> 第二段");
+
+    expect(html).toContain('<p style="margin:0 0 16px;');
+    expect(html).toContain('<p style="margin:0;');
+  });
+
   it("sets an item's byline apart from the prose under it", () => {
     const { html } = render("### [那篇](/blog/x/)\n\n*Leo Chiu · 9 分鐘*\n\n講了什麼。");
 

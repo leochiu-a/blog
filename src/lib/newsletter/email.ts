@@ -80,6 +80,11 @@ const STYLE = {
    * the paragraph has to carry that gap itself, or those items sit tighter
    * than the rest for no reason a reader could name.
    */
+  /**
+   * The last paragraph in a quote. Its bottom margin would sit inside the
+   * blockquote's own, stretching the bar a line below the text it marks.
+   */
+  paragraphFlush: `margin:0;font-size:16px;line-height:1.85;color:${BODY};`,
   paragraphUnderTitle: `margin:12px 0 16px;font-size:16px;line-height:1.85;color:${BODY};`,
   /**
    * `*Leo Chiu · 9 分鐘*` under a title — every item in an Issue carries one.
@@ -92,6 +97,13 @@ const STYLE = {
   list: `margin:0 0 16px;padding-left:1.4em;font-size:16px;line-height:1.85;color:${BODY};`,
   listItem: "margin:0 0 0.4em;",
   blockquote: `margin:0 0 16px;padding:0.2em 0 0.2em 1em;border-left:3px solid ${RULE};color:${MUTED};font-size:16px;line-height:1.85;`,
+  /**
+   * `>>` is a pull quote on the site. Left as a blockquote inside a blockquote
+   * it came out here as two grey bars and a doubled indent; it is one quote, so
+   * it gets one bar — orange, with the text in ink — to read as the line the
+   * post leans on rather than someone else's words.
+   */
+  pullQuote: `margin:0 0 16px;padding:0.2em 0 0.2em 1em;border-left:3px solid ${ACCENT};color:${INK};font-size:18px;font-weight:600;line-height:1.7;`,
   link: `color:${ACCENT};text-decoration:underline;`,
   /**
    * The title of an item is a link too, but a page of bold underlined titles
@@ -206,7 +218,12 @@ function bylineChildren(children: PhrasingContent[]): PhrasingContent[] | null {
   return children.length === 1 && only.type === "emphasis" ? only.children : null;
 }
 
-function blockHtml(nodes: AnyContent[], siteUrl: string): string {
+function blockHtml(
+  nodes: AnyContent[],
+  siteUrl: string,
+  /** Set inside a quote, where the last paragraph must not leave a gap under the bar. */
+  flushEnd = false,
+): string {
   return nodes
     .map((node, index) => {
       switch (node.type) {
@@ -219,7 +236,11 @@ function blockHtml(nodes: AnyContent[], siteUrl: string): string {
           const byline = bylineChildren(node.children);
           if (byline) return `<p style="${STYLE.byline}">${inlineHtml(byline, siteUrl)}</p>`;
           const style =
-            nodes[index - 1]?.type === "heading" ? STYLE.paragraphUnderTitle : STYLE.paragraph;
+            flushEnd && index === nodes.length - 1
+              ? STYLE.paragraphFlush
+              : nodes[index - 1]?.type === "heading"
+                ? STYLE.paragraphUnderTitle
+                : STYLE.paragraph;
           return `<p style="${style}">${inlineHtml(node.children, siteUrl)}</p>`;
         }
         case "list": {
@@ -235,8 +256,13 @@ function blockHtml(nodes: AnyContent[], siteUrl: string): string {
             .join("");
           return `<${tag} style="${STYLE.list}">${items}</${tag}>`;
         }
-        case "blockquote":
-          return `<blockquote style="${STYLE.blockquote}">${blockHtml(node.children, siteUrl)}</blockquote>`;
+        case "blockquote": {
+          const [only] = node.children;
+          if (node.children.length === 1 && only.type === "blockquote") {
+            return `<blockquote style="${STYLE.pullQuote}">${blockHtml(only.children, siteUrl, true)}</blockquote>`;
+          }
+          return `<blockquote style="${STYLE.blockquote}">${blockHtml(node.children, siteUrl, true)}</blockquote>`;
+        }
         case "code":
           return `<pre style="${STYLE.pre}">${escapeHtml(node.value)}</pre>`;
         case "thematicBreak":
