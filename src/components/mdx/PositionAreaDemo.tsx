@@ -49,10 +49,13 @@ export function PositionAreaDemo() {
       </fieldset>
 
       <div className="flex flex-col gap-3">
-        <div className="relative h-52 overflow-hidden rounded-md border border-dashed border-border">
+        {/* Centred by the grid, not a translate: anchor positioning reads the
+            anchor's untransformed box, so Safari would place the box around
+            where the anchor sits before the translate. */}
+        <div className="relative grid h-52 place-items-center overflow-hidden rounded-md border border-dashed border-border">
           <div
             style={{ anchorName: "--area-anchor" } as React.CSSProperties}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-muted px-3 py-2 text-muted-foreground"
+            className="rounded bg-muted px-3 py-2 text-muted-foreground"
           >
             anchor
           </div>

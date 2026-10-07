@@ -1,3 +1,4 @@
+import { networkInterfaces } from "node:os";
 import type { NextConfig } from "next";
 import { withContentCollections } from "@content-collections/next";
 import createMDX from "@next/mdx";
@@ -7,6 +8,14 @@ import { pageExtensionsFor } from "./src/lib/editor/dev-routes";
 const nextConfig: NextConfig = {
   // Match the previous (Astro) URL scheme: /blog/<slug>/ with a trailing slash.
   trailingSlash: true,
+  // Let a phone on the same network open `next dev` by this machine's LAN
+  // address. Next blocks dev assets from any host but `localhost`, so without
+  // this the page renders but never hydrates. Read from the interfaces rather
+  // than written down, because the address changes with the network.
+  allowedDevOrigins: Object.values(networkInterfaces())
+    .flat()
+    .filter((i) => i?.family === "IPv4" && !i.internal)
+    .map((i) => i!.address),
   // Auto-memoize components instead of hand-written useMemo/useCallback.
   reactCompiler: true,
   experimental: {
