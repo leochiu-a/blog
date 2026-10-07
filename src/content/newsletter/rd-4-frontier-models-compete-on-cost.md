@@ -15,7 +15,7 @@ datetime: 2026-10-06T00:00:00+08:00
 
 之前有寫過一篇文章[**AI 工程 | 你的 AI Agent 正在用過期的 Harness 嗎？**](/blog/stale-harness-and-loop-engineering/)，這篇文章就是在講說，隨著模型越來越強，你可能不太需要再自己建立許多 Harness。而現在這些自定義的 Harness 基本上都是會讓你燃燒更多的 token，所以我平常在使用的時候，幾乎都是原生的 Harness。
 
-使用原生的 Harness 已經可以完成日常幾乎所有的工作，除非是少數比較複雜而且熱門的議題，你可能才需要自己建立 Harness。
+使用原生的 Harness 已經可以完成日常幾乎所有的工作，除非是少數比較複雜而且冷門的議題，你可能才需要自己建立 Harness。
 
 ---
 
