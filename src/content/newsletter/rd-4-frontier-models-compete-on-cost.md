@@ -3,12 +3,21 @@ title: RD#4 前沿模型開始拼成本
 subtitle: 每家都在拼成本，但我還是只用 Opus 5.5
 description: RD#4 —— Claude Opus 5.5 與 Sonnet 5.5、GPT-6 Sol 與 Luna、Gemini 4 Argon、Meta 的個人 agent Muse，加上 CodeReel 與拆解 GitHub 原生 HTML 的兩篇文章。
 datetime: 2026-10-06T00:00:00+08:00
-draft: true
 ---
 
-這週 Anthropic、OpenAI、Google 接連發表新模型，每一家都在講同一件事：同樣的任務，花更少的錢。
+這週 Anthropic、OpenAI、Google 接連發表新模型，每一家都在講同一件事：
 
-不過價格降了，對我的用法其實沒什麼影響。我實際在用的是 Claude，日常不管什麼任務都直接用 Opus 5.5，不用每次判斷這個任務該配哪個模型，心智負擔最低。而且在 100 美金的方案下，額度幾乎都用不完。
+>> 同樣的任務，花更少的錢。
+
+不過價格降了，對我其實沒什麼影響。
+
+我實際在用的是 Claude，日常不管什麼任務都直接用 Opus 5.5，不用每次判斷這個任務該配哪個模型，心智負擔最低。而且在 100 美金的方案下，額度幾乎都用不完。
+
+之前有寫過一篇文章[**AI 工程 | 你的 AI Agent 正在用過期的 Harness 嗎？**](/blog/stale-harness-and-loop-engineering/)，這篇文章就是在講說，隨著模型越來越強，你可能不太需要再自己建立許多 Harness。而現在這些自定義的 Harness 基本上都是會讓你燃燒更多的 token，所以我平常在使用的時候，幾乎都是原生的 Harness。
+
+使用原生的 Harness 已經可以完成日常幾乎所有的工作，除非是少數比較複雜而且熱門的議題，你可能才需要自己建立 Harness。
+
+---
 
 ## 這週寫的文章
 
@@ -18,7 +27,7 @@ draft: true
 
 最近開源了一個小工具 [CodeReel](https://codereel.dev)，可以在瀏覽器裡把程式碼做成一步一步會動的動畫。
 
-平常分享程式碼多半用 ray.so 或 carbon 轉成圖片，但要展示程式碼怎麼改的時候，讀的人得在兩張截圖之間來回比對，所以我想讓改了什麼一眼就看得到。
+平常分享程式碼多半用 [ray.so](https://www.ray.so/) 或 [carbon](https://carbon.now.sh/) 轉成圖片，但要展示程式碼怎麼改的時候，讀的人得在兩張截圖之間來回比對，所以我想讓改了什麼一眼就看得到。
 
 文章聊了使用方式，以及用 Shiki Magic Move 做轉場、用 WebCodecs 在前端直接輸出 MP4 的實作，程式碼不用上傳到任何伺服器。
 
@@ -28,9 +37,9 @@ draft: true
 
 原生的 popover、Anchor Positioning、dialog 都進了 Baseline，我拿 GitHub 當標竿，看業界實際用了多少。
 
-結論是還不能完全取代：tooltip 幾乎都用 Popover API 進 top layer，但 hover 開關和座標仍靠 JS；篩選選單用 Anchor Positioning 對齊按鈕，卻沒進 top layer；`<dialog>`、`<details>`、`<select>` 一個都沒出現，對話框還是 div 加 ARIA。
+GitHub 的 tooltip 幾乎都用 Popover API，但 hover 開關和座標仍靠 JS；篩選選單用 Anchor Positioning 對齊按鈕，卻沒進 top layer；`<dialog>`、`<details>`、`<select>` 一個都沒出現。
 
-GitHub 看起來是挑風險小的地方先換。想導入的話可以照同樣順序：先用 popover 做 tooltip，再用 Anchor Positioning 拿掉定位的 JS，最後才動 dialog。文中附了可以直接操作的 demo。
+GitHub 看起來是挑風險小的地方先換，想導入的話可以照同樣順序：先用 popover 做 tooltip，再用 Anchor Positioning 拿掉定位的 JS，最後才動 dialog。文中附了可以直接操作的 demo。
 
 ## 重磅：前沿模型開始拼成本
 
@@ -84,7 +93,9 @@ Google 在 9/30 發表 Gemini 4 Argon，定位是處理軟體工程、法律財�
 
 Muse 跑在 Muse Spark 模型上，定位不是回答問題，而是把事情做完：關掉 app 之後它還會繼續處理任務，自己開瀏覽器填表、幫你議價、透過 Stripe 的 Link 付款，也會把你在 Instagram 存的食譜轉成購物清單。
 
-架構上每個人有一台專屬的 Muse Secure VM，agent 和資料都裝在裡面，另外有一個 Sentinel agent 把關，Muse 做的任何事沒經過它核准就出不了網路；密碼加密存放、Muse 本身看不到，敏感動作要使用者確認，資料也和 Meta 的廣告系統分開。
+架構上每個人有一台專屬的 Muse Secure VM，agent 和資料都裝在裡面，另外有一個 Sentinel agent 把關，Muse 做的任何事沒經過它核准就出不了網路。
+
+密碼加密存放、Muse 本身看不到，敏感動作要使用者確認，資料也和 Meta 的廣告系統分開。
 
 最值得注意的是年底要上的 Muse Confidential VM，整台 VM 連同對話用只有使用者持有的金鑰加密，連 Meta 都看不到。對一家靠廣告賺錢的公司來說，這是它要讓人放心把整個生活交給 agent 的關鍵承諾。目前先在美國上線，採 freemium 加訂閱，AI 眼鏡支援之後才會來。
 
