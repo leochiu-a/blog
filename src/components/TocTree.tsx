@@ -136,14 +136,19 @@ export function TocTree({
     // there. At the article's end the strip ends, and the tree scrolls away
     // with the last paragraph rather than hanging beside the subscribe box.
     //
-    // Pulled out of the 728px column into the window's margin: its left edge
-    // is the window's 40px side padding, measured back from the column's own
-    // left edge, which sits at `50vw - 22.75rem`. Capped so it never reaches
-    // the column: at `xl` (1280px) that leaves the tree 220px, and it grows
-    // with the window up to 22rem (352px).
+    // Pulled out of the 728px column into the window's margin. Measured in
+    // `cqw` against the page's `<main>`, which both owners mark `@container`:
+    // `vw` counts the scrollbar where one takes up room, the centred column
+    // does not, and the half-scrollbar between them shifted the tree 7.5px
+    // left on Windows and on a Mac set to always show scrollbars. 50cqw is
+    // half of `<main>`'s content box — the window less the scrollbar and
+    // `<main>`'s 40px padding each side — so the column's left edge sits at
+    // `40px + 50cqw - 22.75rem`, and the tree's left edge lands on the window's
+    // 40px from there. It stops 16px short of the column: 220px at `xl`
+    // (1280px), growing with the window up to 22rem (352px).
     <nav
       aria-label={label}
-      className="absolute inset-y-0 left-[calc(25.25rem-50vw)] z-40 hidden w-[min(22rem,calc(50vw-22.75rem-3.5rem))] font-mono text-sm leading-relaxed xl:block"
+      className="absolute inset-y-0 left-[calc(22.75rem-50cqw)] z-40 hidden w-[min(22rem,calc(50cqw-23.75rem))] font-mono text-sm leading-relaxed xl:block"
     >
       <div className="sticky top-36">
         {title && (

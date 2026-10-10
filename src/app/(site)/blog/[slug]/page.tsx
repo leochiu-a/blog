@@ -137,7 +137,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       <ViewTransition enter="auto" exit="auto" default="none">
         <main
           className={cn(
-            "flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10",
+            "@container flex min-h-screen w-full flex-col items-center px-6 pb-10 pt-7 font-garamond text-base leading-relaxed sm:px-10",
             post.category === "professional" && "dark",
           )}
         >
