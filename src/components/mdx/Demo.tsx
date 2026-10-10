@@ -5,8 +5,17 @@ import { cn } from "@/lib/utils";
  * Where a demo sits: past the text column on both sides, with room above and
  * below. Exported so the editor's frame around a demo block can take the same
  * box, instead of drawing its outline around the column the demo spills out of.
+ *
+ * From `xl` the left margin also holds the contents tree, and the bleed takes
+ * only what the tree leaves: on a MacBook-width window the tree fills the
+ * margin and the demo keeps to the column, and as the window widens past the
+ * tree's 352px cap the bleed grows back to 48px (by 1640px). Measured in `cqw`
+ * against the page's `<main>` container, in the same terms as `TocTree`: the
+ * room left of the column, less the tree and its 16px gap, comes to
+ * `50cqw - 45.75rem`.
  */
-export const DEMO_PLACEMENT = "-mx-3 my-10 sm:-mx-6 lg:-mx-12";
+export const DEMO_PLACEMENT =
+  "-mx-3 my-10 sm:-mx-6 lg:-mx-12 xl:-mx-[clamp(0px,calc(50cqw-45.75rem),3rem)]";
 
 /**
  * The frame every interactive demo in a post sits in.
