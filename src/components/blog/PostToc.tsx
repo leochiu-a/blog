@@ -1,12 +1,12 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { TocRail, type TocSection } from "@/components/TocRail";
+import { TocTree, type TocSection } from "@/components/TocTree";
 import { documentTop, useScrollProgress } from "@/components/useScrollProgress";
 import { markArrival } from "./SectionArrival";
 
 /**
- * The article's sections, measured off the page as rendered.
+ * The article's headings, measured off the page as rendered.
  *
  * `content-collections` parses frontmatter only, so the body never reaches JS —
  * and even if it did, a heading emitted by an MDX component wouldn't be in it,
@@ -15,14 +15,14 @@ import { markArrival } from "./SectionArrival";
  *
  * Scoped to `.prose`: `RecentPosts` and `AuthorBio` also carry headings, and
  * those belong to the page, not to the piece being read. The article's own
- * bottom ends the last section for the same reason — a bar that ran to the
- * foot of the document would count the subscribe box as reading left to do.
+ * bottom ends the last entry for the same reason — a bar that ran to the foot
+ * of the document would count the subscribe box as reading left to do.
  */
-function measureSections(): TocSection[] {
+function measureHeadings(): TocSection[] {
   const article = document.querySelector(".prose");
   if (!article) return [];
 
-  const headings = [...article.querySelectorAll<HTMLHeadingElement>("h2")].filter(
+  const headings = [...article.querySelectorAll<HTMLHeadingElement>("h2, h3")].filter(
     (node) => node.id,
   );
   const articleEnd = article.getBoundingClientRect().bottom + window.scrollY;
@@ -30,6 +30,7 @@ function measureSections(): TocSection[] {
   return headings.map((node, i) => ({
     key: node.id,
     text: node.textContent?.trim() ?? "",
+    level: node.tagName === "H3" ? 3 : 2,
     start: documentTop(node),
     end: i + 1 < headings.length ? documentTop(headings[i + 1]) : articleEnd,
   }));
@@ -40,15 +41,16 @@ function prefersReducedMotion(): boolean {
 }
 
 export function PostToc() {
-  const { sections, position } = useScrollProgress(measureSections);
+  const { sections, position } = useScrollProgress(measureHeadings);
 
   return (
-    <TocRail
+    <TocTree
       label="目錄"
       sections={sections}
       position={position}
-      renderEntry={(section, props) => (
+      renderEntry={(section, { children, ...props }) => (
         <a
+          key={section.key}
           href={`#${section.key}`}
           // A real fragment link, not a bare handler: it survives no-JS, it is
           // copyable from the context menu, and it puts the section in the URL
@@ -71,7 +73,7 @@ export function PostToc() {
           }}
           {...props}
         >
-          {section.text}
+          {children}
         </a>
       )}
     />

@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
-import type { TocSection } from "./TocRail";
+import type { TocSection } from "./TocTree";
 import { useScrollProgress } from "./useScrollProgress";
 
 /** A section in the scale the hook measures in: scrolled document pixels. */
 const section = (key: string, start: number, end: number): TocSection => ({
+  level: 2,
   key,
   text: key,
   start,

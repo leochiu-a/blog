@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect } from "react";
 import type { Editor } from "@tiptap/react";
-import { TocRail, type TocSection } from "@/components/TocRail";
-import { documentTop, useScrollProgress } from "@/components/useScrollProgress";
+import { TocTree, type TocSection } from "@/components/TocTree";
+import { documentTop, READING_LINE, useScrollProgress } from "@/components/useScrollProgress";
 import { readOutline } from "@/lib/editor/outline";
 
 /**
- * The draft's contents, in the same rail the published post gets.
+ * The draft's contents, in the same tree the published post gets.
  *
  * Measured the same way too — off the rendered column, in scrolled pixels. The
  * caret is the wrong signal for a progress bar even though it is the right one
@@ -30,10 +30,7 @@ import { readOutline } from "@/lib/editor/outline";
  */
 export function EditorToc({ editor }: { editor: Editor }) {
   const measure = useCallback((): TocSection[] => {
-    // The rail draws sections, never subheadings, so an h3 is part of the
-    // section above it here exactly as it is on the published page.
     const headings = readOutline(editor.state.doc)
-      .filter((entry) => entry.level === 2)
       // The model says where a heading is in the document; only the DOM says
       // where it is on the page, and the bar is drawn in the second of those.
       // A heading whose element is missing has just been typed and not yet
@@ -52,6 +49,7 @@ export function EditorToc({ editor }: { editor: Editor }) {
       // stale row should stop matching.
       key: String(entry.pos),
       text: entry.text,
+      level: entry.level,
       start: documentTop(node),
       end: i + 1 < headings.length ? documentTop(headings[i + 1].node) : columnEnd,
     }));
@@ -60,35 +58,48 @@ export function EditorToc({ editor }: { editor: Editor }) {
   const { sections, position, remeasure } = useScrollProgress(measure);
 
   useEffect(() => {
-    // Typing moves every heading below the caret, and the rail is drawn in
+    // Typing moves every heading below the caret, and the tree is drawn in
     // page pixels, so the geometry is stale the moment a line wraps.
     editor.on("update", remeasure);
     return () => void editor.off("update", remeasure);
   }, [editor, remeasure]);
 
   return (
-    <TocRail
+    <TocTree
       label="目錄"
       sections={sections}
       position={position}
       renderEntry={(section, props) => (
         <button
+          key={section.key}
           type="button"
           // `+ 1` steps inside the heading, so the caret lands in its text
           // rather than before the node — selecting the node itself would put
           // the author's next keystroke in place of the whole heading.
-          onClick={() =>
+          onClick={() => {
+            const pos = Number(section.key);
+            // The caret goes in without scrolling: ProseMirror's own scroll only
+            // brings the caret *into view*, which can leave the heading well
+            // below the reading line — and the tree reads that as the section
+            // not yet begun, naming the one above as current. Landing the
+            // heading on the line ourselves is what makes clicking an entry and
+            // being in that entry the same thing.
             editor
               .chain()
-              .focus()
-              .setTextSelection(Number(section.key) + 1)
-              .scrollIntoView()
-              .run()
-          }
+              .focus(null, { scrollIntoView: false })
+              .setTextSelection(pos + 1)
+              .run();
+            const node = editor.view.nodeDOM(pos);
+            if (!(node instanceof Element)) return;
+            window.scrollTo({
+              top: documentTop(node) - READING_LINE,
+              behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+                ? "auto"
+                : "smooth",
+            });
+          }}
           {...props}
-        >
-          {section.text}
-        </button>
+        />
       )}
     />
   );

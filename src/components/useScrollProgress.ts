@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { TocSection } from "./TocRail";
+import type { TocSection } from "./TocTree";
 
 /**
  * How far below the top of the viewport the reader is taken to be reading.
@@ -10,7 +10,19 @@ import type { TocSection } from "./TocRail";
  * begun exactly when clicking its entry would have brought it to rest — the
  * rail agrees with the navigation instead of lagging it by a screen.
  */
-const READING_LINE = 96;
+export const READING_LINE = 96;
+
+/**
+ * How far past the reading line a heading still counts as reached.
+ *
+ * Clicking an entry lands its heading exactly on the line, and "exactly" is
+ * where it breaks: on a high-density screen both the scroll offset and a
+ * heading's top are fractional, so a heading that has just been scrolled to
+ * can sit a fraction of a pixel *below* the line — and the entry above it
+ * stays current, as if the click had gone nowhere. A few pixels of give is
+ * invisible to a reader and covers every rounding the browser does.
+ */
+const LANDING_SLACK = 4;
 
 /**
  * The window the rail needs to exist at all — Tailwind's `xl`, where the gutter
@@ -116,7 +128,7 @@ export function useScrollProgress(measure: () => TocSection[]) {
       queued = true;
       requestAnimationFrame(() => {
         queued = false;
-        setPosition(window.scrollY + READING_LINE);
+        setPosition(window.scrollY + READING_LINE + LANDING_SLACK);
       });
     };
     onScroll();
@@ -144,6 +156,7 @@ function same(a: TocSection[], b: TocSection[]): boolean {
       const other = b[i];
       return (
         section.key === other.key &&
+        section.level === other.level &&
         section.text === other.text &&
         section.start === other.start &&
         section.end === other.end
