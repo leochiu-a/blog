@@ -117,7 +117,8 @@ afterEach(() => {
 const rail = () => screen.getByRole("navigation", { name: "目錄" });
 const entries = () => screen.getAllByRole("link");
 /** The bar's text, e.g. `▓▓░░ 13%` — the one readout of how far through the reader is. */
-const readout = () => rail().lastElementChild!.textContent;
+const readout = () =>
+  [...rail().querySelectorAll("p")].find((line) => line.textContent?.endsWith("%"))!.textContent;
 const current = () => entries().filter((e) => e.getAttribute("aria-current") === "location");
 /** Whether the row holding a link is unfolded; closed rows are `invisible`. */
 const unfolded = (link: HTMLElement) =>
@@ -222,6 +223,12 @@ describe("PostToc", () => {
       await scrollTo(2000);
       expect(readout()).toBe("▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓100%");
     });
+  });
+
+  it("tells the reader ↑ and ↓ scroll the page", () => {
+    plantArticle(article, 1100);
+    render(<PostToc />);
+    expect(rail().textContent).toContain("PRESS ↑ / ↓ TO SCROLL");
   });
 
   it("leaves once the reader is past the article, before the foot of the page", async () => {

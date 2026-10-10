@@ -58,11 +58,14 @@ function branches(entries: TocSection[]): Branch[] {
  */
 export function TocTree({
   label,
+  hint,
   sections,
   position,
   renderEntry,
 }: {
   label: string;
+  /** A line under the progress bar, for a shortcut the page offers. */
+  hint?: string;
   sections: TocSection[];
   /** Where the reader is, in the sections' own scale. */
   position: number;
@@ -166,6 +169,7 @@ export function TocTree({
           {Math.round(progress * 100)}%
         </span>
       </p>
+      {hint && <p className="mt-3 text-xs tracking-wide text-muted-foreground">{hint}</p>}
     </nav>
   );
 }

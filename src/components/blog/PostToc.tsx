@@ -46,6 +46,7 @@ export function PostToc() {
   return (
     <TocTree
       label="目錄"
+      hint="PRESS ↑ / ↓ TO SCROLL"
       sections={sections}
       position={position}
       renderEntry={(section, { children, ...props }) => (

@@ -8,6 +8,7 @@ import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ScrollToTop } from "@/components/blog/ScrollToTop";
 import { PostToc } from "@/components/blog/PostToc";
 import { SectionArrival } from "@/components/blog/SectionArrival";
+import { ArrowKeyScroll } from "@/components/blog/ArrowKeyScroll";
 import { RecentPosts } from "@/components/blog/RecentPosts";
 import { SubscribeCta } from "@/components/newsletter/SubscribeCta";
 import { Footer } from "@/components/Footer";
@@ -182,10 +183,12 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
               {/* Both read the article out of the DOM below, so they render
                 after it is there but sit above it in the layout. `PostToc`
-                draws the rail; `SectionArrival` is what a URL naming one
-                section does to the page, and draws nothing. */}
+                draws the contents tree; `SectionArrival` is what a URL naming
+                one section does to the page, and `ArrowKeyScroll` gives ↑ / ↓
+                a bigger step. Neither of those two draws anything. */}
               <PostToc />
               <SectionArrival />
+              <ArrowKeyScroll />
 
               <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
                 <Post />
