@@ -3,6 +3,7 @@
 import type { MouseEvent } from "react";
 import { TocTree, type TocSection } from "@/components/TocTree";
 import { documentTop, useScrollProgress } from "@/components/useScrollProgress";
+import { useScrolledPast } from "@/components/useScrolledPast";
 import { markArrival } from "./SectionArrival";
 
 /**
@@ -40,12 +41,16 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
-export function PostToc() {
+export function PostToc({ title }: { title: string }) {
   const { sections, position } = useScrollProgress(measureHeadings);
+  // claude.dev's cue: the title joins the tree once the page's own h1 is gone.
+  const titleShown = useScrolledPast("#blog-hero h1");
 
   return (
     <TocTree
       label="目錄"
+      title={title}
+      titleShown={titleShown}
       hint="PRESS ↑ / ↓ TO SCROLL"
       sections={sections}
       position={position}

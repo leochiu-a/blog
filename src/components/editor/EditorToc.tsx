@@ -5,6 +5,7 @@ import type { Editor } from "@tiptap/react";
 import { TocTree, type TocSection } from "@/components/TocTree";
 import { documentTop, READING_LINE, useScrollProgress } from "@/components/useScrollProgress";
 import { readOutline } from "@/lib/editor/outline";
+import { useScrolledPast } from "@/components/useScrolledPast";
 
 /**
  * The draft's contents, in the same tree the published post gets.
@@ -28,7 +29,7 @@ import { readOutline } from "@/lib/editor/outline";
  * to, and putting the caret in the heading is what an author wanted anyway:
  * they went to that section to work on it.
  */
-export function EditorToc({ editor }: { editor: Editor }) {
+export function EditorToc({ editor, title }: { editor: Editor; title: string }) {
   const measure = useCallback((): TocSection[] => {
     const headings = readOutline(editor.state.doc)
       // The model says where a heading is in the document; only the DOM says
@@ -56,6 +57,7 @@ export function EditorToc({ editor }: { editor: Editor }) {
   }, [editor]);
 
   const { sections, position, remeasure } = useScrollProgress(measure);
+  const titleShown = useScrolledPast("#editor-title");
 
   useEffect(() => {
     // Typing moves every heading below the caret, and the tree is drawn in
@@ -67,6 +69,8 @@ export function EditorToc({ editor }: { editor: Editor }) {
   return (
     <TocTree
       label="目錄"
+      title={title}
+      titleShown={titleShown}
       sections={sections}
       position={position}
       renderEntry={(section, props) => (

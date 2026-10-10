@@ -557,14 +557,10 @@ export function DocumentEditor({
       {/* Same column geometry as the reading view: the padding sits on <main>
           and the 728px cap on the track inside it, so a line wraps in the
           editor exactly where it wraps on the published page. */}
-      {/* Outside <main>, because the rail is fixed to the viewport gutter
-          rather than placed in the column — the same footing it has on the
-          published page. */}
-      {editor && <EditorToc editor={editor} />}
-
       <main className="flex w-full flex-col items-center px-6 pb-32 pt-10 font-garamond sm:px-10">
         <div className="w-full min-w-0 max-w-[45.5rem]">
           <HeadingField
+            id="editor-title"
             value={readText(frontmatter, "title")}
             onChange={(title) => updateFrontmatter(withField(frontmatter, "title", title))}
             onEnter={() => editor?.commands.focus("start")}
@@ -580,6 +576,9 @@ export function DocumentEditor({
           />
 
           <div className="relative mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
+            {/* In the body's box, as on the published page: the tree starts
+                level with the rule above the body and sticks from there. */}
+            {editor && <EditorToc editor={editor} title={readText(frontmatter, "title")} />}
             {editor && (
               <InsertMenu
                 collection={collection}

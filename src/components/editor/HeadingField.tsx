@@ -3,6 +3,8 @@
 import { useLayoutEffect, useRef } from "react";
 
 type Props = {
+  /** For whatever needs to find the field on the page, like the contents tree. */
+  id?: string;
   value: string;
   onChange: (value: string) => void;
   onEnter: () => void;
@@ -19,7 +21,7 @@ type Props = {
  * published page. Enter moves on to the body rather than inserting a newline,
  * since neither field can hold one.
  */
-export function HeadingField({ value, onChange, onEnter, placeholder, className }: Props) {
+export function HeadingField({ id, value, onChange, onEnter, placeholder, className }: Props) {
   const field = useRef<HTMLTextAreaElement>(null);
 
   useLayoutEffect(() => {
@@ -34,6 +36,7 @@ export function HeadingField({ value, onChange, onEnter, placeholder, className 
   return (
     <textarea
       ref={field}
+      id={id}
       rows={1}
       value={value}
       placeholder={placeholder}

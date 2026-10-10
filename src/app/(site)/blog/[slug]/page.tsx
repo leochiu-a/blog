@@ -181,17 +181,24 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 </div>
               </div>
 
-              {/* Both read the article out of the DOM below, so they render
-                after it is there but sit above it in the layout. `PostToc`
-                draws the contents tree; `SectionArrival` is what a URL naming
-                one section does to the page, and `ArrowKeyScroll` gives ↑ / ↓
-                a bigger step. Neither of those two draws anything. */}
-              <PostToc />
+              {/* `SectionArrival` is what a URL naming one section does to the
+                page, and `ArrowKeyScroll` gives ↑ / ↓ a bigger step. Both
+                draw nothing. */}
               <SectionArrival />
               <ArrowKeyScroll />
 
-              <div className="prose prose-lg prose-zinc mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
-                <Post />
+              {/* The box the contents tree runs down the side of: its top is
+                the rule above the article and its bottom the article's end,
+                so the tree starts level with the one and leaves with the
+                other. The margin lives here rather than on `.prose` so the
+                box starts at the rule, not above the gap before it. */}
+              <div className="relative mt-6 sm:mt-8">
+                {/* Reads the article out of the DOM below, so it renders after
+                  it is there but sits beside it in the layout. */}
+                <PostToc title={post.title} />
+                <div className="prose prose-lg prose-zinc border-t border-border pt-6 sm:pt-8">
+                  <Post />
+                </div>
               </div>
 
               <SubscribeCta source={post.href} />

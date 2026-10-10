@@ -58,12 +58,21 @@ function branches(entries: TocSection[]): Branch[] {
  */
 export function TocTree({
   label,
+  title,
+  titleShown = false,
   hint,
   sections,
   position,
   renderEntry,
 }: {
   label: string;
+  /**
+   * The document's title, shown at the top of the tree once `titleShown` —
+   * after the real title has scrolled away, so the page always names what is
+   * being read without saying it twice.
+   */
+  title?: string;
+  titleShown?: boolean;
   /** A line under the progress bar, for a shortcut the page offers. */
   hint?: string;
   sections: TocSection[];
@@ -90,9 +99,6 @@ export function TocTree({
 
   // The last heading begun, whatever its level; none before the first.
   const currentKey = sections.findLast((entry) => position >= entry.start)?.key;
-  // Past the end is past the writing: the subscribe box and bio are not part of
-  // the contents, so the tree leaves rather than hanging beside them at 100%.
-  const finished = position >= articleEnd;
 
   const entry = (section: TocSection, className?: string) => {
     const active = section.key === currentKey;
@@ -122,54 +128,83 @@ export function TocTree({
   };
 
   return (
-    // Fixed to the window's left edge, in line with the page's own 40px side
-    // padding, the way Claude's tree sits in the margin rather than against the
-    // column. Capped so it never reaches the 728px column: at `xl` (1280px) the
-    // gutter is 276px, which leaves the tree 220px; it grows with the window up to 22rem (352px).
+    // A strip down the left margin that runs exactly as long as the article,
+    // with the tree stuck inside it — claude.dev's arrangement. The owner puts
+    // this inside a `relative` box whose top is the rule above the article, so
+    // on load the tree starts level with that rule instead of sitting beside
+    // the title, rides up with the page, and sticks at `top-36` once it gets
+    // there. At the article's end the strip ends, and the tree scrolls away
+    // with the last paragraph rather than hanging beside the subscribe box.
+    //
+    // Pulled out of the 728px column into the window's margin: its left edge
+    // is the window's 40px side padding, measured back from the column's own
+    // left edge, which sits at `50vw - 22.75rem`. Capped so it never reaches
+    // the column: at `xl` (1280px) that leaves the tree 220px, and it grows
+    // with the window up to 22rem (352px).
     <nav
       aria-label={label}
-      className={cn(
-        "fixed top-28 left-10 z-40 hidden max-h-[calc(100vh-10rem)] w-[min(22rem,calc(50vw-22.75rem-3.5rem))] overflow-y-auto overflow-x-clip [scrollbar-width:none] [&::-webkit-scrollbar]:hidden font-mono text-sm leading-relaxed xl:block",
-        "transition-opacity duration-300 ease-out motion-reduce:transition-none",
-        finished && "pointer-events-none opacity-0",
-      )}
+      className="absolute inset-y-0 left-[calc(25.25rem-50vw)] z-40 hidden w-[min(22rem,calc(50vw-22.75rem-3.5rem))] font-mono text-sm leading-relaxed xl:block"
     >
-      <p className="mb-3 text-xs tracking-wide text-muted-foreground">{label}</p>
+      <div className="sticky top-36">
+        {title && (
+          // Above the tree rather than at the top of it, in the space the
+          // tree's `top-36` leaves clear — below the editor's sticky 57px
+          // toolbar, for two lines of title. Laid out in that space, the
+          // title's arrival moves nothing: it fades and lifts, both compositor
+          // work, where pushing the tree down by its own height re-laid the
+          // column out every frame and shoved the list the reader was looking
+          // at out from under them.
+          <p
+            aria-hidden={!titleShown}
+            className={cn(
+              "absolute inset-x-0 bottom-full mb-4 line-clamp-2 text-balance font-sans text-lg font-medium leading-normal text-foreground",
+              "translate-y-1 opacity-0 motion-safe:transition-[opacity,transform] motion-safe:duration-300 motion-safe:ease-out",
+              titleShown ? "translate-y-0 opacity-100" : "pointer-events-none",
+            )}
+          >
+            {title}
+          </p>
+        )}
 
-      <div>
-        {branches(sections).map(({ section, subs }) => {
-          // Open while the reader is in this section or any subheading of it,
-          // and for keyboard focus, so a tab stop is never inside a hidden row.
-          const open = section.key === currentKey || subs.some((sub) => sub.key === currentKey);
-          return (
-            <div key={section.key}>
-              {entry(section)}
-              {subs.length > 0 && (
-                <div
-                  className={cn(
-                    "invisible grid grid-rows-[0fr] has-[:focus-visible]:visible has-[:focus-visible]:grid-rows-[1fr]",
-                    "motion-safe:transition-[grid-template-rows,visibility] motion-safe:duration-300 motion-safe:ease-out",
-                    open && "visible grid-rows-[1fr]",
+        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto overflow-x-clip [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <p className="mb-3 text-xs tracking-wide text-muted-foreground">{label}</p>
+
+          <div>
+            {branches(sections).map(({ section, subs }) => {
+              // Open while the reader is in this section or any subheading of it,
+              // and for keyboard focus, so a tab stop is never inside a hidden row.
+              const open = section.key === currentKey || subs.some((sub) => sub.key === currentKey);
+              return (
+                <div key={section.key}>
+                  {entry(section)}
+                  {subs.length > 0 && (
+                    <div
+                      className={cn(
+                        "invisible grid grid-rows-[0fr] has-[:focus-visible]:visible has-[:focus-visible]:grid-rows-[1fr]",
+                        "motion-safe:transition-[grid-template-rows,visibility] motion-safe:duration-300 motion-safe:ease-out",
+                        open && "visible grid-rows-[1fr]",
+                      )}
+                    >
+                      <div className="-m-1 min-h-0 overflow-hidden p-1">
+                        {subs.map((sub) => entry(sub, "pl-[18px]"))}
+                      </div>
+                    </div>
                   )}
-                >
-                  <div className="-m-1 min-h-0 overflow-hidden p-1">
-                    {subs.map((sub) => entry(sub, "pl-[18px]"))}
-                  </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
 
-      <p className="mt-6 whitespace-nowrap text-muted-foreground/50" aria-hidden="true">
-        <span className="text-foreground">{"▓".repeat(filled)}</span>
-        {"░".repeat(BAR_CELLS - filled)}
-        <span className="ml-2 tabular-nums text-muted-foreground">
-          {Math.round(progress * 100)}%
-        </span>
-      </p>
-      {hint && <p className="mt-3 text-xs tracking-wide text-muted-foreground">{hint}</p>}
+          <p className="mt-6 whitespace-nowrap text-muted-foreground/50" aria-hidden="true">
+            <span className="text-foreground">{"▓".repeat(filled)}</span>
+            {"░".repeat(BAR_CELLS - filled)}
+            <span className="ml-2 tabular-nums text-muted-foreground">
+              {Math.round(progress * 100)}%
+            </span>
+          </p>
+          {hint && <p className="mt-3 text-xs tracking-wide text-muted-foreground">{hint}</p>}
+        </div>
+      </div>
     </nav>
   );
 }

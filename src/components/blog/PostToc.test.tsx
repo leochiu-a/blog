@@ -62,6 +62,8 @@ let observed: Element[] = [];
 /** The component's own re-measure hook, for standing in as a layout shift. */
 let layoutShifts: Array<() => void> = [];
 const queryListeners = new Set<() => void>();
+/** What the title observer was told, so a test can move the h1 off screen. */
+let reportTitle: ((entry: Partial<IntersectionObserverEntry>) => void) | null = null;
 
 /** Resize across the breakpoint, as a reader dragging the window would. */
 function resizeTo(value: boolean) {
@@ -74,6 +76,20 @@ beforeEach(() => {
   observed = [];
   layoutShifts = [];
   queryListeners.clear();
+  reportTitle = null;
+
+  // happy-dom has no IntersectionObserver. The title waits on one to hear the
+  // page's h1 leave the top of the window; a test plays that part.
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      constructor(notify: (entries: Partial<IntersectionObserverEntry>[]) => void) {
+        reportTitle = (entry) => notify([entry]);
+      }
+      observe() {}
+      disconnect() {}
+    },
+  );
 
   // happy-dom has no ResizeObserver. The component uses it to re-measure after
   // late layout shifts; nothing here shifts, so recording the target is enough.
@@ -134,7 +150,7 @@ const article = [
 describe("PostToc", () => {
   it("renders nothing when the article has no sections", () => {
     plantArticle([{ level: 3, text: "A subheading on its own", top: 100 }]);
-    const { container } = render(<PostToc />);
+    const { container } = render(<PostToc title="The post's title" />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -145,7 +161,7 @@ describe("PostToc", () => {
     outside.textContent = "Read more";
     document.body.appendChild(outside);
 
-    render(<PostToc />);
+    render(<PostToc title="The post's title" />);
     expect(entries()).toHaveLength(1);
     expect(entries()[0]).toHaveProperty("hash", "#real");
   });
@@ -155,13 +171,13 @@ describe("PostToc", () => {
       { level: 2, id: "kept", text: "Linkable", top: 100 },
       { level: 2, text: "No id", top: 200 },
     ]);
-    render(<PostToc />);
+    render(<PostToc title="The post's title" />);
     expect(entries()).toHaveLength(1);
   });
 
   it("lists subheadings under the section above them", () => {
     plantArticle(article, 1100);
-    render(<PostToc />);
+    render(<PostToc title="The post's title" />);
 
     expect(entries().map((entry) => entry.textContent)).toEqual([
       "└First section",
@@ -173,13 +189,13 @@ describe("PostToc", () => {
   describe("the current entry", () => {
     it("names nothing before the reader has reached a heading", () => {
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
       expect(current()).toHaveLength(0);
     });
 
     it("follows the reader down, section and subheading alike", async () => {
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
 
       await scrollTo(100);
       expect(current().map((e) => e.getAttribute("href"))).toEqual(["#one"]);
@@ -193,7 +209,7 @@ describe("PostToc", () => {
 
     it("unfolds a section's subheadings only while the reader is inside it", async () => {
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
       const sub = screen.getByRole("link", { name: /A subheading/ });
 
       expect(unfolded(sub)).toBe(false);
@@ -214,7 +230,7 @@ describe("PostToc", () => {
     it("starts empty, climbs with the reader, and ends full at the article's end", async () => {
       // The article runs 100 to 1100 and the reading line sits 96px down.
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
       expect(readout()).toBe("░░░░░░░░░░░░░░░░░░░░0%");
 
       await scrollTo(504);
@@ -225,26 +241,69 @@ describe("PostToc", () => {
     });
   });
 
+  describe("the title", () => {
+    /** The page's own title block, as the post page renders it. */
+    function plantHero() {
+      const hero = document.createElement("div");
+      hero.id = "blog-hero";
+      hero.appendChild(document.createElement("h1"));
+      document.body.insertBefore(hero, document.body.firstChild);
+    }
+    const title = () => screen.getByText("The post's title");
+
+    it("stays folded away while the page's own title is on screen", () => {
+      plantHero();
+      plantArticle(article, 1100);
+      render(<PostToc title="The post's title" />);
+
+      expect(title().getAttribute("aria-hidden")).toBe("true");
+      expect(title().className).toContain("opacity-0");
+    });
+
+    it("joins the tree once the page's title has scrolled off the top", async () => {
+      plantHero();
+      plantArticle(article, 1100);
+      render(<PostToc title="The post's title" />);
+
+      await act(async () =>
+        reportTitle!({ isIntersecting: false, boundingClientRect: { bottom: -10 } as DOMRect }),
+      );
+      expect(title().getAttribute("aria-hidden")).toBe("false");
+      expect(title().className).toContain("opacity-100");
+    });
+
+    it("stays away when the page's title has only left by the bottom", async () => {
+      // Off screen, but below: the reader has not reached it yet, let alone
+      // read past it — a cold load on a #fragment above the hero, say.
+      plantHero();
+      plantArticle(article, 1100);
+      render(<PostToc title="The post's title" />);
+
+      await act(async () =>
+        reportTitle!({ isIntersecting: false, boundingClientRect: { bottom: 1200 } as DOMRect }),
+      );
+      expect(title().getAttribute("aria-hidden")).toBe("true");
+    });
+  });
+
   it("tells the reader ↑ and ↓ scroll the page", () => {
     plantArticle(article, 1100);
-    render(<PostToc />);
+    render(<PostToc title="The post's title" />);
     expect(rail().textContent).toContain("PRESS ↑ / ↓ TO SCROLL");
   });
 
-  it("leaves once the reader is past the article, before the foot of the page", async () => {
-    // 1100 is where `.prose` ends; the subscribe box, the bio and the
-    // read-more list come after it and are none of the tree's business.
+  it("runs the length of its box and sticks inside it, rather than to the window", () => {
+    // happy-dom lays nothing out, so the scrolling itself cannot be watched
+    // here; what can is the arrangement that produces it. A strip as tall as
+    // the article's box, with the tree sticky inside: the tree starts level
+    // with the rule, sticks at the top, and leaves when the article does.
     plantArticle(article, 1100);
-    render(<PostToc />);
-    expect(rail().className).not.toContain("opacity-0");
+    render(<PostToc title="The post's title" />);
 
-    await scrollTo(1100);
-    expect(rail().className).toContain("opacity-0");
-    expect(rail().className).toContain("pointer-events-none");
-
-    // And comes back if the reader scrolls up into the writing again.
-    await scrollTo(500);
-    expect(rail().className).not.toContain("opacity-0");
+    expect(rail().className).toContain("absolute");
+    expect(rail().className).toContain("inset-y-0");
+    expect(rail().className).not.toContain("fixed");
+    expect(rail().firstElementChild!.className).toContain("sticky");
   });
 
   describe("going to a section", () => {
@@ -259,14 +318,14 @@ describe("PostToc", () => {
         ],
         1100,
       );
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
 
       expect(entries().map((a) => a.getAttribute("href"))).toEqual(["#前言", "#收尾"]);
     });
 
     it("glides to the section rather than jumping, and names it in the URL", async () => {
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
       const scrollIntoView = vi.fn();
       heading("two").scrollIntoView = scrollIntoView;
 
@@ -278,7 +337,7 @@ describe("PostToc", () => {
 
     it("marks the heading an entry points at when that entry is clicked", async () => {
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
 
       expect(heading("two").className).not.toContain("heading-arrival");
       await userEvent.click(entry("Second section"));
@@ -290,7 +349,7 @@ describe("PostToc", () => {
       // the click asks for. A reader who has scrolled away and wants showing
       // back to their place clicks exactly here.
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
 
       await userEvent.click(entry("First section"));
       heading("one").classList.remove("heading-arrival");
@@ -309,7 +368,7 @@ describe("PostToc", () => {
       const listen = vi.spyOn(window, "addEventListener");
       plantArticle(article, 1100);
 
-      const { container } = render(<PostToc />);
+      const { container } = render(<PostToc title="The post's title" />);
 
       expect(container.firstChild).toBeNull();
       expect(listen.mock.calls.map(([event]) => event)).not.toContain("scroll");
@@ -321,7 +380,7 @@ describe("PostToc", () => {
       // to leave that frame's slot occupied for good — so the tree came back on
       // the next resize and then never moved again.
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
 
       layoutShifts.at(-1)!();
       await act(async () => resizeTo(false));
@@ -342,7 +401,7 @@ describe("PostToc", () => {
     it("arrives if the window is widened into one", async () => {
       resizeTo(false);
       plantArticle(article, 1100);
-      render(<PostToc />);
+      render(<PostToc title="The post's title" />);
       expect(screen.queryByRole("navigation", { name: "目錄" })).toBeNull();
 
       await act(async () => resizeTo(true));
@@ -353,7 +412,7 @@ describe("PostToc", () => {
 
   it("stays off touch screens entirely, rather than folding into the page", () => {
     plantArticle(article);
-    const { container } = render(<PostToc />);
+    const { container } = render(<PostToc title="The post's title" />);
 
     // No second, stacked copy of the contents for narrow screens: the tree is
     // the whole feature, and it is hidden below xl by class.
