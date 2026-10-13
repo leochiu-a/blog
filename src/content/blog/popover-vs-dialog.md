@@ -305,10 +305,15 @@ Roselli 2025 年 12 月補充，這些 modal、inert 和 top layer 之間的互�
 
 ## 小結
 
-- **看會不會擋住頁面**：要使用者先處理完的，用 `<dialog>` 的 `showModal()`；可以忽略的，用 popover
-- **兩者都能不寫 JS 開關**：`command` / `commandfor` 已經是 Baseline，dialog 不再需要 `onClick`
-- **關閉邏輯寫在 `cancel`**：Esc、點背景、返回鍵都會經過它，`requestClose()` 也是
-- **新 API 先當漸進增強**：`closedby`、`popover="hint"`、`interestfor` 都還沒進 Baseline
+以前開發彈窗最煩的是處理 backdrop、focus trap 和 top layer，現在瀏覽器原生都幫我們處理好了。
+
+簡單來說，選用邏輯可以直接記這三點：
+
+- **需要使用者強制回應**（刪除確認、登入）：`<dialog>` + `showModal()`
+- **隨時可被忽視的輕量互動**（下拉選單、Tooltip、Toast）：**Popover API**
+- **想告別 JS 事件監聽**：直接上 **Invoker Commands**（`command` / `commandfor`）
+
+目前大部分新特性都已跨瀏覽器支援，只有像 `closedby` 或 `popover="hint"` 這種延伸 API 還在進展中。現階段建議把原生 `<dialog>` 和 Popover 當作預設基礎，非 Baseline 的新功能當漸進增強來用即可。
 
 ---
 
