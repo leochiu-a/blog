@@ -32,7 +32,7 @@ Popover 跟 dialog 很容易分不清楚，有些 design system 甚至會用 mod
 
 先從使用者的角度來看 popover 跟 dialog ：
 
->> **dialog 會要求使用者要跟元件互動，popover 則是不理它也沒關係。**
+>> dialog 比較像「必須回應的對話框」，popover 則是「看了就走的輔助資訊」。
 
 ### Dialog：介面在跟使用者對話
 
@@ -48,7 +48,7 @@ Dialog 是介面停下來問使用者一件事，或請他完成一個小任務�
 
 [HTML 規範](https://html.spec.whatwg.org/multipage/interactive-elements.html#the-dialog-element)對它的定義也是這樣：一個讓使用者完成任務、提供資訊的小視窗。規範還特別提到，右鍵選單、tooltip、下拉清單**都不算** dialog。
 
->> 至於要不要擋住頁面，用是不是 modal 來決定。
+>> 至於會不會把背景蓋住、鎖住焦點，取決於它是不是 modal。
 
 modal 不是另一種元件，而是 dialog 的一種狀態：
 
@@ -72,7 +72,7 @@ Popover 是平常看不到，需要時才冒出來，疊在畫面最上面，不
 
 UX 研究機構 Nielsen Norman Group（NN/g）的[〈Modal & Nonmodal Dialogs〉](https://www.nngroup.com/articles/modal-nonmodal-dialog/)這樣分 dialog 的 modal 跟 nonmodal：
 
->> dialog 就是系統在問你事情。modal 的會逼你先回答，nonmodal 的可以先放著，繼續做原本的事。
+>> dialog 就像系統發出的詢問。如果是 modal 狀態，會強制你先處理完，nonmodal 則可以先晾在旁邊，讓你繼續做手邊的事。
 
 所以可以這樣總結成一張表格：
 
