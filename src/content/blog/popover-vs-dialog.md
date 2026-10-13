@@ -5,7 +5,7 @@ description: "彈窗不等於 Modal！要使用者先回應才能繼續的用 <d
 datetime: "2026-10-08"
 readTime: "8 min"
 category: "professional"
-tags: ["HTML", "Popover API", "dialog", "Invoker Commands", "無障礙"]
+tags: ["HTML", "Popover API", "dialog", "modal"]
 ogImage: "/blog-images/popover-vs-dialog-hero.webp"
 draft: true
 ---
