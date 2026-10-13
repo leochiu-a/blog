@@ -48,6 +48,7 @@ describe("a Post's email", () => {
     siteUrl: "https://leochiu.com",
     postUrl: "https://leochiu.com/blog/hello/",
     unsubscribeUrl: "https://leochiu.com/newsletter/unsubscribe/",
+    linkedPost: () => undefined,
   };
 
   it("sends the title, the opening, and a link to the whole Post", () => {

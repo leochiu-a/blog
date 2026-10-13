@@ -127,6 +127,10 @@ describe("rendering the opening of a Post for email", () => {
       markdown,
       siteUrl: "https://leochiu.com",
       postUrl: "https://leochiu.com/blog/hello/",
+      linkedPost: (href) =>
+        href === "/blog/previous/"
+          ? { title: "上一篇", description: "上一篇的摘要", site: "6 Oct 2026 · 8 min" }
+          : undefined,
     });
   const paragraph = (n: number) => `${"字".repeat(300)}${n}\n\n`;
 
@@ -178,6 +182,21 @@ describe("rendering the opening of a Post for email", () => {
     expect(html).toContain("GitHub");
     expect(html).not.toContain("x.webp");
     expect(text).toContain("a/b — GitHub (https://github.com/a/b)");
+  });
+
+  /**
+   * A card to another post here usually writes only its `href` and lets the
+   * site fill in the rest. The email has to fill it in the same way, or the
+   * reader gets a box holding a bare path.
+   */
+  it("fills a card to another post with that post's title, summary and date", () => {
+    const { html, text } = excerpt('<LinkCard href="/blog/previous/" />\n\n文字。');
+
+    expect(html).toContain('<a href="https://leochiu.com/blog/previous/"');
+    expect(html).toContain("上一篇的摘要");
+    expect(html).toContain("6 Oct 2026 · 8 min");
+    expect(html).not.toContain(">/blog/previous/<");
+    expect(text).toContain("上一篇 — 6 Oct 2026 · 8 min (https://leochiu.com/blog/previous/)");
   });
 
   it("reads a Figure whose tag spans several lines", () => {

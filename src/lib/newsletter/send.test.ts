@@ -323,7 +323,10 @@ describe("sending a Post to the list", () => {
   it("goes through the same gate and records under the Post's slug", async () => {
     const fake = deps();
 
-    const receipt = await sendToList(postSendable(post), fake.dependencies);
+    const receipt = await sendToList(
+      postSendable(post, () => undefined),
+      fake.dependencies,
+    );
 
     expect(receipt.subject).toBe("你好");
     expect(fake.recorded).toEqual([
@@ -334,7 +337,10 @@ describe("sending a Post to the list", () => {
   it("names the broadcast so a Post can never answer for an Issue", async () => {
     const fake = deps();
 
-    await sendToList(postSendable(post), fake.dependencies);
+    await sendToList(
+      postSendable(post, () => undefined),
+      fake.dependencies,
+    );
 
     expect(fake.broadcasts[0]?.name).toBe("post 2026-09-02 hello");
   });
@@ -342,7 +348,12 @@ describe("sending a Post to the list", () => {
   it("refuses a Post that has gone out, naming its own table", async () => {
     const fake = deps({ state: { sentAt: NOW - 1000, recipients: 2 } });
 
-    await expect(sendToList(postSendable(post), fake.dependencies)).rejects.toThrow(/post_sends/);
+    await expect(
+      sendToList(
+        postSendable(post, () => undefined),
+        fake.dependencies,
+      ),
+    ).rejects.toThrow(/post_sends/);
     expect(fake.calls).toEqual(["sendState"]);
   });
 });
@@ -371,7 +382,12 @@ describe("the preflight check", () => {
   it("stops the send before anything is reconciled, created or recorded", async () => {
     const fake = deps({ preflight: down });
 
-    await expect(sendToList(postSendable(post), fake.dependencies)).rejects.toThrow("site is down");
+    await expect(
+      sendToList(
+        postSendable(post, () => undefined),
+        fake.dependencies,
+      ),
+    ).rejects.toThrow("site is down");
     expect(fake.calls).toEqual(["sendState", "findBroadcast", "preflight"]);
     expect(fake.recorded).toEqual([]);
   });
@@ -379,7 +395,12 @@ describe("the preflight check", () => {
   it("does not stand between a person and learning a Post has already gone out", async () => {
     const fake = deps({ state: { sentAt: NOW - 1000, recipients: 2 }, preflight: down });
 
-    await expect(sendToList(postSendable(post), fake.dependencies)).rejects.toThrow(SendRefused);
+    await expect(
+      sendToList(
+        postSendable(post, () => undefined),
+        fake.dependencies,
+      ),
+    ).rejects.toThrow(SendRefused);
   });
 
   it("does not block repairing a send Resend already made", async () => {
@@ -388,7 +409,10 @@ describe("the preflight check", () => {
       preflight: down,
     });
 
-    const receipt = await sendToList(postSendable(post), fake.dependencies);
+    const receipt = await sendToList(
+      postSendable(post, () => undefined),
+      fake.dependencies,
+    );
 
     expect(receipt.recovered).toBe(true);
     expect(fake.calls).not.toContain("preflight");

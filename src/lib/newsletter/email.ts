@@ -38,9 +38,22 @@ interface RenderOptions {
   siteUrl: string;
 }
 
+/** What another post on this site lends a card to it that names only its `href`. */
+export interface LinkedPost {
+  title: string;
+  description?: string;
+  site?: string;
+}
+
 interface PostRenderOptions extends RenderOptions {
   /** Where a clip's thumbnail sends the reader, since the inbox cannot play it. */
   postUrl: string;
+  /**
+   * The post a site-relative card points at. Passed in rather than imported:
+   * the post collection belongs to the Next build, and this module also runs
+   * without it.
+   */
+  linkedPost: (href: string) => LinkedPost | undefined;
 }
 
 export interface RenderedIssue {
@@ -393,7 +406,11 @@ function youTubeId(src: string): string | undefined {
  * nothing. Everything else (demos, imports) is left out of the excerpt rather
  * than rendered as a hole.
  */
-function postBlocks(blocks: RootContent[], postUrl: string): AnyContent[] {
+function postBlocks(
+  blocks: RootContent[],
+  postUrl: string,
+  linkedPost: (href: string) => LinkedPost | undefined,
+): AnyContent[] {
   return blocks.flatMap((node): AnyContent[] => {
     if (node.type === "mdxJsxFlowElement") {
       const src = attribute(node, "src");
@@ -426,15 +443,17 @@ function postBlocks(blocks: RootContent[], postUrl: string): AnyContent[] {
         case "LinkCard": {
           const href = attribute(node, "href");
           if (href === undefined) return [];
+          // A card to another post here usually writes only its `href` and
+          // leaves the rest to that post, as `LinkCard` does on the site.
+          const post = linkedPost(href);
           return [
             {
               type: "linkCard",
               href,
-              // An internal card may leave its title to the post collection,
-              // which the email has no access to; the address is still a link.
-              title: attribute(node, "title") ?? href,
-              description: attribute(node, "description"),
-              site: attribute(node, "site"),
+              // A card pointing nowhere this site knows still links its address.
+              title: attribute(node, "title") ?? post?.title ?? href,
+              description: attribute(node, "description") ?? post?.description,
+              site: attribute(node, "site") ?? post?.site,
             },
           ];
         }
@@ -456,13 +475,14 @@ export function renderPostExcerpt({
   markdown,
   siteUrl,
   postUrl,
+  linkedPost,
 }: PostRenderOptions): RenderedIssue {
   const tree = unified().use(remarkParse).use(remarkGfm).use(remarkMdx).parse(markdown);
   const origin = siteUrl.replace(/\/$/, "");
 
   const excerpt: AnyContent[] = [];
   let shown = 0;
-  for (const block of postBlocks(tree.children, postUrl)) {
+  for (const block of postBlocks(tree.children, postUrl, linkedPost)) {
     if (shown >= EXCERPT_CHARS) break;
     excerpt.push(block);
     shown += textLength(block);

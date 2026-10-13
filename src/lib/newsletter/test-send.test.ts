@@ -57,7 +57,7 @@ describe("testEmail for a Post", () => {
   };
 
   it("marks the subject and links the full Post, never a placeholder", () => {
-    const { subject, html, text } = testEmail(postSendable(post));
+    const { subject, html, text } = testEmail(postSendable(post, () => undefined));
 
     expect(subject).toBe("[測試] 你好");
     for (const body of [html, text]) {

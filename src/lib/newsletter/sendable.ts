@@ -1,5 +1,6 @@
 import type { IssueFrontmatter } from "./issue-frontmatter.ts";
 import type { SendKind } from "./subscribers.ts";
+import type { LinkedPost } from "./email.ts";
 import { issueEmail, postEmail, type RenderedEmail } from "./templates.ts";
 import type { PostFrontmatter } from "../post-frontmatter.ts";
 import { SITE_URL } from "../site.ts";
@@ -59,7 +60,14 @@ export function issueSendable(issue: Issue): Sendable {
   };
 }
 
-export function postSendable(post: Post): Sendable {
+/**
+ * `linkedPost` finds the other posts this one links with a card. It comes from
+ * the caller because the post collection is the Next build's, not this module's.
+ */
+export function postSendable(
+  post: Post,
+  linkedPost: (href: string) => LinkedPost | undefined,
+): Sendable {
   return {
     kind: "post",
     slug: post.slug,
@@ -75,6 +83,7 @@ export function postSendable(post: Post): Sendable {
         siteUrl: SITE_URL,
         postUrl: postUrl(post.slug),
         unsubscribeUrl,
+        linkedPost,
       }),
   };
 }

@@ -1,4 +1,10 @@
-import { EMAIL_COLORS, escapeHtml, renderIssueEmail, renderPostExcerpt } from "./email.ts";
+import {
+  EMAIL_COLORS,
+  escapeHtml,
+  renderIssueEmail,
+  renderPostExcerpt,
+  type LinkedPost,
+} from "./email.ts";
 
 /**
  * The shell every outgoing email shares, and the two emails this app sends.
@@ -174,6 +180,8 @@ export interface PostEmailOptions {
   /** Where the whole Post lives — the email carries only its opening. */
   postUrl: string;
   unsubscribeUrl: string;
+  /** The post a card in this one points at, for the card's title and summary. */
+  linkedPost: (href: string) => LinkedPost | undefined;
 }
 
 /**
@@ -192,8 +200,9 @@ export function postEmail({
   siteUrl,
   postUrl,
   unsubscribeUrl,
+  linkedPost,
 }: PostEmailOptions): RenderedEmail {
-  const body = renderPostExcerpt({ markdown, siteUrl, postUrl });
+  const body = renderPostExcerpt({ markdown, siteUrl, postUrl, linkedPost });
   // A Post that opens on nothing but components has no text to show, and an
   // email of a title over a button invites a click on something nobody has
   // described. Refused here, where both the test send and the real one pass.

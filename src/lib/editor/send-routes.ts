@@ -18,6 +18,7 @@ import {
   type SendKind,
 } from "@/lib/newsletter/subscribers";
 import { sendTestEmail } from "@/lib/newsletter/test-send";
+import { postAt, postDefaults } from "@/lib/post-at";
 import { parseEmail } from "@/lib/newsletter/subscription";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { EditorError, issueStore, postStore } from "./store";
@@ -68,7 +69,13 @@ async function load(kind: SendKind, slug: string): Promise<Sendable> {
 
   const parsed = parsePostSource(slug, await postStore.read(slug));
   if (!parsed.ok) throw new EditorError(parsed.error, 400);
-  return postSendable({ slug, frontmatter: parsed.frontmatter, markdown: parsed.markdown });
+  return postSendable(
+    { slug, frontmatter: parsed.frontmatter, markdown: parsed.markdown },
+    (href) => {
+      const post = postAt(href);
+      return post && postDefaults(post);
+    },
+  );
 }
 
 /** Every way a send can fail, as an answer the dialog can read. */
