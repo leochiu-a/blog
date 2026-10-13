@@ -7,7 +7,6 @@ readTime: "8 min"
 category: "professional"
 tags: ["HTML", "Popover API", "dialog", "modal"]
 ogImage: "/blog-images/popover-vs-dialog-hero.webp"
-draft: true
 ---
 
 import { ModalVsPopoverDemo } from "@/components/mdx/ModalVsPopoverDemo";
