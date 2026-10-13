@@ -1,7 +1,7 @@
 ---
 title: "Popover vs Dialog：差在哪？什麼時候該用哪個？"
 subtitle: "從 modal、light dismiss 到 Invoker Commands，原生 HTML 彈出元件的差異與選擇"
-description: "看會不會擋住頁面。需要使用者處理完才能繼續，用 <dialog> 的 showModal()；可以忽略、點外面就關，用 popover。兩者現在都能用 command 屬性不寫 JS 開關。附可操作的 demo。"
+description: "彈窗不等於 Modal！要使用者先回應才能繼續的用 <dialog>，臨時展開、不理也沒差的用 popover。本文從互動本質與 Top Layer 解析兩者差異，涵蓋免寫 JS 的 Invoker Commands、關閉機制與混用踩坑整理，內附互動 Demo。"
 datetime: "2026-10-08"
 readTime: "8 min"
 category: "professional"
