@@ -6,12 +6,15 @@ datetime: "2026-10-08"
 readTime: "8 min"
 category: "professional"
 tags: ["HTML", "Popover API", "dialog", "Invoker Commands", "無障礙"]
+ogImage: "/blog-images/popover-vs-dialog-hero.webp"
 draft: true
 ---
 
 import { ModalVsPopoverDemo } from "@/components/mdx/ModalVsPopoverDemo";
 import { AutoManualDemo } from "@/components/mdx/AutoManualDemo";
 import { CloseRequestDemo } from "@/components/mdx/CloseRequestDemo";
+
+<Figure src="/blog-images/popover-vs-dialog-hero.webp" alt="線條插畫，白底配橘色點綴。同一個人坐在書桌前兩次：左邊被一道從天花板垂下的黑色簾幕擋住，只能看著簾幕上的一塊空白板；右邊筆電旁貼著一張橘色便利貼，他照常打字" width={2752} height={1536} hero />
 
 Popover 跟 dialog 很容易分不清楚，有些 design system 甚至會用 modal 這個單字。
 
