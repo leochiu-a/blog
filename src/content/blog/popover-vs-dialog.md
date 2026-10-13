@@ -1,8 +1,8 @@
 ---
-title: "Popover vs Dialog：差在哪？什麼時候該用哪個？"
-subtitle: "從 modal、light dismiss 到 Invoker Commands，原生 HTML 彈出元件的差異與選擇"
+title: "Popover vs Dialog vs Modal：搞懂原生 Web 彈窗的正確選型"
+subtitle: "從 HTML 語意、Top Layer 到互動狀態，釐清三者的關係與實務應用"
 description: "彈窗不等於 Modal！要使用者先回應才能繼續的用 <dialog>，臨時展開、不理也沒差的用 popover。本文從互動本質與 Top Layer 解析兩者差異，涵蓋免寫 JS 的 Invoker Commands、關閉機制與混用踩坑整理，內附互動 Demo。"
-datetime: "2026-10-08"
+datetime: "2026-10-13"
 readTime: "8 min"
 category: "professional"
 tags: ["HTML", "Popover API", "dialog", "modal"]
