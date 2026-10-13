@@ -18,11 +18,13 @@ import { CloseRequestDemo } from "@/components/mdx/CloseRequestDemo";
 
 Popover 跟 dialog 很容易分不清楚，有些 design system 甚至會用 modal 這個單字。
 
-有用過 Boostrap、Ant Design 的人都會覺得「彈窗」就是「modal」。
+有用過 Bootstrap、Ant Design 的人都會覺得「彈窗」就是「modal」。
 
 這也是 Web 常被討論的題目，Hidde de Vries（曾在 W3C 的無障礙小組工作，以及前 Mozilla 成員）就為它寫過文章跟[演講](https://noti.st/hdv/G9mATs)。
 
 [上一篇](/blog/github-native-html-features/)分析 GitHub 時兩者都有出現，這篇想把 popover 跟 dialog 的差別整理一下。
+
+<LinkCard href="/blog/github-native-html-features/" />
 
 ---
 
@@ -132,7 +134,7 @@ UX 研究機構 Nielsen Norman Group（NN/g）的[〈Modal & Nonmodal Dialogs〉
 
 modal 的「擋住頁面」，在程式上是指頁面其他部分都變成 [inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert)，點不到、Tab 不到，螢幕閱讀器也讀不到。
 
-[Hidde de Vries](https://hidde.blog/dialog-modal-popover-differences/) 提醒，自己刻的時候只加遮罩或只做 focus trap 都不夠`showModal()` 會一次處理好，還會隱含 `aria-modal="true"`。
+[Hidde de Vries](https://hidde.blog/dialog-modal-popover-differences/) 提醒，自己刻的時候只加遮罩或只做 focus trap 都不夠，`showModal()` 會一次處理好，還會隱含 `aria-modal="true"`。
 
 popover 則**永遠不是 modal**，就算寫成 `<dialog popover>` 也一樣。
 
@@ -174,6 +176,8 @@ popover 一開始的 `popovertarget` 只能控制 popover。後來加入的 [Inv
 
 ## 怎麼關閉：light dismiss、Esc 和 close request
 
+`auto` popover 點外面或按 Esc 就會關，modal dialog 預設只認 Esc 跟 `close()`，點背景要另外設定。dialog 被要求關閉時會先觸發 `cancel`，「還沒儲存」的提醒可以寫在這裡。
+
 ### popover 的 auto 和 manual
 
 `popover` 不寫值就是 `auto`，點外面或按 Esc 會自動關閉（light dismiss），而且同一時間只會開一組，開新的會把舊的關掉。
@@ -194,7 +198,7 @@ modal dialog 預設只能用 Esc 或 `close()` 關閉，點背景沒有反應。
 | `closerequest`（modal 預設） | ✅ | ❌ | ✅ |
 | `none`（`show()` 預設） | ❌ | ❌ | ✅ |
 
-不過 `closedby` **Safari 還沒支援**，目前只在 Technology Preview。要讓 Safari 也能點背景關閉，還是得自己補：
+不過截至 2026 年 10 月，`closedby` **Safari 還沒支援**，目前只在 Technology Preview。要讓 Safari 也能點背景關閉，還是得自己補：
 
 ```js
 dialog.addEventListener("click", (e) => {
@@ -251,13 +255,17 @@ dialog,
 }
 ```
 
-`overlay` 目前**只有 Chromium 支援**。Firefox 和 Safari 還是能淡出，只是淡出期間元素已經不在 top layer，如果被其他元素蓋住或被 `overflow` 裁掉，最後那幾毫秒會看得出來。大部分情況影響不大，寫上去當漸進增強就好。
+截至 2026 年 10 月，`overlay` **只有 Chromium 支援**。Firefox 和 Safari 還是能淡出，只是淡出期間元素已經不在 top layer，如果被其他元素蓋住或被 `overflow` 裁掉，最後那幾毫秒會看得出來。大部分情況影響不大，寫上去當漸進增強就好。
 
 ---
 
 ## tooltip 要用哪個？`popover="hint"` 和 interestfor
 
-上一篇提到，GitHub 的 tooltip 雖然用了 popover，但 hover 時還是要自己寫 JS 呼叫 `showPopover()`，因為 `popovertarget` 只認點擊。
+tooltip 可以用 `popover="hint"` 搭配 `interestfor`，hover、鍵盤聚焦都能打開，不用寫 JS，只是兩個 API 的支援度都還不夠。
+
+[上一篇](/blog/github-native-html-features/)提到，GitHub 的 tooltip 雖然用了 popover，但 hover 時還是要自己寫 JS 呼叫 `showPopover()`，因為 `popovertarget` 只認點擊。
+
+<LinkCard href="/blog/github-native-html-features/" />
 
 這個缺口有兩個新 API 在補：
 
@@ -269,15 +277,17 @@ dialog,
 <div id="tip" popover="hint" role="tooltip">Ctrl + S</div>
 ```
 
-這兩個現在支援度都還不太夠，`interestfor` 只有 Chrome 142 以上支援，`popover="hint"` 在 Chrome 151、Firefox 153 才換成新版規格，Safari 還在 Technology Preview。現階段可以當漸進增強，或搭配 polyfill。
+截至 2026 年 10 月，`interestfor` 只有 Chrome 142 以上支援，`popover="hint"` 在 Chrome 151、Firefox 153 才換成新版規格，Safari 還在 Technology Preview。現階段可以當漸進增強，或搭配 polyfill。
 
 ---
 
 ## 混用 dialog 和 popover 的坑
 
+混用時的問題幾乎都跟 top layer 和 inert 有關。自製的 div dialog 不在 top layer，會被 popover 蓋住；原生 modal 打開時，放在 dialog 外面的 popover 可能看得到卻點不到。
+
 ### popover 蓋住自製的 div dialog
 
-popover 會進 top layer，自製的 `<div role="dialog">` 不會，所以 popover 可能蓋在對話框上面，擋住裡面的按鈕。Adrian Roselli 2023 年的[建議](https://adrianroselli.com/2023/05/brief-note-on-popovers-with-dialogs.html)是，**先把 modal 換成原生&#x20;**`<dialog>`**，再導入 popover**。
+popover 會進 top layer，自製的 `<div role="dialog">` 不會，所以 popover 可能蓋在對話框上面，擋住裡面的按鈕。Adrian Roselli 2023 年的[建議](https://adrianroselli.com/2023/05/brief-note-on-popovers-with-dialogs.html)是，**先把 modal 換成原生 `<dialog>`，再導入 popover**。
 
 ### modal 打開時，外面的 popover 會怎樣？
 
