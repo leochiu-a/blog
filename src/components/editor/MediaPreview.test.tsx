@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MediaPreview } from "./MediaPreview";
 
@@ -65,6 +65,19 @@ describe("the caption line", () => {
 
     expect(onSelect).not.toHaveBeenCalled();
     expect(onCaptionChange).toHaveBeenLastCalledWith("上\n下");
+  });
+
+  /**
+   * With a Chinese input method the Enter that commits the candidate is a
+   * keydown too. Finishing on it would hand the document a node selection
+   * while the composition is still open, and the committed text would land
+   * there — replacing the picture.
+   */
+  it("leaves the Enter that commits an input method's candidate alone", () => {
+    const { onSelect } = renderPreview({ offered: true });
+    fireEvent.keyDown(caption() as HTMLTextAreaElement, { key: "Enter", isComposing: true });
+
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
   it("takes Escape as finished too", async () => {

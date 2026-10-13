@@ -116,7 +116,14 @@ function CaptionField({
         // Leaving by keyboard hands the document back its caret; leaving by
         // clicking somewhere else does not, because that click has already
         // said where the caret goes.
+        //
+        // Not while an input method is composing: the Enter that commits a
+        // Chinese candidate arrives here too, and leaving on it would hand the
+        // document a node selection that the committed text then replaces —
+        // the picture vanishes. Safari reports that keydown as keyCode 229
+        // with `isComposing` already false.
         onKeyDown={(event) => {
+          if (event.nativeEvent.isComposing || event.keyCode === 229) return;
           if (event.key !== "Escape" && !(event.key === "Enter" && !event.shiftKey)) return;
           event.preventDefault();
           setDraft(null);
