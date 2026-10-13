@@ -9,7 +9,5 @@ import { LinkCardView, withPostDefaults, type LinkCardProps } from "./LinkCardVi
  */
 export function LinkCard({ href, ...attributes }: LinkCardProps) {
   const post = postAt(href);
-  return (
-    <LinkCardView href={href} {...withPostDefaults(attributes, post && postDefaults(post))} />
-  );
+  return <LinkCardView href={href} {...withPostDefaults(attributes, post && postDefaults(post))} />;
 }
