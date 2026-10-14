@@ -278,6 +278,16 @@ main {
   margin-top: 0.85em;
   margin-bottom: 0.4em;
 }
+/* CJK text can break between any two characters, so a two-character header
+   like 分數 over a narrow numeric column splits into one character per line.
+   Headers are short labels; keep them whole and let the body cells wrap.
+   Phones are left alone: there the column has no room to spare, and a whole
+   header would push the table past the screen edge. */
+@media (min-width: 640px) {
+  .prose :where(th):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    white-space: nowrap;
+  }
+}
 @media (min-width: 640px) {
   .prose :where(h2):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     font-size: 1.375em;
