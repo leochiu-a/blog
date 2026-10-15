@@ -6,6 +6,7 @@ datetime: "2026-10-14"
 readTime: "11 min"
 category: "professional"
 tags: ["評論", "轉換率", "Trustpilot", "資料分析", "因果推論"]
+ogImage: "/blog-images/review-score-and-conversion-hero.webp"
 draft: true
 ---
 
