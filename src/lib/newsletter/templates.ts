@@ -55,6 +55,18 @@ const CONTINUE_STYLE = "margin:36px 0 0;";
  * link, and the accent colour is the same one the site's links wear.
  */
 const CONTINUE_LINK_STYLE = `display:inline-block;padding:12px 28px;background:${ACCENT};border-radius:8px;color:#ffffff;font-size:16px;font-weight:700;line-height:1.4;text-decoration:none;`;
+/**
+ * Gmail's dark mode on iOS and Android rewrites inline colours: it keeps the
+ * orange but turns the white label near-black, so the button reads as dark on
+ * orange. The one stylesheet rule in the shell undoes that, and only there —
+ * `u + .body` matches nothing but Gmail's rewritten markup, where a screen
+ * blend and then a difference blend over black land the text back on white.
+ * Every other client ignores it and keeps the inline white.
+ */
+const GMAIL_DARK_TEXT_FIX = `<style>
+u + .body .gmail-screen { background:#000000; mix-blend-mode:screen; }
+u + .body .gmail-difference { background:#000000; mix-blend-mode:difference; }
+</style>`;
 /** Set apart from the line above it: leaving is a decision of its own. */
 const UNSUBSCRIBE_STYLE = "margin:20px 0 0;";
 
@@ -64,8 +76,9 @@ function shell({ preheader, contentHtml, footerHtml }: ShellOptions): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+${GMAIL_DARK_TEXT_FIX}
 </head>
-<body style="${BODY_STYLE}">
+<body class="body" style="${BODY_STYLE}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</div>
 <div style="${CONTAINER_STYLE}">
 ${contentHtml}
@@ -217,7 +230,7 @@ export function postEmail({
 ${subtitle ? `<p style="${SUBTITLE_STYLE}">${escapeHtml(subtitle)}</p>` : ""}
 </div>
 ${body.html}
-<p style="${CONTINUE_STYLE}"><a href="${postUrl}" style="${CONTINUE_LINK_STYLE}">閱讀全文 →</a></p>`;
+<p style="${CONTINUE_STYLE}"><a href="${postUrl}" style="${CONTINUE_LINK_STYLE}"><span class="gmail-screen"><span class="gmail-difference">閱讀全文 →</span></span></a></p>`;
 
   const text = `${title}
 ${subtitle ? `${subtitle}\n` : ""}
