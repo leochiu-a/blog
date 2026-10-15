@@ -10,6 +10,8 @@ ogImage: "/blog-images/review-score-and-conversion-hero.webp"
 draft: true
 ---
 
+<Figure src="/blog-images/review-score-and-conversion-hero.webp" alt="線條插畫，白底配橘色點綴。機場大廳裡，一位背著背包的旅客坐在黑色行李箱上，一手拿手機、一手拿放大鏡，皺著眉盯著畫面上一排星星評分，最後一顆星只填了一半；腳邊有橘色登機箱、一杯咖啡和一張攤開的地圖" width={2752} height={1536} hero />
+
 最近接到一個題目：公司在 Trustpilot 上的分數不到 2 分。
 
 Trustpilot 在台灣幾乎沒有人知道，但對歐美、東南亞的旅客來說，它是挑選旅遊平台時很重要的參考。第一次聽到一個訂票網站，很多人的直覺就是先去 Trustpilot 搜尋，看看評價如何。
