@@ -29,6 +29,19 @@ function Blockquote({ children }: { children?: React.ReactNode }) {
 }
 
 /**
+ * A table keeps its columns readable and scrolls sideways when it is wider than
+ * the column, rather than squeezing each cell to a character or two per line.
+ * The editor renders the same wrapper (see `Table` in lib/editor/extensions.ts).
+ */
+function Table(props: React.ComponentProps<"table">) {
+  return (
+    <div className="table-scroll">
+      <table {...props} />
+    </div>
+  );
+}
+
+/**
  * Required by @next/mdx App Router — Next.js calls this automatically to inject
  * global components into every MDX file. Not called directly in application code.
  */
@@ -36,6 +49,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     hr: OrnamentSeparator,
     blockquote: Blockquote,
+    table: Table,
     FancyQuote,
     Figure,
     Clip,

@@ -8,12 +8,10 @@
  */
 
 /* Markdown's first table row is the header, but the editor schema renders
-   every cell as td. Match the reading view's desktop header wrapping rule so
-   short CJK labels like 分數 don't split over narrow numeric columns. */
-@media (min-width: 640px) {
-  .ProseMirror table > tbody > tr:first-child > td {
-    white-space: nowrap;
-  }
+   every cell as td. Match the reading view's header rule so short CJK labels
+   like 分數 don't split over narrow numeric columns. */
+.ProseMirror table > tbody > tr:first-child > td {
+  white-space: nowrap;
 }
 
 /*

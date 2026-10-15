@@ -40,7 +40,8 @@ const Table = Node.create({
   isolating: true,
   addAttributes: () => ({ align: { default: null } }),
   parseHTML: () => [{ tag: "table" }],
-  renderHTML: () => ["table", ["tbody", 0]],
+  // Same scroll wrapper as `Table` in mdx-components.tsx.
+  renderHTML: () => ["div", { class: "table-scroll" }, ["table", ["tbody", 0]]],
 });
 
 const TableRow = Node.create({

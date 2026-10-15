@@ -278,15 +278,25 @@ main {
   margin-top: 0.85em;
   margin-bottom: 0.4em;
 }
-/* CJK text can break between any two characters, so a two-character header
-   like 分數 over a narrow numeric column splits into one character per line.
-   Headers are short labels; keep them whole and let the body cells wrap.
-   Phones are left alone: there the column has no room to spare, and a whole
-   header would push the table past the screen edge. */
-@media (min-width: 640px) {
-  .prose :where(th):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    white-space: nowrap;
-  }
+/* CJK text can break between any two characters, so on a phone the browser
+   squeezes every column to fit — a header like 分數 over a numeric column, or a
+   sentence-long cell, ends up one or two characters per line. Keep headers
+   whole and give each cell a floor; a table that then outgrows the column
+   scrolls sideways inside its wrapper instead of widening the page. */
+.prose :where(.table-scroll):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  overflow-x: auto;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+.prose :where(.table-scroll > table):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.prose :where(th):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  white-space: nowrap;
+}
+.prose :where(td):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  min-width: 4.5em;
 }
 @media (min-width: 640px) {
   .prose :where(h2):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
