@@ -565,7 +565,7 @@ export function DocumentEditor({
             onChange={(title) => updateFrontmatter(withField(frontmatter, "title", title))}
             onEnter={() => editor?.commands.focus("start")}
             placeholder="Title"
-            className="font-sans text-4xl font-extrabold leading-tight tracking-tight placeholder:text-muted-foreground md:text-5xl"
+            className="font-sans text-3xl font-extrabold leading-[1.3] placeholder:text-muted-foreground sm:text-4xl md:text-5xl"
           />
           <HeadingField
             value={readText(frontmatter, "subtitle")}
