@@ -59,7 +59,7 @@ PM 的想法很直接：「邀請客人去 Trustpilot 寫評論，把分數拉�
 
 Trustpilot 否認了這些指控，表示平台上超過 97% 的商家沒有付費，所有商家都適用同一套規範。做空機構本身有財務動機，這些指控也沒有被證實，但它反映了很多人對這類平台的疑慮。
 
-2026 年 3 月，義大利競爭管理局認為 Trustpilot 誤導消費者對服務的認知、沒有確實驗證評論的真實性，開罰 400 萬歐元，但 Trustpilot 表示會上訴。
+2026 年 3 月，義大利競爭管理局[認為](https://en.agcm.it/en/media/press-releases/2023/3/PS12962) Trustpilot 誤導消費者對服務的認知、沒有確實驗證評論的真實性，開罰 400 萬歐元，但 Trustpilot 表示會上訴。
 
 在 Hacker News 上，對 Trustpilot 的討論多半偏負面，也有人說「看到一家公司在用 Trustpilot，我反而比較不信任它」。
 
@@ -184,7 +184,7 @@ Karaman 2025 這篇很有趣，一般會以為，願意寫評論的客人比較�
 
 - **對象**：給低分的新客，特別是出國時最基本的服務出問題的人（例如網路、機場接送）。這類問題對旅遊體驗影響最大，回購率掉得也最多。
 - **做法**：道歉加上小額「下次可用」的優惠券，這是 Uber、Via 實驗中效果最好的組合。只道歉的效果很弱，反覆道歉可能更糟。
-- **預期**：要保守。就算把低分客人和高分客人的回購差距全部補平，換算下來每個月多回來的人也不多。而且依外部研究，實際大概只能補回三分之一到一半。
+- **預期**：要保守。就算把低分客人和高分客人的回購差距全部補平，換算下來每個月多回來的人也不多。而且 de Matos 的整合分析發現，服務補救能提高滿意度，對回購意願的影響卻不顯著。
 
 還有一個比較務實的結論：與其一個一個補救，不如先從源頭解決。研究過程中發現，站內負評高度集中在少數幾種商品和供應商問題。把那幾個問題解決，比任何補救方案都有效。
 
@@ -213,10 +213,11 @@ Karaman 2025 這篇很有趣，一般會以為，願意寫評論的客人比較�
 - Dholakia, U. M., & Morwitz, V. G. (2002). The Scope and Persistence of Mere-Measurement Effects: Evidence from a Field Study of Customer Satisfaction Measurement. *Journal of Consumer Research*.
 - Karaman, H. (2025). [The Asymmetric Effects of Posting an Online Review on Future Spending and the Dark Side of Solicitations](https://doi.org/10.1287/mnsc.2023.01951). *Management Science*, 72(2).
 - de Matos, C. A., Henrique, J. L., & Rossi, C. A. V. (2007). Service Recovery Paradox: A Meta-Analysis. *Journal of Service Research*.
-- Trustpilot Help Center：[How do reviews get on Trustpilot?](https://help.trustpilot.com/s/article/How-do-reviews-get-on-Trustpilot?language=en_US)
 - [Trustpilot – Wikipedia](https://en.wikipedia.org/wiki/Trustpilot)
 - [Trustpilot Group plc 2025 Annual Report](https://www.sustainabilityreports.com/trustpilot/2025/annual-report)
 - Grizzly Research：[The "Trustpilot Mafia" – How the Extortion Model Destroys Trustpilot's Value Proposition](https://grizzlyreports.com/trustpilot/)
 - [Trustpilot tanks as Grizzly Research uncovers "mafia style extortion tactics"](https://www.hl.co.uk/shares/stock-market-news/company--news/archive/trustpilot-tanks-as-grizzly-research-uncovers-mafia-style-extortion-tactics)（Hargreaves Lansdown）
 - [Trustpilot categorically rejects Grizzly Research accusations](https://www.hl.co.uk/shares/stock-market-news/company--news/trustpilot-categorically-rejects-grizzly-research-accusations)（Hargreaves Lansdown）
+- Italian Competition Authority (AGCM)：[Trustpilot to pay a €4 million fine for unfair commercial practice](https://en.agcm.it/en/media/press-releases/2023/3/PS12962)
+- [Italy Fines UK's Trustpilot €4m For Misleading Consumers](https://www.silicon.co.uk/e-regulation/italy-trustpilot-fine-629215)（Silicon UK）
 - Hacker News：[How Trustpilot Extorts Businesses](https://news.ycombinator.com/item?id=31723751)、[Why is trustpilot awful?](https://news.ycombinator.com/item?id=26077295)
