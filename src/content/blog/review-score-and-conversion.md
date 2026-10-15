@@ -2,12 +2,11 @@
 title: "評分拉高真的會帶來訂單嗎？線上評論、轉換率與回購的研究筆記"
 subtitle: "讀了幾篇論文、翻了自己的資料，看邀評對新客和回購到底有沒有用，還有分析時踩到的 2 個陷阱"
 description: "評分拉高真的會帶來訂單嗎？Yelp 研究顯示每多 1 顆星營收增加 5–9%，但公開寫評論可能讓不滿意的客人之後買得更少。整理評分、邀評與回購的研究證據，以及分析資料時遇到的辛普森悖論。"
-datetime: "2026-10-14"
+datetime: "2026-10-15"
 readTime: "11 min"
 category: "professional"
 tags: ["評論", "轉換率", "Trustpilot", "資料分析", "因果推論"]
 ogImage: "/blog-images/review-score-and-conversion-hero.webp"
-draft: true
 ---
 
 <Figure src="/blog-images/review-score-and-conversion-hero.webp" alt="線條插畫，白底配橘色點綴。機場大廳裡，一位背著背包的旅客坐在黑色行李箱上，一手拿手機、一手拿放大鏡，皺著眉盯著畫面上一排星星評分，最後一顆星只填了一半；腳邊有橘色登機箱、一杯咖啡和一張攤開的地圖" width={2752} height={1536} hero />
