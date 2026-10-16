@@ -7,6 +7,7 @@ readTime: "11 min"
 category: "professional"
 tags: ["評論", "轉換率", "Trustpilot", "資料分析", "因果推論"]
 ogImage: "/blog-images/review-score-and-conversion-hero.webp"
+draft: true
 ---
 
 <Figure src="/blog-images/review-score-and-conversion-hero.webp" alt="線條插畫，白底配橘色點綴。機場大廳裡，一位背著背包的旅客坐在黑色行李箱上，一手拿手機、一手拿放大鏡，皺著眉盯著畫面上一排星星評分，最後一顆星只填了一半；腳邊有橘色登機箱、一杯咖啡和一張攤開的地圖" width={2752} height={1536} hero />
