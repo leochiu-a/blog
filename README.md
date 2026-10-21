@@ -13,9 +13,12 @@ Leo Chiu 的個人網站與部落格。
 
 寫過的文章：
 
+- 2026-10-13 [Popover vs Dialog vs Modal：搞懂原生 Web 彈窗的正確選型](https://leochiu.com/blog/popover-vs-dialog/)
+- 2026-10-06 [拆解 GitHub 前端：Popover API、Anchor Positioning 能取代套件嗎？](https://leochiu.com/blog/github-native-html-features/)
+- 2026-09-30 [CodeReel：讓程式碼自己動起來！打造瀏覽器端的 Code 動畫與 MP4 匯出工具](https://leochiu.com/blog/codereel/)
 - 2026-09-21 [為什麼 Linear 與 Tailwind v4 都不再幫按鈕加上 cursor: pointer？](https://leochiu.com/blog/linear-no-pointer-cursor/)
 - 2026-09-18 [從 OpenAI 攻擊 Hugging Face 看 AI 安全的監督困境](https://leochiu.com/blog/ai-safety-evaluator-independence/)
-- 2026-09-14 [把 Next.js 搬上 Cloudflare Workers：OpenNext 設定指南與 5 個實戰避坑經驗](https://leochiu.com/blog/nextjs-on-cloudflare-workers/)
+- 2026-09-14 [Next.js 部署到 Cloudflare Workers：OpenNext 設定教學與 5 個踩坑](https://leochiu.com/blog/nextjs-on-cloudflare-workers/)
 - 2026-09-10 [用 Cloudflare 免費方案架 Blog：服務盤點與免費額度避坑指南](https://leochiu.com/blog/cloudflare-free-tier-stack/)
 - 2026-09-06 [設計師參與開發，真的能加速前端專案嗎？](https://leochiu.com/blog/designers-writing-frontend-code/)
 - 2026-08-30 [Chrome Built-in AI 與 WebMCP 如何重塑 Web 體驗？](https://leochiu.com/blog/chrome-built-in-ai-and-webmcp/)
