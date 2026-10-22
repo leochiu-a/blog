@@ -52,7 +52,7 @@ PM 提新需求的時候，我腦中常常會冒出一個問題：
 
 Costco 美食區的熱狗加汽水套餐，從 1985 年到現在都賣 1.5 美元。如果跟著通膨調整，現在大概要 4.5 美元。
 
-前 CEO Craig Jelinek 曾經說過，他剛上任時跟創辦人 Jim Sinegal 提議漲價，被 Sinegal 用很不客氣的話擋了下來，要他自己想辦法。2024 年，Costco 財務長在法說會上還特地說了一句：熱狗的價格是安全的。
+[前 CEO Craig Jelinek 曾經說過](https://www.yahoo.com/lifestyle/articles/heres-why-costco-keeps-food-153000075.html)，他剛上任時跟創辦人 Jim Sinegal 提議漲價，被 Sinegal 用很不客氣的話擋了下來，要他自己想辦法。2024 年，[Costco 財務長](https://abc7news.com/post/costcos-150-hot-dog-price-safe/14895838/)在法說會上還特地說了一句：熱狗的價格是安全的。
 
 Costco 知道這個套餐不賺錢，它是典型的「虧本招客商品」（loss leader）。Costco 的主要利潤來自會員費，熱狗讓客人記得 Costco 很便宜，覺得會員費付得值得，隔年繼續續約。
 
@@ -60,13 +60,13 @@ Costco 知道這個套餐不賺錢，它是典型的「虧本招客商品」（l
 
 Dropbox 早期試過 Google 關鍵字廣告，發現獲客成本太高。後來他們參考 PayPal 的做法，做了一個雙向推薦計畫：你邀請朋友加入，你和朋友都能拿到額外的免費空間。
 
-送出去的空間是成本，但 Drew Houston 在 2010 年的分享簡報裡寫到，這個計畫讓註冊數**永久增加了 60%**，2010 年 4 月，單月就有 280 萬次直接邀請。
+送出去的空間是成本，但 Drew Houston 在 2010 年的[分享簡報](https://www.slideshare.net/slideshow/dropbox-startup-lessons-learned-3836587/3836587)裡寫到，這個計畫讓註冊數**永久增加了 60%**，2010 年 4 月，單月就有 280 萬次直接邀請。
 
 免費空間本身沒有收入，它的角色是獲客。而且使用者存在 Dropbox 裡的東西越多，就越難離開，之後付費升級的機會也越大。
 
 ### Spotify 的免費方案
 
-Spotify 的免費方案有廣告，收入遠比付費方案低，但它在 2018 年上市的 F-1 文件裡寫得很直接：免費方案是一個漏斗，從 2014 年 2 月開始追蹤以來，**超過 60% 的新增付費訂閱者來自免費方案**。
+Spotify 的免費方案有廣告，收入遠比付費方案低，但它在 2018 年上市的 [F-1 文件](https://www.sec.gov/Archives/edgar/data/0001639920/000119312518063434/d494294df1.htm)裡寫得很直接：免費方案是一個漏斗，從 2014 年 2 月開始追蹤以來，**超過 60% 的新增付費訂閱者來自免費方案**。
 
 免費方案單獨看可能是賠錢的，算上「後來轉成付費」的人，才看得出它的價值。如果只用免費方案自己的營收去評估，很可能會做出砍掉它的錯誤決定。
 
@@ -78,9 +78,9 @@ Spotify 的免費方案有廣告，收入遠比付費方案低，但它在 2018 
 
 Amazon Prime 在 2005 年推出，一年 79 美元，無限次免費兩日到貨。
 
-Bezos 後來回憶，剛推出時的數字「很嚇人」。運費很貴，而最先加入的，正是買最多、最會用到免費運送的那群人。
+[Bezos 後來回憶，剛推出時的數字「很嚇人」](https://fortune.com/2015/02/03/inside-amazon-prime)。運費很貴，而最先加入的，正是買最多、最會用到免費運送的那群人。
 
-但 Bezos 當時在新聞稿裡講得很清楚，Prime 的目的是讓會員「長期向我們買更多」。根據 CIRP 的調查，2024 年 Prime 會員一年在 Amazon 花大約 1,170 美元，非會員大約 570 美元，差了一倍。
+但 Bezos 當時在[新聞稿](https://press.aboutamazon.com/2005/7/amazon-com-announces-record-free-cash-flow-fueled-by-lower-prices-and-free-shipping-for-customers)裡講得很清楚，Prime 的目的是讓會員「長期向我們買更多」。根據 [CIRP 的調查](https://cirpamazon.substack.com/p/amazon-prime-member-shopping-power)，2024 年 Prime 會員一年在 Amazon 花大約 1,170 美元，非會員大約 570 美元，差了一倍。
 
 不過 CIRP 自己也說，**目前不清楚是 Prime 讓人買更多，還是本來就買很多的人比較會加入 Prime**。
 
@@ -88,7 +88,7 @@ Bezos 後來回憶，剛推出時的數字「很嚇人」。運費很貴，而�
 
 ### Duolingo 的連續學習天數
 
-Duolingo 的連續天數（streak）不收錢，但它是 Duolingo 留存策略的核心。Duolingo 官方部落格提到，連續學習達到 7 天的使用者，完成課程的機率是其他人的 3.6 倍。
+Duolingo 的連續天數（streak）不收錢，但它是 Duolingo 留存策略的核心。[Duolingo 官方部落格](https://blog.duolingo.com/how-duolingo-streak-builds-habit)提到，連續學習達到 7 天的使用者，完成課程的機率是其他人的 3.6 倍。
 
 這也是相關性，願意連續學 7 天的人，本來就比較認真。但 Duolingo 也做了實驗，例如在達成連續天數里程碑時加一段動畫，新使用者 7 天後還在用的機率就提高了 1.7%。
 
@@ -98,7 +98,7 @@ Duolingo 的連續天數（streak）不收錢，但它是 Duolingo 留存策略�
 
 推薦系統不直接收錢，客人不會因為「推薦得很準」多付一塊錢。
 
-但 Netflix 的兩位高層 Carlos Gomez-Uribe 和 Neil Hunt 在 2015 年的論文裡估計，個人化和推薦系統讓 Netflix 的退訂率降低了好幾個百分點，**每年省下超過 10 億美元**。省下來的錢有兩個來源：現有會員留得更久，以及不用花那麼多錢找新會員來補退訂的人。論文也提到，Netflix 大約 80% 的觀看時數，是從推薦來的。
+但 Netflix 的兩位高層 Carlos Gomez-Uribe 和 Neil Hunt 在 [2015 年的論文](https://doi.org/10.1145/2843948)裡估計，個人化和推薦系統讓 Netflix 的退訂率降低了好幾個百分點，**每年省下超過 10 億美元**。省下來的錢有兩個來源：現有會員留得更久，以及不用花那麼多錢找新會員來補退訂的人。論文也提到，Netflix 大約 80% 的觀看時數，是從推薦來的。
 
 這是 Netflix 自己的估算，外部沒辦法驗證。但要算推薦系統值多少錢，看的是退訂率。
 
@@ -106,7 +106,7 @@ Duolingo 的連續天數（streak）不收錢，但它是 Duolingo 留存策略�
 
 Apple 的 iMessage 不收錢，但它在 Apple 生態系裡的角色很重要。
 
-Epic 控告 Apple 的訴訟中，公開了幾封 Apple 內部的 email。一位前員工在 2016 年寫到，iMessage 是大家很難離開 Apple 生態系的主要原因之一。Phil Schiller 回覆說，把 iMessage 做到 Android 上「對我們的傷害會大於幫助」。Craig Federighi 也擔心，這樣會讓 iPhone 家庭更容易買 Android 手機給小孩。
+Epic 控告 Apple 的訴訟中，[公開了幾封 Apple 內部的 email](https://appleinsider.com/articles/21/04/09/apple-kept-imessage-off-android-to-lock-users-in-to-ios)。一位前員工在 2016 年寫到，iMessage 是大家很難離開 Apple 生態系的主要原因之一。Phil Schiller 回覆說，把 iMessage 做到 Android 上「對我們的傷害會大於幫助」。Craig Federighi 也擔心，這樣會讓 iPhone 家庭更容易買 Android 手機給小孩。
 
 這些是 Epic 在訴訟中提出的證據，不是法院的結論。不過從這幾封 email 看得出來，iMessage 本身不賺錢，Apple 在意的是它讓人換手機時多猶豫一下。
 
@@ -120,7 +120,7 @@ Epic 控告 Apple 的訴訟中，公開了幾封 Apple 內部的 email。一位�
 
 Amazon 在 1995 年開始放顧客評論時，出版商很不滿，因為負評會讓書賣不出去。Bezos 收到一封信，說他根本不懂自己的生意，Amazon 是靠賣東西賺錢的。
 
-Bezos 後來回憶，他讀完那封信的想法是：
+[Bezos 後來回憶，他讀完那封信的想法](https://legacy.xconomy.com/2010/02/25/how-amazon-innovates-lessons-in-strategy-for-microsoft-and-others/4)是：
 
 >> 我們不是靠賣東西賺錢，是靠幫客人做購買決定賺錢。
 
@@ -128,9 +128,9 @@ Bezos 後來回憶，他讀完那封信的想法是：
 
 ### Netflix 主動取消沒在用的會員
 
-2020 年 5 月，Netflix 宣布會主動聯絡兩種會員：加入一年都沒看過任何內容的人，以及超過兩年沒使用的人。如果他們沒有回覆要繼續，Netflix 就幫他們取消訂閱。
+2020 年 5 月，[Netflix 宣布會主動聯絡](https://techcrunch.com/2020/05/21/netflix-to-start-cancelling-inactive-accounts/)兩種會員：加入一年都沒看過任何內容的人，以及超過兩年沒使用的人。如果他們沒有回覆要繼續，Netflix 就幫他們取消訂閱。
 
-這些會員不到全部的 0.5%，大約幾十萬個帳號。他們每個月都在付錢，卻什麼都沒看。前 Netflix 產品 VP Gibson Biddle 在演講中提到，這個功能估計會讓 Netflix 每年少收大約 1 億美元。
+這些會員不到全部的 0.5%，大約幾十萬個帳號。他們每個月都在付錢，卻什麼都沒看。前 Netflix 產品 VP Gibson Biddle [在演講中提到](https://www.productboard.com/blog/gibson-biddle-shares-customer-centric-product-strategy-lessons-from-netflix/)，這個功能估計會讓 Netflix 每年少收大約 1 億美元。
 
 Netflix 還是做了，理由是：
 
@@ -144,7 +144,7 @@ Netflix 還是做了，理由是：
 
 旅遊業最常見的例子是**免費取消**。對客人來說，提早訂、不確定行程會不會變，能免費取消就降低了下單的風險。
 
-但它不是沒有代價的。D-Edge 分析了 680 間歐洲飯店 2014–2018 年的資料，發現 2018 年 Booking.com 的訂單取消率是 50%，飯店官網的直接訂單只有 18.2%。D-Edge 認為，取消率上升最主要的原因，就是「免費取消」的行銷讓客人養成了先訂再說的習慣。
+但它不是沒有代價的。[D-Edge 分析了 680 間歐洲飯店](https://www.hotelmanagement.net/tech/study-cancelation-rate-at-40-as-otas-push-free-change-policy) 2014–2018 年的資料，發現 2018 年 Booking.com 的訂單取消率是 50%，飯店官網的直接訂單只有 18.2%。D-Edge 認為，取消率上升最主要的原因，就是「免費取消」的行銷讓客人養成了先訂再說的習慣。
 
 所以免費取消是一個雙面刃：
 
@@ -153,8 +153,8 @@ Netflix 還是做了，理由是：
 
 那長期來看呢？電商的「免費退貨」跟免費取消很像，這方面的研究比較多：
 
-- **Bower & Maxham（2012）**：在兩家大型網路零售商追蹤 49 個月，退貨免運費的客人，之後兩年的消費是退貨前的 158%–457%。要自己付退貨運費的客人，兩年後的消費減少了 75%–100%，幾乎等於流失。
-- **Petersen & Kumar（2009）**：分析 26,000 名零售客人的資料，發現在一定範圍內，退貨越多的客人，之後反而買得越多，超過某個門檻之後才開始變成負擔。
+- **[Bower & Maxham（2012）](https://doi.org/10.1509/jm.10.0419)**：在兩家大型網路零售商追蹤 49 個月，退貨免運費的客人，之後兩年的消費是退貨前的 158%–457%。要自己付退貨運費的客人，兩年後的消費減少了 75%–100%，幾乎等於流失。
+- **[Petersen & Kumar（2009）](https://pure.psu.edu/en/publications/are-product-returns-a-necessary-evil-antecedents-and-consequences/)**：分析 26,000 名零售客人的資料，發現在一定範圍內，退貨越多的客人，之後反而買得越多，超過某個門檻之後才開始變成負擔。
 
 退貨不等於取消，旅遊商品的庫存也比衣服更有時效性，但方向是一樣的：讓客人反悔的成本變低，短期看是損失，長期可能是在買客人的信任。
 
@@ -175,7 +175,7 @@ Netflix 還是做了，理由是：
 - **短期的促銷活動**：效果來得快，但很快就消失
 - **長期的品牌建立**：效果來得慢，但會累積，長期對營收的影響更大
 
-他們建議的預算比例大約是 60% 做品牌、40% 做短期促銷。不過這個比例是跨產業的平均，Marketing Week 的 Mark Ritson 也提醒過，它比較適合當起點，不是每個公司都該照抄的公式。
+他們建議的預算比例大約是 60% 做品牌、40% 做短期促銷。不過這個比例是跨產業的平均，[Marketing Week 的 Mark Ritson](https://www.marketingweek.com/can-you-achieve-long-and-short-at-the-same-time-usually-no/) 也提醒過，它比較適合當起點，不是每個公司都該照抄的公式。
 
 這個研究講的是廣告預算，不是產品功能，放到產品功能上也成立：只用短期指標評估所有事情，會系統性地低估那些需要時間才看得到效果的投資。
 
@@ -183,9 +183,9 @@ Netflix 還是做了，理由是：
 
 另一個很常被引用的數字，來自 1990 年 Reichheld 和 Sasser 在哈佛商業評論的文章：「顧客流失率降低 5%，利潤可以增加 25% 到 95%」。
 
-但這個數字被引用的版本不太一致，有人寫 25–85%，也有整理只列出銀行、保險經紀、汽車維修幾個個案各自的數字。行銷學者 Byron Sharp 也批評，這篇文章並沒有實證「降低流失率會**導致**利潤大增」，比較像是一個試算。
+但這個數字被引用的版本不太一致，有人寫 25–85%，也有整理只列出銀行、保險經紀、汽車維修幾個個案各自的數字。行銷學者 [Byron Sharp](https://www.marketingscience.info/loyalty-myths/) 也批評，這篇文章並沒有實證「降低流失率會**導致**利潤大增」，比較像是一個試算。
 
-比較嚴謹的是 Gupta、Lehmann 和 Stuart 在 2004 年的研究。他們用 Capital One、Amazon、eBay、Ameritrade、E*Trade 五家公司的公開財報估算顧客價值，發現：
+比較嚴謹的是 [Gupta、Lehmann 和 Stuart 在 2004 年的研究](https://business.columbia.edu/sites/default/files-efs/pubfiles/534/Valuing_Customers--JMR_2003.pdf)。他們用 Capital One、Amazon、eBay、Ameritrade、E*Trade 五家公司的公開財報估算顧客價值，發現：
 
 - **留存率提高 1%**：公司價值大約提高 3%–7%
 - **利潤率提高 1%**：公司價值大約只提高 1%
@@ -202,19 +202,19 @@ Netflix 還是做了，理由是：
 
 ### 大部分的點子都沒有效
 
-Ronny Kohavi 在微軟和 Bing 主導線上實驗多年，他們的結論是：
+[Ronny Kohavi](https://blogs.bing.com/search-quality-insights/2013/08/08/large-scale-experimentation-at-bing) 在微軟和 Bing 主導線上實驗多年，他們的結論是：
 
 >> 經過 A/B 測試客觀評估後，不到三分之一的點子能改善它原本想改善的指標。
 
 在微軟的實驗裡，大約三分之一有正面效果，三分之一沒差，三分之一反而是負的。在 Bing 這種已經高度優化的產品，成功率還更低。
 
-Booking.com 是另一個常被拿來當例子的公司。哈佛商學院教授 Stefan Thomke 估計，Booking.com 同時在跑的實驗超過 1,000 個，一年超過 25,000 個。它這麼做的理由是：大部分的想法都會失敗，只有大量測試，才能找到少數真的有效的那幾個。
+Booking.com 是另一個常被拿來當例子的公司。哈佛商學院教授 [Stefan Thomke 估計](https://hbswk.hbs.edu/item/at-booking-com-innovation-means-constant-failure)，Booking.com 同時在跑的實驗超過 1,000 個，一年超過 25,000 個。它這麼做的理由是：大部分的想法都會失敗，只有大量測試，才能找到少數真的有效的那幾個。
 
 連有明確指標、能直接測試的點子都有三分之二沒效，「說不清楚怎麼賺錢」的功能，沒效的機率只會更高。
 
 ### 大部分的功能很少被使用
 
-Pendo 在 2019 年分析了 615 個軟體產品的使用資料，估計平均有 **80% 的功能很少或從來沒被用過**，大約 12% 的功能就占了 80% 的每日使用量。這是 Pendo 自己客戶的資料，不能代表所有產品，但方向很明確。
+[Pendo 在 2019 年分析](https://www.pendo.io/resources/the-2019-feature-adoption-report/)了 615 個軟體產品的使用資料，估計平均有 **80% 的功能很少或從來沒被用過**，大約 12% 的功能就占了 80% 的每日使用量。這是 Pendo 自己客戶的資料，不能代表所有產品，但方向很明確。
 
 ### 功能有持續的成本
 
@@ -235,7 +235,7 @@ Pendo 在 2019 年分析了 615 個軟體產品的使用資料，估計平均有
 
 ### Gibson Biddle：讓客人開心，但要能提升利潤
 
-Gibson Biddle 是前 Netflix 產品 VP，他用一個叫 DHM 的模型判斷功能值不值得做：
+Gibson Biddle 是前 Netflix 產品 VP，他用一個叫 [DHM 的模型](https://www.productboard.com/blog/gibson-biddle-shares-customer-centric-product-strategy-lessons-from-netflix/)判斷功能值不值得做：
 
 - **Delight**：讓客人開心
 - **Hard to copy**：競爭對手很難複製
@@ -249,7 +249,7 @@ Gibson Biddle 是前 Netflix 產品 VP，他用一個叫 DHM 的模型判斷功�
 
 ### Marty Cagan：至少一半的點子沒有用
 
-《Inspired》的作者 Marty Cagan 把這件事稱為產品的「不方便的真相」：至少一半的點子是沒有用的，好的團隊甚至假設四分之三的點子不會像預期那樣有效。
+《Inspired》的作者 Marty Cagan 把這件事稱為產品的[「不方便的真相」](https://www.svpg.com/the-inconvenient-truth-about-product)：至少一半的點子是沒有用的，好的團隊甚至假設四分之三的點子不會像預期那樣有效。
 
 最常見的原因是，客人根本沒有團隊那麼興奮。就算是有用的點子，通常也要改好幾輪才會真的帶來商業價值。
 
@@ -257,7 +257,7 @@ Gibson Biddle 是前 Netflix 產品 VP，他用一個叫 DHM 的模型判斷功�
 
 ### John Cutler：功能工廠
 
-John Cutler 寫過一篇很有名的文章〈12 Signs You're Working in a Feature Factory〉。「功能工廠」指的是一直生產功能、卻不知道功能有沒有用的團隊。
+John Cutler 寫過一篇很有名的文章[〈12 Signs You're Working in a Feature Factory〉](https://www.amplitude.com/blog/12-signs-youre-working-in-a-feature-factory-3-years-later)。「功能工廠」指的是一直生產功能、卻不知道功能有沒有用的團隊。
 
 他列的第一個徵兆是：
 
