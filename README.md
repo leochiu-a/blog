@@ -13,6 +13,7 @@ Leo Chiu 的個人網站與部落格。
 
 寫過的文章：
 
+- 2026-10-26 [每個新功能都要賺錢嗎？一個工程師對「不賺錢功能」的研究筆記](https://leochiu.com/blog/should-every-feature-make-money/)
 - 2026-10-13 [Popover vs Dialog vs Modal：搞懂原生 Web 彈窗的正確選型](https://leochiu.com/blog/popover-vs-dialog/)
 - 2026-10-06 [拆解 GitHub 前端：Popover API、Anchor Positioning 能取代套件嗎？](https://leochiu.com/blog/github-native-html-features/)
 - 2026-09-30 [CodeReel：讓程式碼自己動起來！打造瀏覽器端的 Code 動畫與 MP4 匯出工具](https://leochiu.com/blog/codereel/)
