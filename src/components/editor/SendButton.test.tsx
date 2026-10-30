@@ -267,7 +267,7 @@ describe("the receipt", () => {
     await user.type(screen.getByLabelText("輸入 first 以確認"), "first");
     await user.click(sendButton());
     await waitFor(() => expect(screen.getByText("寄出了")).toBeTruthy());
-    await user.click(screen.getByRole("button", { name: "好" }));
+    await user.click(screen.getByRole("button", { name: "寄送成功" }));
 
     await waitFor(() => expect(screen.getByText(/^Sent · 2026-09-01$/)).toBeTruthy());
   });

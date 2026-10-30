@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useRef, useState } from "react";
+import { SendIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,8 @@ import {
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { apiPath, collectionOf, type CollectionName } from "@/lib/editor/collections";
+import { cn } from "@/lib/utils";
+import { flyAway, land } from "./paper-plane";
 
 /**
  * What the page read out of the deployed subscriber list, or why it could not.
@@ -92,6 +95,10 @@ export function SendButton({
   // The field, so opening the dialog lands the caret in it: the slug is the
   // only thing to say here.
   const field = useRef<HTMLInputElement>(null);
+  const popup = useRef<HTMLDivElement>(null);
+  // Where the plane on the button is: on it, gone with the letter, or coming
+  // back to whichever button the dialog shows when it returns.
+  const [plane, setPlane] = useState<"docked" | "away" | "landing">("docked");
 
   const unreachable = "error" in state ? state.error : null;
   const sentAt = receipt?.sentAt ?? refusedAt ?? ("error" in state ? null : state.sentAt);
@@ -121,6 +128,17 @@ export function SendButton({
   const send = async () => {
     setSending(true);
     setError(null);
+    setPlane("away");
+    // The letter flies the moment the button is pressed, while the request is
+    // still out; the dialog only comes back once both are done, holding the
+    // receipt or the error. A failed send therefore shows after the plane has
+    // gone — the error is still the first thing on screen when it returns.
+    const flight = popup.current ? flyAway(popup.current) : Promise.resolve();
+    // What the answer does to the dialog, held until the plane has gone: the
+    // dialog only steps aside once the paper is ready to replace it, and a
+    // receipt drawn before then is a dialog changing under the eye and then
+    // vanishing.
+    let answer = () => {};
     try {
       // The route mails what is on disk, and the editor autosaves a beat after
       // typing stops. Sending before that beat mails an Issue missing the
@@ -144,21 +162,38 @@ export function SendButton({
         // recipient count, the broadcast id and what reconciliation moved are
         // all in one place — and the badge that replaces this button afterwards
         // can only say the date.
-        setReceipt(body as Receipt);
+        answer = () => setReceipt(body as Receipt);
         return;
       }
 
-      setError(body?.error ?? `寄不出去（HTTP ${response.status}）`);
-      // It had already gone out — from another tab, or before this one was
-      // opened. Redraw as sent rather than leaving a dialog that invites
-      // another attempt.
-      if (body?.refusal === "already-sent" && body.sentAt != null) setRefusedAt(body.sentAt);
+      answer = () => {
+        setError(body?.error ?? `寄不出去（HTTP ${response.status}）`);
+        // It had already gone out — from another tab, or before this one was
+        // opened. Redraw as sent rather than leaving a dialog that invites
+        // another attempt.
+        if (body?.refusal === "already-sent" && body.sentAt != null) setRefusedAt(body.sentAt);
+      };
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "寄不出去");
+      answer = () => setError(cause instanceof Error ? cause.message : "寄不出去");
     } finally {
+      await flight;
+      answer();
       setSending(false);
+      if (popup.current) land(popup.current);
+      setPlane("landing");
     }
   };
+
+  const planeIcon = (
+    <SendIcon
+      data-icon="inline-start"
+      className={cn(
+        plane === "away" && "opacity-0",
+        plane === "landing" && "paper-plane-land",
+      )}
+      onAnimationEnd={() => setPlane("docked")}
+    />
+  );
 
   return (
     <>
@@ -176,7 +211,7 @@ export function SendButton({
       <Dialog open={open} onOpenChange={setOpen}>
         {/* `font-sans`, like the other dialogs here: this is portalled to
             <body>, which is set in garamond for reading. */}
-        <DialogContent className="font-sans" initialFocus={field}>
+        <DialogContent ref={popup} className="font-sans" initialFocus={field}>
           {/* The question, then the answer to it. A dialog still headed "寄出去
               就收不回來了" over a send that has happened is asking about
               something that is no longer in front of you. */}
@@ -240,7 +275,8 @@ export function SendButton({
               </p>
               <div className="mt-4 flex justify-end">
                 <Button type="button" onClick={() => setOpen(false)}>
-                  好
+                  {planeIcon}
+                  寄送成功
                 </Button>
               </div>
             </div>
@@ -316,6 +352,7 @@ export function SendButton({
                   取消
                 </Button>
                 <Button type="submit" disabled={sending || blocked !== null || confirm !== slug}>
+                  {planeIcon}
                   {sending ? "寄送中…" : "寄給訂閱者"}
                 </Button>
               </div>

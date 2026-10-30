@@ -556,9 +556,11 @@ export function DocumentEditor({
 
       {/* Same column geometry as the reading view: the padding sits on <main>
           and the 728px cap on the track inside it, so a line wraps in the
-          editor exactly where it wraps on the published page. */}
+          editor exactly where it wraps on the published page.
+          `data-letter`: the page the send folds into a paper plane — see
+          paper-plane.ts. */}
       <main className="@container flex w-full flex-col items-center px-6 pb-32 pt-10 font-garamond sm:px-10">
-        <div className="w-full min-w-0 max-w-[45.5rem]">
+        <div data-letter className="w-full min-w-0 max-w-[45.5rem]">
           <HeadingField
             id="editor-title"
             value={readText(frontmatter, "title")}
