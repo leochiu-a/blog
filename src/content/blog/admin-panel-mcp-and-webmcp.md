@@ -1,6 +1,6 @@
 ---
-title: "後台要 MCP 化嗎？從 MCP Apps 到 WebMCP 的研究筆記"
-subtitle: "後台不會被 MCP 取代，agent 其實已經在用後台，只是走的是後門"
+title: "後台真的會被 MCP 取代嗎？從 MCP Apps 到 WebMCP 的實測與思考"
+subtitle: "後台不會被取代，但我們該如何替 AI Agent「開正門」？"
 description: "把後台做成 MCP server 是趨勢嗎？整理網路上「dashboard 會消失」與「MCP 疊在後台上」兩派說法、MCP Apps 讓 MCP 也能顯示 UI 之後論點要怎麼修正，再用 Cloudflare dashboard 實測 WebMCP，看 agent 現在是怎麼查後台數據的。"
 datetime: "2026-11-01"
 readTime: "10 min"
