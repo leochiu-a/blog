@@ -21,6 +21,7 @@ const description = "這裡記錄我在工程開發、AI 落地與團隊協作�
  */
 const PROJECT_NOTES: Record<string, string> = {
   CodeReel: "將程式碼變更紀錄轉化為可視化影片的小工具",
+  "voice-diary": "可以打字也可以用說的、語音自動轉成文字的自架日記",
   "slidev-workspace": "用於高效管理與開發 Slidev 簡報的 Workspace",
   "git-pr-ai": "自動根據 Git diff 分析並生成 Pull Request 摘要的 CLI 工具",
   "elden-ring-github": "將 GitHub 活動紀錄結合遊戲元素的趣味小專案",

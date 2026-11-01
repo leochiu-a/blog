@@ -62,6 +62,14 @@ export const projects: Project[] = [
     video: "/images/projects/code-reel.mp4",
   },
   {
+    title: "voice-diary",
+    description:
+      "A self-hosted voice diary: write or just talk, and every voice note is transcribed to text.",
+    github: "https://github.com/leochiu-a/voice-diary",
+    image: "/images/projects/voice-diary.webp",
+    video: "/images/projects/voice-diary.mp4",
+  },
+  {
     title: "slidev-workspace",
     description:
       "Slidev Workspace is a specialized command-line tool designed to manage and showcase multiple Slidev presentations.",
