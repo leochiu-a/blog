@@ -3,7 +3,11 @@
 # versions locally.
 trustLockfile: true
 
+# esbuild's and workerd's install scripts only swap the JS launcher for a hard
+# link to the binary and run `--version` on it. Both launchers find the
+# platform binary without that step, and on Workers Builds the check costs
+# several seconds per deploy against a freshly restored, cold store.
 allowBuilds:
-  esbuild: true
+  esbuild: false
   sharp: true
-  workerd: true
+  workerd: false
