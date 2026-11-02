@@ -92,15 +92,19 @@ MCP Apps（[SEP-1865](https://modelcontextprotocol.io/seps/1865-mcp-apps-interac
 - **權限、稽核和責任歸屬**：出問題時，是誰、在什麼時間、在哪個畫面按了確認？對話框臨時產生的卡片很難歸因。
 - **可發現性**：後台的側欄和選單會讓你看到有哪些功能，聊天框只會等你開口問，如果要接觸一個新的業務範圍，不熟悉後臺的人不一定能夠成功問對問題，甚至用錯了功能也有可能。
 
-### MCP Apps 會遇到的工程問題
+### MCP tools 會遇到的工程問題
 
 一個後台可能聚集了不只一個團隊的業務邏輯，營運、工程、行銷等，而且後台也可能由不只一個工程團隊維護。
 
-所以很現實的問題是 MCP tools 的數量難以控管。當所有團隊都想把自己的 API 加到 MCP server，agent 要面對數以百計的 tools，就算現在 agent 能「漸進式載入」，也會有上限。
+所以很現實的問題是 MCP tools 的數量難以控管，當所有團隊都想把自己的 API 加到 MCP server，agent 要面對數以百計的 tools，就算現在 agent 能「漸進式載入」，也會有上限。
 
 你可能會想說：「如果只把 tool 的 `title` 放到 context 呢？」
 
 問題是光看 `title`，agent 不一定知道「幫我寫入商品的描述」該用哪個 tool。舉例來說，系統可能區分一般商品和活動商品，如果使用者沒有指定，agent 只看 title 也分不出差別，只能回頭跟使用者確認是 `general_product` 還是 `event_product`，或把每個 tool 的細節都載進來，又回到 context 爆量的問題。
+
+工具多到這個量級，就得另外花力氣管。Uber 的 [MCP Gateway](https://www.uber.com/us/en/blog/designing-mcp-gateway/) 掛了 800 多個 MCP server、5000 多支工具，前面另外做了一層 Omni MCP，讓 agent 先搜尋、再載入。
+
+工具說明由 LLM 產生，改了要經過負責的團隊審核，新工具也預設關閉，等團隊自己打開。
 
 ---
 
@@ -109,6 +113,8 @@ MCP Apps（[SEP-1865](https://modelcontextprotocol.io/seps/1865-mcp-apps-interac
 [WebMCP](/blog/chrome-built-in-ai-and-webmcp/) 是一個 web API 提案，讓網頁透過 `document.modelContext` 把自己的功能註冊成 tool，agent 在瀏覽器裡就能直接呼叫。後台留著給人用，同時開一個入口讓 agent 進來用，就是它想解決的問題。
 
 MCP 跑在 server 端，WebMCP 的 tool 則跑在頁面自己的 JavaScript 裡，沿用使用者當下在頁面上的登入 session。
+
+WebMCP 的 tool 是頁面載入時才註冊的，agent 只看得到當下這個頁面的 tool。使用者停在活動商品的編輯頁，頁面就只會註冊活動商品的 tool，agent 不用從幾百支工具裡猜該用 `general_product` 還是 `event_product`。
 
 [官方 explainer](https://github.com/webmachinelearning/webmcp) 把 human-in-the-loop 列為目標，也明確寫了不取代人用的介面。
 
@@ -222,7 +228,7 @@ Claude 打的不是內部 API，而是 Cloudflare 公開的 [GraphQL Analytics A
 
 >> **後台要怎麼做，才能讓 agent 也能操作？**
 
-背景工作交給 MCP server，需要人確認的操作留在後台，用 WebMCP 把門正式開出來，而不是讓 agent 繼續從 network 請求裡找後門。
+背景工作交給 MCP server，需要人確認的操作留在後台，用 WebMCP 把門正式開出來。每個頁面只註冊自己的 tool，agent 不用在幾百支工具裡猜，也不用繼續從 network 請求裡找後門。
 
 之後還會再寫另外一篇，探討使用者操作的網頁會不會 MCP 化？或是 AI 會不會取代既有的網頁流程？
 
@@ -237,6 +243,7 @@ Claude 打的不是內部 API，而是 Cloudflare 公開的 [GraphQL Analytics A
 - [Salesforce Headless 360](https://www.salesforce.com/headless/)
 - [WorkOS MCP](https://workos.com/blog/management-mcp-server)
 - [MCP-first apps](https://intl.growthrocks.com/articles/mcp-first-apps)
+- [Designing MCP Gateway: Uber's MCP Management Platform](https://www.uber.com/us/en/blog/designing-mcp-gateway/)
 - [SEP-1865: MCP Apps](https://modelcontextprotocol.io/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp)
 - [WebMCP explainer](https://github.com/webmachinelearning/webmcp)
 - [When to use WebMCP and MCP](https://developer.chrome.com/blog/webmcp-mcp-usage)
