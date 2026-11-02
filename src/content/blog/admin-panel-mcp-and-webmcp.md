@@ -92,6 +92,16 @@ MCP Apps（[SEP-1865](https://modelcontextprotocol.io/seps/1865-mcp-apps-interac
 - **權限、稽核和責任歸屬**：出問題時，是誰、在什麼時間、在哪個畫面按了確認？對話框臨時產生的卡片很難歸因。
 - **可發現性**：後台的側欄和選單會讓你看到有哪些功能，聊天框只會等你開口問，如果要接觸一個新的業務範圍，不熟悉後臺的人不一定能夠成功問對問題，甚至用錯了功能也有可能。
 
+### MCP Apps 會遇到的工程問題
+
+一個後台可能聚集了不只一個團隊的業務邏輯，營運、工程、行銷等，而且後台也可能由不只一個工程團隊維護。
+
+所以很現實的問題是 MCP tools 的數量難以控管。當所有團隊都想把自己的 API 加到 MCP server，agent 要面對數以百計的 tools，就算現在 agent 能「漸進式載入」，也會有上限。
+
+你可能會想說：「如果只把 tool 的 `title` 放到 context 呢？」
+
+問題是光看 `title`，agent 不一定知道「幫我寫入商品的描述」該用哪個 tool。舉例來說，系統可能區分一般商品和活動商品，如果使用者沒有指定，agent 只看 title 也分不出差別，只能回頭跟使用者確認是 `general_product` 還是 `event_product`，或把每個 tool 的細節都載進來，又回到 context 爆量的問題。
+
 ---
 
 ## WebMCP 是什麼？跟 MCP 差在哪？
@@ -102,7 +112,7 @@ MCP 跑在 server 端，WebMCP 的 tool 則跑在頁面自己的 JavaScript 裡�
 
 [官方 explainer](https://github.com/webmachinelearning/webmcp) 把 human-in-the-loop 列為目標，也明確寫了不取代人用的介面。
 
-Chrome 在 [When to use WebMCP and MCP](https://developer.chrome.com/blog/webmcp-mcp-usage) 這篇文章裡把兩者的分工講得很清楚：
+Chrome 在 [When to use WebMCP and MCP](https://developer.chrome.com/blog/webmcp-mcp-usage) 這篇文章裡區分了兩者的功能：
 
 | | MCP | WebMCP |
 |---|---|---|
@@ -167,13 +177,13 @@ await document.modelContext.getTools()
 
 ---
 
-## 但 agent 其實已經在查後台的數據了
+## 但 agent 有辦法透過「後門」的方式取得資料
 
 有趣的是，2026 年 10 月我請 agent 調查公司網站的流量變化，它確實從 Cloudflare dashboard 查到了數據。
 
-我回頭翻 tool call 紀錄，才知道它是怎麼做的：
+一開始我以為是 WebMCP，但後來回頭翻了 session 的紀錄：
 
-1. 用 Claude in Chrome 的 `javascript_tool`，在已登入的 dashboard 分頁裡執行 JavaScript
+1. Claude in Chrome 用 `javascript_tool`，在已登入的 dashboard 分頁裡執行 JavaScript
 2. 列出頁面載入的資源，發現 dashboard 前端會打 `dash.cloudflare.com/api/v4/graphql`
 3. 攔下 dashboard 自己送出的查詢，照著格式自己組 query
 4. 直接 `POST`，請求會自動帶上登入 cookie，不用另外申請 API token
@@ -186,11 +196,9 @@ await fetch('/api/v4/graphql', {
 }).then((r) => r.json())
 ```
 
-它查的是 `httpRequestsAdaptiveGroups`，依 cache status、狀態碼、userAgent 分組。
+Claude 打的不是內部 API，而是 Cloudflare 公開的 [GraphQL Analytics API](https://developers.cloudflare.com/analytics/graphql-api/)。
 
-這不是什麼內部 API，而是 Cloudflare 公開文件裡的 [GraphQL Analytics API](https://developers.cloudflare.com/analytics/graphql-api/)。差別只在入口，官方用法是打 `api.cloudflare.com` 並帶 API token，agent 則是走 dashboard 的路徑，借用使用者的登入身分。
-
->> agent 已經在用後台了，只是走的是後門。
+官方用法是打 `api.cloudflare.com` 並帶 API token，agent 則是走 dashboard 的路徑，借用使用者的登入身分。
 
 所以提供 API 讓 Agent 使用這也是一個方法，但是：
 
@@ -198,7 +206,7 @@ await fetch('/api/v4/graphql', {
 - **權限控管**：整個登入身分都交給 agent，網站沒辦法限制它能查什麼、能改什麼
 - **沒有確認步驟**：網站沒辦法要求「這個操作要使用者按確認」
 
-如果 dashboard 支援 WebMCP，Cloudflare 就能自己註冊像 `query_traffic(zone, range, groupBy)` 這樣的 tool，輸入格式是網站定的穩定約定，哪些操作開放、哪些要使用者確認，也由網站決定。
+如果 dashboard 支援 WebMCP，Cloudflare 就能自己註冊像 `query_traffic(zone, range, groupBy)` 這樣的 tool，輸入格式是網站定的約定，哪些操作開放、哪些要使用者確認，也可以由網站決定。
 
 ---
 
