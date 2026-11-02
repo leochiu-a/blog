@@ -164,13 +164,17 @@ const deg = Math.PI / 180;
  * dark frame, exactly what the paper is meant to replace on screen.
  */
 const printed = (paper: PaperHandle | null) => {
-  const material = paper?.mesh?.material as { uniforms?: { uFrontMap?: { value: unknown } } } | undefined;
+  const material = paper?.mesh?.material as
+    | { uniforms?: { uFrontMap?: { value: unknown } } }
+    | undefined;
   return Boolean(material?.uniforms?.uFrontMap?.value);
 };
 
 // Frames to draw with the article on the paper, unseen, before showing it:
 // the first after binding is the one that compiles the new shader.
 const WARM_UP = 3;
+// How long the paper may take to be ready before the send gives up on it.
+const LOAD_LIMIT = 8000;
 
 function Flight({
   sheet,
@@ -288,7 +292,8 @@ function Flight({
  * Mounts the scene over the page, plays it once, and takes it down. `onShow`
  * is called as the paper appears, for whatever it replaces to step aside.
  * Resolves when the plane is gone — or, at the latest, a little after it
- * should have been: a page that is not on screen does not draw frames, and a
+ * should have been, or once the paper has taken too long to be ready to show:
+ * a page that is not on screen does not draw frames, and a
  * send made from a background tab must not hold its receipt until the tab
  * comes back.
  */
@@ -304,12 +309,6 @@ export function fly(sheet: Sheet, onShow: () => void): Promise<void> {
   // Unseen until the paper is ready to be seen; see `Flight`.
   host.style.opacity = "0";
   document.body.appendChild(host);
-  const show = () => {
-    // Up through the dialog as it fades, not over it in a single frame.
-    host.style.opacity = "1";
-    host.animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.lift, easing: "ease-out" });
-    onShow();
-  };
 
   // Before the sheet first renders, so its mesh is sized for these creases.
   folding.folds = dartFolds(sheet.height / sheet.width);
@@ -321,6 +320,7 @@ export function fly(sheet: Sheet, onShow: () => void): Promise<void> {
     const finish = () => {
       if (finished) return;
       finished = true;
+      clearTimeout(deadline);
       // After the frame in which the plane left, not during it.
       queueMicrotask(() => {
         root.unmount();
@@ -328,9 +328,20 @@ export function fly(sheet: Sheet, onShow: () => void): Promise<void> {
         resolve();
       });
     };
-    // The texture is a picture already in memory and loads in a frame or
-    // two; the margin is for the frames themselves.
-    setTimeout(finish, T.gone + 1500);
+    // Two deadlines, because the flight's clock only starts once the paper is
+    // shown: getting there — the scene's first frames, the texture, the shader
+    // it needs — can take seconds on a first send. One deadline from mounting
+    // cut the plane off mid-throw whenever that ran long.
+    let deadline = setTimeout(finish, LOAD_LIMIT);
+    const show = () => {
+      clearTimeout(deadline);
+      // The margin is for the frames themselves.
+      deadline = setTimeout(finish, T.gone + 1500);
+      // Up through the dialog as it fades, not over it in a single frame.
+      host.style.opacity = "1";
+      host.animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.lift, easing: "ease-out" });
+      onShow();
+    };
     root.render(
       <Canvas
         camera={{ fov: FOV, position: [0, 0, distance], near: 0.01, far: 100 }}
