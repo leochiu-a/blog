@@ -114,7 +114,7 @@ MCP Apps（[SEP-1865](https://modelcontextprotocol.io/seps/1865-mcp-apps-interac
 
 MCP 跑在 server 端，WebMCP 的 tool 則跑在頁面自己的 JavaScript 裡，沿用使用者當下在頁面上的登入 session。
 
-WebMCP 的 tool 是頁面載入時才註冊的，agent 只看得到當下這個頁面的 tool。使用者停在活動商品的編輯頁，頁面就只會註冊活動商品的 tool，agent 不用從幾百支工具裡猜該用 `general_product` 還是 `event_product`。
+WebMCP 的 tool 由頁面自己註冊，agent 只看得到當下這個頁面的 tool。使用者停在活動商品的編輯頁，頁面就只會註冊活動商品的 tool，agent 不用從幾百支工具裡猜該用 `general_product` 還是 `event_product`。
 
 [官方 explainer](https://github.com/webmachinelearning/webmcp) 把 human-in-the-loop 列為目標，也明確寫了不取代人用的介面。
 
@@ -129,7 +129,7 @@ Chrome 在 [When to use WebMCP and MCP](https://developer.chrome.com/blog/webmcp
 
 套到後台上，分工大概是：
 
-- 背景、批次、跨系統的工作，交給 MCP server
+- 背景、批次、跨系統的工作，交給 MCP server，工具一多就得像 Uber 那樣加一層搜尋和審核
 - 需要人看著、確認的操作，用 WebMCP 讓 agent 在後台畫面裡把表單填好，最後由人按送出
 
 ### 現在能用 WebMCP 了嗎？
