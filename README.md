@@ -13,6 +13,7 @@ Leo Chiu 的個人網站與部落格。
 
 寫過的文章：
 
+- 2026-11-03 [評分拉高真的會帶來訂單嗎？線上評論、轉換率與回購的研究筆記](https://leochiu.com/blog/review-score-and-conversion/)
 - 2026-11-01 [後台真的會被 MCP 取代嗎？從 MCP Apps 到 WebMCP 的實測與思考](https://leochiu.com/blog/admin-panel-mcp-and-webmcp/)
 - 2026-10-26 [每個新功能都要賺錢嗎？一個工程師對「不賺錢功能」的研究筆記](https://leochiu.com/blog/should-every-feature-make-money/)
 - 2026-10-13 [Popover vs Dialog vs Modal：搞懂原生 Web 彈窗的正確選型](https://leochiu.com/blog/popover-vs-dialog/)
